@@ -1,9 +1,11 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,7 +17,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class BluetoothService {
+public class BluetoothService extends Activity {
 
     // Debugging
     private static final String TAG = "BluetoothService";
@@ -37,15 +39,44 @@ public class BluetoothService {
     private AcceptThread mInsecureAcceptThread;
     private ArrayList<ConnectedThread> mConnectedThreadList;
 
-    /**
-     * Constructor. Prepares a new BluetoothChat session.
-     *
-     * @param handler A Handler to send messages back to the UI Activity
-     */
+        /**
+         * Constructor. Prepares a new BluetoothChat session.
+         *
+         * @param handler A Handler to send messages back to the UI Activity
+         */
     public BluetoothService(Handler handler) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
+
         mHandler = handler;
         mConnectedThreadList = new ArrayList<>();
+
+        // If BT is not on, request that it be enabled.
+        // setupChat() will then be called during onActivityResult
+        if (!mAdapter.isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+
+            // TODO: static member?
+            final int REQUEST_ENABLE_BT = 3;
+
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            // Otherwise, setup the chat session
+        }
+
+        ensureDiscoverable();
+    }
+
+    /**
+     * Makes this device discoverable for 300 seconds (5 minutes).
+     * This is the maximal possible value.
+     * */
+    private void ensureDiscoverable() {
+        if (mAdapter.getScanMode() !=
+                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(discoverableIntent);
+        }
     }
 
     /**
