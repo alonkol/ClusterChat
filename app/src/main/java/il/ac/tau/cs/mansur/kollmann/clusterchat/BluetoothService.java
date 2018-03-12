@@ -63,9 +63,9 @@ public class BluetoothService {
         mInsecureAcceptThread = new AcceptThread(false);
         mInsecureAcceptThread.start();
 
+        mAdapter.startDiscovery();
         // TODO: get all paired devices and connect to them. (Foreach - start a ConnectThread).
     }
-
 
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice
             device, final String socketType) {
