@@ -51,6 +51,16 @@ public class BluetoothService extends Activity {
         mHandler = handler;
         mConnectedThreadList = new ArrayList<>();
 
+        start();
+    }
+
+    /**
+     * Start the chat service. Specifically start AcceptThread to begin a
+     * session in listening (server) mode. Called by the Activity onResume()
+     */
+    public synchronized void start() {
+        Log.d(TAG, "start");
+
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
         if (!mAdapter.isEnabled()) {
@@ -64,7 +74,16 @@ public class BluetoothService extends Activity {
         }
 
         ensureDiscoverable();
+
+        // Start the thread to listen on a BluetoothServerSocket
+        mSecureAcceptThread = new AcceptThread(true);
+        mSecureAcceptThread.start();
+        mInsecureAcceptThread = new AcceptThread(false);
+        mInsecureAcceptThread.start();
+
+        // TODO: get all paired devices and connect to them. (Foreach - start a ConnectThread).
     }
+
 
     /**
      * Makes this device discoverable for 300 seconds (5 minutes).
@@ -77,20 +96,6 @@ public class BluetoothService extends Activity {
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
             startActivity(discoverableIntent);
         }
-    }
-
-    /**
-     * Start the chat service. Specifically start AcceptThread to begin a
-     * session in listening (server) mode. Called by the Activity onResume()
-     */
-    public synchronized void start() {
-        Log.d(TAG, "start");
-
-        // Start the thread to listen on a BluetoothServerSocket
-        mSecureAcceptThread = new AcceptThread(true);
-        mSecureAcceptThread.start();
-        mInsecureAcceptThread = new AcceptThread(false);
-        mInsecureAcceptThread.start();
     }
 
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice

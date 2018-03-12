@@ -6,6 +6,8 @@ import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
 
+    private BluetoothService mBluetoothService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -13,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
         // TODO: create message handler
         Handler handler = new Handler();
-        BluetoothService bluetoothService = new BluetoothService(handler);
+        mBluetoothService = new BluetoothService(handler);
 
     }
 }
