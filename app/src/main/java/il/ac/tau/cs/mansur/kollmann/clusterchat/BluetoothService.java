@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 public class BluetoothService {
@@ -63,7 +65,9 @@ public class BluetoothService {
         mInsecureAcceptThread = new AcceptThread(false);
         mInsecureAcceptThread.start();
 
-        mAdapter.startDiscovery();
+        // do discovery every 5 seconds
+        Timer t = new Timer();
+        t.schedule(new discoverTask(), 1000L, 10000L);
         // TODO: get all paired devices and connect to them. (Foreach - start a ConnectThread).
     }
 
@@ -290,6 +294,16 @@ public class BluetoothService {
             } catch (IOException e) {
                 Log.e(TAG, "close() of connect socket failed", e);
             }
+        }
+    }
+
+    class discoverTask extends TimerTask{
+
+        @Override
+        public void run() {
+            Log.d(TAG, "discovering...");
+            mAdapter.cancelDiscovery();
+            mAdapter.startDiscovery();
         }
     }
 }
