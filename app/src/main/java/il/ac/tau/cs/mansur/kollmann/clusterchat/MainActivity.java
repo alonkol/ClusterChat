@@ -22,6 +22,7 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
+    private BluetoothService mBluetoothService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
         // TODO: create message handler
         Handler handler = new Handler();
-        BluetoothService mBluetoothService = new BluetoothService(handler);
+        mBluetoothService = new BluetoothService(handler);
 
     }
 

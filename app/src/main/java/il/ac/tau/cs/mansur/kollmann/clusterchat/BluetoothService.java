@@ -30,12 +30,17 @@ public class BluetoothService {
     private static final UUID MY_UUID_INSECURE =
             UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
+    // Constants
+    private static final long CONNECT_TIMEOUT_MS = 10000;
+
     // Member fields
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
     private ArrayList<ConnectedThread> mConnectedThreadList;
+    private ArrayList<ConnectThread> mConnectThreads;
+    private KillOldConnectAttemptsThread mKillOldConnectAttemptsThread;
 
         /**
          * Constructor. Prepares a new BluetoothChat session.
@@ -48,6 +53,7 @@ public class BluetoothService {
 
         mHandler = handler;
         mConnectedThreadList = new ArrayList<>();
+        mConnectThreads = new ArrayList<>();
 
         start();
     }
@@ -68,7 +74,17 @@ public class BluetoothService {
         // do discovery every 5 seconds
         Timer t = new Timer();
         t.schedule(new discoverTask(), 1000L, 10000L);
+
+        // Start thread to kill old connect attempts
+        mKillOldConnectAttemptsThread = new KillOldConnectAttemptsThread();
+        mKillOldConnectAttemptsThread.start();
+
         // TODO: get all paired devices and connect to them. (Foreach - start a ConnectThread).
+    }
+
+    public void connect(BluetoothDevice device){
+        ConnectThread thread = new ConnectThread(device, true);
+        mConnectThreads.add(thread);
     }
 
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice
@@ -178,6 +194,7 @@ public class BluetoothService {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
         private String mSocketType;
+        private long mStartTime;
 
         public ConnectThread(BluetoothDevice device, boolean secure) {
             mmDevice = device;
@@ -202,6 +219,7 @@ public class BluetoothService {
 
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + mSocketType);
+            mStartTime = System.currentTimeMillis();
             setName("ConnectThread" + mSocketType);
 
             // Make a connection to the BluetoothSocket
@@ -231,6 +249,10 @@ public class BluetoothService {
             } catch (IOException e) {
                 Log.e(TAG, "close() of connect " + mSocketType + " socket failed", e);
             }
+        }
+
+        public long getStartTime(){
+            return mStartTime;
         }
     }
 
@@ -304,6 +326,26 @@ public class BluetoothService {
             Log.d(TAG, "discovering...");
             mAdapter.cancelDiscovery();
             mAdapter.startDiscovery();
+        }
+    }
+
+    private class KillOldConnectAttemptsThread extends Thread {
+        public void run(){
+            while (true) {
+                for (int i = mConnectThreads.size(); i >= 0; i--){
+                    ConnectThread thread = mConnectThreads.get(i);
+                    if (thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
+                        thread.cancel();
+                        mConnectThreads.remove(i);
+                    }
+                }
+
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e){
+                    Log.d(TAG, "Exception: " + e.getMessage());
+                }
+            }
         }
     }
 }
