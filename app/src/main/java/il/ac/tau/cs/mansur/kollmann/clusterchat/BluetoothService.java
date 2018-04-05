@@ -13,7 +13,11 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Timer;
@@ -78,7 +82,7 @@ public class BluetoothService {
 
         // do discovery every 10 seconds
         Timer t = new Timer();
-        t.schedule(new discoverTask(), 1000L, 60*1000);
+        t.schedule(new discoverTask(), 5 * 1000, 60*1000);
 
         // Start thread to kill old connect attempts
         mKillOldConnectAttemptsThread = new KillOldConnectAttemptsThread();
@@ -198,15 +202,40 @@ public class BluetoothService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-                // mmDevice.fetchUuidsWithSdp();
                 ParcelUuid[] uuids = mmDevice.getUuids();
-                // TODO: make sure sorted
-                UUID uuid = uuids[uuids.length - 1].getUuid();
-                tmp = device.createRfcommSocketToServiceRecord(uuid);
-            } catch (IOException e) {
+                UUID uuid = findUuid(uuids);
+                while (uuid == null) {
+                    mmDevice.fetchUuidsWithSdp(); // TODO: need this?
+                    Thread.sleep(5000);
+                    uuids = mmDevice.getUuids();
+                    uuid = findUuid(uuids);
+                }
+
+                // TODO: when is this swapped and when is not?
+                tmp = device.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
+            } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
             }
             mmSocket = tmp;
+        }
+
+        private UUID byteSwappedUuid(UUID toSwap) {
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            buffer
+                    .putLong(toSwap.getLeastSignificantBits())
+                    .putLong(toSwap.getMostSignificantBits());
+            buffer.rewind();
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            return new UUID(buffer.getLong(), buffer.getLong());
+        }
+
+        private UUID findUuid(ParcelUuid[] uuids){
+            for (int i = 0; i < uuids.length; i++) {
+                if (uuids[i].getUuid().toString().endsWith("ffffffff")){
+                    return uuids[i].getUuid();
+                }
+            }
+            return null;
         }
 
         public void run() {
