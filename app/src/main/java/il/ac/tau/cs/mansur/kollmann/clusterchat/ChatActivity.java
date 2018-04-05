@@ -41,14 +41,15 @@ public class ChatActivity extends AppCompatActivity {
         Log.d(TAG, String.format("Init chatService for device %s address %s" ,mdeviceName, mdeviceAddress));
         mThread = MainActivity.mBluetoothService.getConnectedThread(mdeviceAddress);
         if (mThread == null){
-            Log.d(TAG, "Connection thread not found");
+            Log.e(TAG, "Connection thread not found");
+            finish();
         }
         getSupportActionBar().setTitle(mdeviceName);
 
         mConversationView = (ListView) findViewById(R.id.in);
         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
         mSendButton = (Button) findViewById(R.id.button_send);
-
+        setupChat();
     }
 
     /**

@@ -46,6 +46,7 @@ public class BluetoothService {
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private final Handler mUiConnectHandler;
+    private final MessageHandler mMessageHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
     private HashMap<String, ConnectedThread> mConnectedThreadsMap;
@@ -63,6 +64,7 @@ public class BluetoothService {
 
         mHandler = handler;
         mUiConnectHandler = new Handler();
+        mMessageHandler = new MessageHandler();
         mConnectedThreadsMap = new HashMap<>();
         mConnectThreads = new ArrayList<>();
 
@@ -77,10 +79,10 @@ public class BluetoothService {
         Log.d(TAG, "start");
 
         // Start the thread to listen on a BluetoothServerSocket
-        mSecureAcceptThread = new AcceptThread(true);
-        mSecureAcceptThread.start();
-//        mInsecureAcceptThread = new AcceptThread(false);
-//        mInsecureAcceptThread.start();
+//        mSecureAcceptThread = new AcceptThread(true);
+//        mSecureAcceptThread.start();
+        mInsecureAcceptThread = new AcceptThread(false);
+        mInsecureAcceptThread.start();
 
         // do discovery every 10 seconds
         Timer t = new Timer();
@@ -96,7 +98,7 @@ public class BluetoothService {
     }
 
     public void connect(BluetoothDevice device){
-        ConnectThread thread = new ConnectThread(device, true);
+        ConnectThread thread = new ConnectThread(device, false);
         thread.start();
         mConnectThreads.add(thread);
     }
@@ -106,7 +108,7 @@ public class BluetoothService {
         Log.d(TAG, "connected, Socket Type:" + socketType);
 
         // Start the thread to manage the connection and perform transmissions
-        ConnectedThread thread = new ConnectedThread(socket, socketType);
+        ConnectedThread thread = new ConnectedThread(socket, socketType, device.getAddress());
         mConnectedThreadsMap.put(device.getAddress(), thread);
         thread.start();
     }
@@ -298,14 +300,15 @@ public class BluetoothService {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
-        private final Handler mHandler;
+        private final String deviceAddress;
 
-        public ConnectedThread(BluetoothSocket socket, String socketType) {
+        public ConnectedThread(BluetoothSocket socket, String socketType, String deviceAddress) {
             Log.d(TAG, "create ConnectedThread: " + socketType);
             mmSocket = socket;
-            mHandler = new Handler();
+            this.deviceAddress = deviceAddress;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
+
 
             // Get the BluetoothSocket input and output streams
             try {
@@ -331,7 +334,7 @@ public class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
 
-                    mHandler.obtainMessage(MessageHandler.MESSAGE_READ, bytes, -1, buffer)
+                    mMessageHandler.obtainMessage(MessageHandler.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
@@ -339,6 +342,10 @@ public class BluetoothService {
                     break;
                 }
             }
+        }
+
+        private void connectionLost() {
+            mConnectedThreadsMap.remove(deviceAddress);
         }
 
         public void write(byte[] buffer) {

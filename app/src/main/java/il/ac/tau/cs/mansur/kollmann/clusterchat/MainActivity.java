@@ -57,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
 
-        mBluetoothService = new BluetoothService();
+        Handler handler = new Handler();
+        mBluetoothService = new BluetoothService(handler);
     }
 
     /**
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
-            String name = info.substring(0, info.length() - 17);
+            String name = info.substring(0, info.length() - 18);
             Intent intent = new Intent(mainActivity, ChatActivity.class);
             intent.putExtra("clusterchat.deviceName", name);
             intent.putExtra("clusterchat.deviceAddress", address);
