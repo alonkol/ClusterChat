@@ -103,12 +103,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, deviceLabel);
                 }
                 // }
-                // When discovery is finished, change the Activity title
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                if (mNewDevicesArrayAdapter.getCount() == 0) {
-                    String noDevices = getResources().getText(R.string.none_found).toString();
-                    mNewDevicesArrayAdapter.add(noDevices);
-                }
+
+                mBluetoothService.connect(device);
             }
         }
     };

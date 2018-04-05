@@ -71,7 +71,7 @@ public class BluetoothService {
         mInsecureAcceptThread = new AcceptThread(false);
         mInsecureAcceptThread.start();
 
-        // do discovery every 5 seconds
+        // do discovery every 10 seconds
         Timer t = new Timer();
         t.schedule(new discoverTask(), 1000L, 10000L);
 
@@ -84,6 +84,7 @@ public class BluetoothService {
 
     public void connect(BluetoothDevice device){
         ConnectThread thread = new ConnectThread(device, true);
+        thread.start();
         mConnectThreads.add(thread);
     }
 
