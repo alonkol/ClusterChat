@@ -20,8 +20,7 @@ public class ChatActivity extends AppCompatActivity {
         Intent intent = getIntent();
         mdeviceName = intent.getStringExtra("clusterchat.deviceName");
         mdeviceAddress = intent.getStringExtra("clusterchat.deviceAddress");
-        mThread = MainActivity.mBluetoothService.mConnectedThreadList.get(0);
         Log.d(TAG, String.format("Init chatService for device %s address %s" ,mdeviceName, mdeviceAddress));
-        // mThread = MainActivity.mBluetoothService.getConnectedThread(mdeviceAddress);
+        mThread = MainActivity.mBluetoothService.getConnectedThread(mdeviceAddress);
     }
 }
