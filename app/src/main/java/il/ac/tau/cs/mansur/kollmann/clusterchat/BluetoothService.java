@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
@@ -24,6 +26,12 @@ public class BluetoothService {
     // Name for the SDP record when creating server socket
     private static final String NAME_SECURE = "BluetoothChatSecure";
     private static final String NAME_INSECURE = "BluetoothChatInsecure";
+
+    // Constants that indicate the current connection state
+    public static final int STATE_NONE = 0;       // we're doing nothing
+    public static final int STATE_LISTEN = 1;     // now listening for incoming connections
+    public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
+    public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
     // Unique UUID for this application
     private static final UUID MY_UUID_SECURE =
@@ -290,10 +298,12 @@ public class BluetoothService {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
+        private final Handler mHandler;
 
         public ConnectedThread(BluetoothSocket socket, String socketType) {
             Log.d(TAG, "create ConnectedThread: " + socketType);
             mmSocket = socket;
+            mHandler = new Handler();
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
@@ -321,9 +331,7 @@ public class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
 
-                    // TODO: Set action as global const
-                    final int MESSAGE_READ = 0;
-                    mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+                    mHandler.obtainMessage(MessageHandler.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
@@ -333,9 +341,8 @@ public class BluetoothService {
             }
         }
 
-        // TODO: implement
         public void write(byte[] buffer) {
-
+            this.write(buffer);
         }
 
         public void cancel() {
@@ -378,4 +385,5 @@ public class BluetoothService {
             }
         }
     }
+
 }

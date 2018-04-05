@@ -57,9 +57,7 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
 
-        // TODO: create message handler
-        Handler handler = new Handler();
-        mBluetoothService = new BluetoothService(handler);
+        mBluetoothService = new BluetoothService();
     }
 
     /**
