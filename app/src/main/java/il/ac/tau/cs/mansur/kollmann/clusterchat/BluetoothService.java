@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -38,7 +39,7 @@ public class BluetoothService {
     private final Handler mHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
-    private ArrayList<ConnectedThread> mConnectedThreadList;
+    private HashMap<String, ConnectedThread> mConnectedThreadsMap;
     private ArrayList<ConnectThread> mConnectThreads;
     private KillOldConnectAttemptsThread mKillOldConnectAttemptsThread;
 
@@ -52,7 +53,7 @@ public class BluetoothService {
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
 
         mHandler = handler;
-        mConnectedThreadList = new ArrayList<>();
+        mConnectedThreadsMap = new HashMap<>();
         mConnectThreads = new ArrayList<>();
 
         start();
@@ -78,8 +79,10 @@ public class BluetoothService {
         // Start thread to kill old connect attempts
         mKillOldConnectAttemptsThread = new KillOldConnectAttemptsThread();
         mKillOldConnectAttemptsThread.start();
+    }
 
-        // TODO: get all paired devices and connect to them. (Foreach - start a ConnectThread).
+    public ConnectedThread getConnectedThread(String device_id) {
+        return mConnectedThreadsMap.get(device_id);
     }
 
     public void connect(BluetoothDevice device){
@@ -94,7 +97,7 @@ public class BluetoothService {
 
         // Start the thread to manage the connection and perform transmissions
         ConnectedThread thread = new ConnectedThread(socket, socketType);
-        mConnectedThreadList.add(thread);
+        mConnectedThreadsMap.put(device.getAddress(), thread);
         thread.start();
 
         // TODO: Send the name of the connected device back to the UI Activity
@@ -115,7 +118,7 @@ public class BluetoothService {
         private final BluetoothServerSocket mmServerSocket;
         private String mSocketType;
 
-        public AcceptThread(boolean secure) {
+        AcceptThread(boolean secure) {
             BluetoothServerSocket tmp = null;
             mSocketType = secure ? "Secure" : "Insecure";
 
@@ -156,15 +159,15 @@ public class BluetoothService {
                 // If a connection was accepted
                 if (socket != null) {
 
-                    // TODO
                     // if already connected, Terminate new socket.
-//                    try {
-//                        socket.close();
-//                    } catch (IOException e) {
-//                        Log.e(TAG, "Could not close unwanted socket", e);
-//                    }
-//                    break;
-
+                    if (mConnectedThreadsMap.containsKey(socket.getRemoteDevice().getAddress())) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            Log.e(TAG, "Could not close unwanted socket", e);
+                        }
+                        continue;
+                    }
 
                     // Normal situation - start the connected thread.
                     connected(socket, socket.getRemoteDevice(),
@@ -222,6 +225,17 @@ public class BluetoothService {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + mSocketType);
             mStartTime = System.currentTimeMillis();
             setName("ConnectThread" + mSocketType);
+
+            // if already connected, return.
+            if (mConnectedThreadsMap.containsKey(mmDevice.getAddress())) {
+                Log.i(TAG, "Already connected to device: " + mmDevice.getName());
+                try {
+                    mmSocket.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Could not close unwanted socket", e);
+                }
+                return;
+            }
 
             // Make a connection to the BluetoothSocket
             try {
