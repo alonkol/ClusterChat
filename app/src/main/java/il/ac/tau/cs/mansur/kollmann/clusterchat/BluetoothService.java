@@ -256,6 +256,12 @@ public class BluetoothService {
 
             // Start the connected thread
             connected(mmSocket, mmDevice, mSocketType);
+
+            // Update UI
+            String deviceName = mmDevice.getName() == null ? "Unknown" : mmDevice.getName();
+            String deviceLabel = deviceName + "\n" + mmDevice.getAddress();
+            MainActivity.mConnectedDevicesArrayAdapter.add(deviceLabel);
+            Log.d(TAG, deviceLabel);
         }
 
         public void cancel() {
@@ -269,6 +275,7 @@ public class BluetoothService {
         public long getStartTime(){
             return mStartTime;
         }
+
     }
 
     /**

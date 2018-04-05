@@ -1,7 +1,6 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -12,7 +11,6 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -23,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
     private Context mContext;
     private MainActivity mainActivity;
-    private ArrayAdapter<String> mNewDevicesArrayAdapter;
+    public static ArrayAdapter<String> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
 
     @Override
@@ -50,9 +48,9 @@ public class MainActivity extends AppCompatActivity {
         ensureDiscoverable();
 
         // Find and set up the ListView for newly discovered devices
-        mNewDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
+        mConnectedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
         ListView newDevicesListView = (ListView) findViewById(R.id.conversations);
-        newDevicesListView.setAdapter(mNewDevicesArrayAdapter);
+        newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
         // Register for broadcasts when a device is discovered
@@ -62,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         // TODO: create message handler
         Handler handler = new Handler();
         mBluetoothService = new BluetoothService(handler);
-
     }
 
     /**
@@ -103,30 +100,9 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                // If it's already paired, skip it, because it's been listed already
-//                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                if (checkIfValidName(device.getName(), device.getAddress())) {
-                    String deviceLabel = device.getName() + "\n" + device.getAddress();
-                    mNewDevicesArrayAdapter.add(deviceLabel);
-                    Log.d(TAG, deviceLabel);
-                }
                 mBluetoothService.connect(device);
             }
         }
     };
-
-    private boolean checkIfValidName(String deviceName, String deviceAddress) {
-        if (deviceName==null){
-            return false;
-        }
-        String deviceLabel = deviceName + "\n" + deviceAddress;
-        for (int i=0; i<mNewDevicesArrayAdapter.getCount(); i++){
-            String currentLabel = mNewDevicesArrayAdapter.getItem(i);
-            if (currentLabel.equals(deviceLabel)){
-                return false;
-            }
-        }
-        return true;
-    }
 
 }
