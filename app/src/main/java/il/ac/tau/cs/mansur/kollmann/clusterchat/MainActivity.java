@@ -97,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
 //                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                String deviceLabel = device.getName() + "\n" + device.getAddress();
-                if (checkIfValidName(deviceLabel)) {
+                if (checkIfValidName(device.getName(), device.getAddress())) {
+                    String deviceLabel = device.getName() + "\n" + device.getAddress();
                     mNewDevicesArrayAdapter.add(deviceLabel);
                     Log.d(TAG, deviceLabel);
                 }
@@ -113,7 +113,11 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private boolean checkIfValidName(String deviceLabel) {
+    private boolean checkIfValidName(String deviceName, String deviceAddress) {
+        if (deviceName==null){
+            return false;
+        }
+        String deviceLabel = deviceName + "\n" + deviceAddress;
         for (int i=0; i<mNewDevicesArrayAdapter.getCount(); i++){
             String currentLabel = mNewDevicesArrayAdapter.getItem(i);
             if (currentLabel.equals(deviceLabel)){
