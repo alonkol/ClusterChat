@@ -31,7 +31,7 @@ public class BluetoothService {
             UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
     // Constants
-    private static final long CONNECT_TIMEOUT_MS = 10000;
+    private static final long CONNECT_TIMEOUT_MS = 50000;
 
     // Member fields
     private final BluetoothAdapter mAdapter;
@@ -294,9 +294,10 @@ public class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
 
-                    // TODO: Send the obtained bytes to the UI Activity
-//                    mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
-//                            .sendToTarget();
+                    // TODO: Set action as global const
+                    final int MESSAGE_READ = 0;
+                    mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+                            .sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
                     connectionLost();
@@ -332,7 +333,7 @@ public class BluetoothService {
     private class KillOldConnectAttemptsThread extends Thread {
         public void run(){
             while (true) {
-                for (int i = mConnectThreads.size(); i >= 0; i--){
+                for (int i = mConnectThreads.size() - 1; i >= 0; i--){
                     ConnectThread thread = mConnectThreads.get(i);
                     if (thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
                         thread.cancel();
