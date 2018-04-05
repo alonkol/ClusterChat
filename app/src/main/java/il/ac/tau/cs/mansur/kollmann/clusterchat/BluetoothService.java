@@ -124,7 +124,9 @@ public class BluetoothService {
 
             // Create a new listening server socket
             try {
-                tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, UUID.randomUUID());
+                // Create random guid with 'ffffffff' prefix
+                UUID uuid = UUID.fromString("ffffffff" + UUID.randomUUID().toString().substring(8));
+                tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
             } catch (IOException e) {
                 Log.e(TAG, "Socket listen() failed", e);
             }
@@ -198,7 +200,8 @@ public class BluetoothService {
             try {
                 // mmDevice.fetchUuidsWithSdp();
                 ParcelUuid[] uuids = mmDevice.getUuids();
-                UUID uuid = uuids[0].getUuid();
+                // TODO: make sure sorted
+                UUID uuid = uuids[uuids.length - 1].getUuid();
                 tmp = device.createRfcommSocketToServiceRecord(uuid);
             } catch (IOException e) {
                 Log.e(TAG, "Socket create() failed", e);
