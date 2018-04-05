@@ -21,14 +21,17 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
+    private Context mContext;
+    private MainActivity mainActivity;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
-    private BluetoothService mBluetoothService;
+    public static BluetoothService mBluetoothService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mContext = this.getApplicationContext();
+        mainActivity = this;
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
 
@@ -83,6 +86,11 @@ public class MainActivity extends AppCompatActivity {
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
+            String name = info.substring(0, info.length() - 17);
+            Intent intent = new Intent(mainActivity, ChatActivity.class);
+            intent.putExtra("clusterchat.deviceName", name);
+            intent.putExtra("clusterchat.deviceAddress", address);
+            startActivity(intent);
         }
     };
 
@@ -102,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
                     mNewDevicesArrayAdapter.add(deviceLabel);
                     Log.d(TAG, deviceLabel);
                 }
-                // }
-
                 mBluetoothService.connect(device);
             }
         }
