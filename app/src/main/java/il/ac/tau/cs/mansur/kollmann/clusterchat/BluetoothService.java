@@ -32,11 +32,12 @@ public class BluetoothService {
             UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
     // Constants
-    private static final long CONNECT_TIMEOUT_MS = 50000;
+    private static final long CONNECT_TIMEOUT_MS = 10000;
 
     // Member fields
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
+    private final Handler mUiConnectHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
     private HashMap<String, ConnectedThread> mConnectedThreadsMap;
@@ -53,6 +54,7 @@ public class BluetoothService {
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
 
         mHandler = handler;
+        mUiConnectHandler = new Handler();
         mConnectedThreadsMap = new HashMap<>();
         mConnectThreads = new ArrayList<>();
 
@@ -69,8 +71,8 @@ public class BluetoothService {
         // Start the thread to listen on a BluetoothServerSocket
         mSecureAcceptThread = new AcceptThread(true);
         mSecureAcceptThread.start();
-        mInsecureAcceptThread = new AcceptThread(false);
-        mInsecureAcceptThread.start();
+//        mInsecureAcceptThread = new AcceptThread(false);
+//        mInsecureAcceptThread.start();
 
         // do discovery every 10 seconds
         Timer t = new Timer();
@@ -99,8 +101,6 @@ public class BluetoothService {
         ConnectedThread thread = new ConnectedThread(socket, socketType);
         mConnectedThreadsMap.put(device.getAddress(), thread);
         thread.start();
-
-        // TODO: Send the name of the connected device back to the UI Activity
     }
 
     // TODO: Implement
@@ -200,7 +200,7 @@ public class BluetoothService {
         private String mSocketType;
         private long mStartTime;
 
-        public ConnectThread(BluetoothDevice device, boolean secure) {
+        ConnectThread(BluetoothDevice device, boolean secure) {
             mmDevice = device;
             BluetoothSocket tmp = null;
             mSocketType = secure ? "Secure" : "Insecure";
@@ -224,7 +224,7 @@ public class BluetoothService {
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + mSocketType);
             mStartTime = System.currentTimeMillis();
-            setName("ConnectThread" + mSocketType);
+            setName("ConnectThread-" + mmDevice.getName());
 
             // if already connected, return.
             if (mConnectedThreadsMap.containsKey(mmDevice.getAddress())) {
@@ -258,10 +258,14 @@ public class BluetoothService {
             connected(mmSocket, mmDevice, mSocketType);
 
             // Update UI
-            String deviceName = mmDevice.getName() == null ? "Unknown" : mmDevice.getName();
-            String deviceLabel = deviceName + "\n" + mmDevice.getAddress();
-            MainActivity.mConnectedDevicesArrayAdapter.add(deviceLabel);
-            Log.d(TAG, deviceLabel);
+            mUiConnectHandler.post(new Runnable() {
+                public void run() {
+                    String deviceName = mmDevice.getName() == null ? "Unknown" : mmDevice.getName();
+                    String deviceLabel = deviceName + "\n" + mmDevice.getAddress();
+                    MainActivity.mConnectedDevicesArrayAdapter.add(deviceLabel);
+                    Log.d(TAG, deviceLabel);
+                }
+            });
         }
 
         public void cancel() {
@@ -307,6 +311,7 @@ public class BluetoothService {
 
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
+            setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
             byte[] buffer = new byte[1024];
             int bytes;
 
@@ -354,6 +359,8 @@ public class BluetoothService {
 
     private class KillOldConnectAttemptsThread extends Thread {
         public void run(){
+            setName("OldConnectThreadKiller");
+
             while (true) {
                 for (int i = mConnectThreads.size() - 1; i >= 0; i--){
                     ConnectThread thread = mConnectThreads.get(i);
