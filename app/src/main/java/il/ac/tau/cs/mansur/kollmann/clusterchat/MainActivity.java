@@ -11,17 +11,20 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
     private Context mContext;
     private MainActivity mainActivity;
-    public static ArrayAdapter<String> mConnectedDevicesArrayAdapter;
+    private static ArrayAdapter<String> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
 
     @Override
@@ -53,12 +56,29 @@ public class MainActivity extends AppCompatActivity {
         newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
+        // Load existing conversations
+        File dir = getDir("Conversations", MODE_PRIVATE);
+        for (File contact: dir.listFiles()) {
+            addDeviceLabelToUi("name", contact.getName());
+        }
+
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
 
         Handler handler = new Handler();
         mBluetoothService = new BluetoothService(handler);
+    }
+
+    // Adding device to UI
+    public static void addDeviceToUi(BluetoothDevice device) {
+        addDeviceLabelToUi(device.getName(), device.getAddress());
+    }
+
+    private static void addDeviceLabelToUi(String name, String address) {
+        String deviceName = name == null ? "Unknown" : name;
+        String deviceLabel = deviceName + "\n" + address;
+        MainActivity.mConnectedDevicesArrayAdapter.add(deviceLabel);
     }
 
     /**
@@ -99,7 +119,10 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                mBluetoothService.connect(device);
+
+                if (device.getName() != null){
+                    mBluetoothService.connect(device);
+                }
             }
         }
     };

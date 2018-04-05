@@ -86,7 +86,7 @@ public class BluetoothService {
 
         // do discovery every 10 seconds
         Timer t = new Timer();
-        t.schedule(new discoverTask(), 1000L, 10000L);
+        t.schedule(new discoverTask(), 1000L, 60*1000);
 
         // Start thread to kill old connect attempts
         mKillOldConnectAttemptsThread = new KillOldConnectAttemptsThread();
@@ -270,10 +270,7 @@ public class BluetoothService {
             // Update UI
             mUiConnectHandler.post(new Runnable() {
                 public void run() {
-                    String deviceName = mmDevice.getName() == null ? "Unknown" : mmDevice.getName();
-                    String deviceLabel = deviceName + "\n" + mmDevice.getAddress();
-                    MainActivity.mConnectedDevicesArrayAdapter.add(deviceLabel);
-                    Log.d(TAG, deviceLabel);
+                    MainActivity.addDeviceToUi(mmDevice);
                 }
             });
         }
