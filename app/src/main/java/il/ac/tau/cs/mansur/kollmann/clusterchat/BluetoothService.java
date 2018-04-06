@@ -59,7 +59,7 @@ public class BluetoothService {
     public BluetoothService(Handler handler) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
-
+        MainActivity.myDeviceName = mAdapter.getName();
         mHandler = handler;
         mUiConnectHandler = new Handler();
         mMessageHandler = new MessageHandler();
@@ -197,15 +197,17 @@ public class BluetoothService {
 
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
+            Log.i(TAG, "trying to connect to " + device.getName());
             BluetoothSocket tmp = null;
 
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
+                mmDevice.fetchUuidsWithSdp();
                 ParcelUuid[] uuids = mmDevice.getUuids();
                 UUID uuid = findUuid(uuids);
                 while (uuid == null) {
-                    mmDevice.fetchUuidsWithSdp(); // TODO: need this?
+                    mmDevice.fetchUuidsWithSdp();
                     Thread.sleep(5000);
                     uuids = mmDevice.getUuids();
                     uuid = findUuid(uuids);
@@ -215,6 +217,7 @@ public class BluetoothService {
                 tmp = device.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
+                // TODO need to kill thread now!!!!
             }
             mmSocket = tmp;
         }
@@ -239,6 +242,10 @@ public class BluetoothService {
         }
 
         public void run() {
+            if (mmSocket == null){
+                connectionFailed();
+                return;
+            }
             Log.i(TAG, "BEGIN mConnectThread");
             mStartTime = System.currentTimeMillis();
             setName("ConnectThread-" + mmDevice.getName());
@@ -283,7 +290,8 @@ public class BluetoothService {
 
         public void cancel() {
             try {
-                mmSocket.close();
+                if (mmSocket != null)
+                    mmSocket.close();
             } catch (IOException e) {
                 Log.e(TAG, "close() of connect socket failed", e);
             }
@@ -351,8 +359,8 @@ public class BluetoothService {
             mConnectedThreadsMap.remove(deviceAddress);
         }
 
-        public void write(byte[] buffer) {
-            this.write(buffer);
+        public void write(byte[] buffer) throws IOException {
+            mmOutStream.write(buffer);
         }
 
         public void cancel() {
@@ -381,10 +389,10 @@ public class BluetoothService {
             while (true) {
                 for (int i = mConnectThreads.size() - 1; i >= 0; i--){
                     ConnectThread thread = mConnectThreads.get(i);
-                    if (thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
+                    if (thread != null && thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
                         thread.cancel();
-                        mConnectThreads.remove(i);
                     }
+                    mConnectThreads.remove(i);
                 }
 
                 try {

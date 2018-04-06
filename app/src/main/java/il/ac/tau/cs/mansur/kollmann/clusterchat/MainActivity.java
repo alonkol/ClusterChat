@@ -22,10 +22,12 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
+    public static String myDeviceName;
     private Context mContext;
     private MainActivity mainActivity;
     private static ArrayAdapter<String> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
+    public static ConversationsManager mConversationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,18 +58,20 @@ public class MainActivity extends AppCompatActivity {
         newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
-        // Load existing conversations
-        File dir = getDir("Conversations", MODE_PRIVATE);
-        for (File contact: dir.listFiles()) {
-            addDeviceLabelToUi("name", contact.getName());
-        }
-
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
 
         Handler handler = new Handler();
         mBluetoothService = new BluetoothService(handler);
+        mConversationManager = new ConversationsManager();
+
+        // Load existing conversations
+        File dir = getDir("Conversations", MODE_PRIVATE);
+        for (File contact: dir.listFiles()) {
+            // TODO add to convesationManager
+            addDeviceLabelToUi("name", contact.getName());
+        }
     }
 
     // Adding device to UI

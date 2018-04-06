@@ -17,12 +17,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.util.List;
+
 public class ChatActivity extends AppCompatActivity {
 
     private static final String TAG = "ChatActivity";
     public static String mdeviceName;
     private BluetoothService.ConnectedThread mThread;
     private String mdeviceAddress;
+    private Integer mCurrentIndex;
 
     // Layout Views
     private ListView mConversationView;
@@ -49,6 +53,7 @@ public class ChatActivity extends AppCompatActivity {
         mConversationView = (ListView) findViewById(R.id.in);
         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
         mSendButton = (Button) findViewById(R.id.button_send);
+        mCurrentIndex = 0;
         setupChat();
     }
 
@@ -75,6 +80,17 @@ public class ChatActivity extends AppCompatActivity {
         });
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
+        addMessagesToUI();
+    }
+
+    private void addMessagesToUI(){
+        // Get messages from ConversationManager
+        List<String> conversations = MainActivity.mConversationManager.getMessagesForConversation(
+                mdeviceName, mCurrentIndex);
+        for(String message: conversations){
+            mConversationArrayAdapter.add(message);
+        }
+        mCurrentIndex += conversations.size();
     }
 
     /**
@@ -85,13 +101,20 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage(String message) {
         // Check that there's actually something to send
         if (message.length() > 0) {
+            String newMessage = String.format("%s~%s", MainActivity.myDeviceName, message);
             // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mThread.write(send);
+            byte[] send = newMessage.getBytes();
+            try {
+                mThread.write(send);
+            } catch (IOException e){
+                Log.e(TAG, "Can't send message");
+                Log.e(TAG, e.getMessage());
+            }
 
             // Reset out string buffer to zero and clear the edit text field
             mOutStringBuffer.setLength(0);
             mOutEditText.setText(mOutStringBuffer);
+            addMessagesToUI();
         }
     }
 
@@ -110,5 +133,6 @@ public class ChatActivity extends AppCompatActivity {
         }
     };
 
+    // TODO add some listener to new incoming messages (timedtask? Observer/Observable)
 
 }
