@@ -280,12 +280,12 @@ class BluetoothService {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
-        private final DeviceContact contact;
+        private final DeviceContact mmContact;
 
         ConnectedThread(BluetoothSocket socket, DeviceContact contact) {
             Log.d(TAG, "create ConnectedThread");
             mmSocket = socket;
-            this.contact = contact;
+            mmContact = contact;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
@@ -324,14 +324,14 @@ class BluetoothService {
         }
 
         private void connectionLost() {
-            ConnectedThread t = mConnectedThreads.get(contact);
+            ConnectedThread t = mConnectedThreads.get(mmContact);
             MainActivity.mRoutingTable.removeThreadFromTable(t);
-            mConnectedThreads.remove(contact);
+            mConnectedThreads.remove(mmContact);
 
             // Update UI
             mUiConnectHandler.post(new Runnable() {
                 public void run() {
-                    MainActivity.removeDeviceFromUi(contact);
+                    MainActivity.removeDeviceFromUi(mmContact);
                 }
             });
         }
