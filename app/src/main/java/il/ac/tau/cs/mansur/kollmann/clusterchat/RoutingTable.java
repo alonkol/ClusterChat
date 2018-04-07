@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 public class RoutingTable {
     private static final String TAG="RoutingTable";
@@ -26,9 +27,20 @@ public class RoutingTable {
         return revertedTable.get(t);
     }
 
-    private void addDeviceToTable(String deviceName, BluetoothService.ConnectedThread t, boolean checkConsistency){
+    private void addDeviceToTable(String deviceName, BluetoothService.ConnectedThread t,
+                                  boolean overrideIfExists, boolean checkConsistency){
+        if (mtable.containsKey(deviceName)){
+            Log.i(TAG, "device "+ deviceName + "already exists in table");
+            if (overrideIfExists){
+                Log.d(TAG, "Override exists flag is on, removing and adding new");
+                removeDeviceFromTable(deviceName);
+            }else{
+                return ;
+            }
+        }
         mtable.put(deviceName, t);
-        Log.d(TAG, String.format("Added device name %s and thread %s to tables", deviceName, t));
+        Log.d(TAG, String.format(
+                "Added device name %s and thread %s to tables", deviceName, t));
         if (!revertedTable.containsKey(t)){
             revertedTable.put(t, new HashSet<String>());
         }
@@ -37,15 +49,17 @@ public class RoutingTable {
             checkConsistency();
     }
 
-    public void addDeviceToTable(String deviceName, BluetoothService.ConnectedThread t){
-        addDeviceToTable(deviceName, t, true);
+    public void addDeviceToTable(String deviceName, BluetoothService.ConnectedThread t,
+                                 boolean overrideIfExists){
+        addDeviceToTable(deviceName, t,  overrideIfExists, true);
     }
 
     //TODO needs __hash__ and __equals__ in connectedThread???
 
-    public void addDeviceListToTable(ArrayList<String> deviceNames, BluetoothService.ConnectedThread t){
+    public void addDeviceListToTable(ArrayList<String> deviceNames,
+                                     BluetoothService.ConnectedThread t, boolean overrideIfExists){
         for (String deviceName: deviceNames){
-            addDeviceToTable(deviceName, t, false);
+            addDeviceToTable(deviceName, t, overrideIfExists, false);
         }
         checkConsistency();
     }
@@ -72,7 +86,11 @@ public class RoutingTable {
         Log.d(TAG, String.format("Removed thread %s and all of its devices", t));
     }
 
-    public void logTable(boolean showReversed){
+    public Set<String> getAllConnectedDevices(){
+        return mtable.keySet();
+    }
+
+    private void logTable(boolean showReversed){
         Log.d(TAG, "Routing Table");
         for (String deviceName: mtable.keySet()){
             Log.d(TAG,
