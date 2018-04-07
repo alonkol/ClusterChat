@@ -166,11 +166,14 @@ class BluetoothService {
     private class ConnectThread extends Thread {
         private BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
+        private final DeviceContact mmContact;
         private long mStartTime;
 
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
+            mmContact = new DeviceContact(mmDevice);
         }
+
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread - " + mmDevice.getName());
             mStartTime = System.currentTimeMillis();
@@ -199,20 +202,25 @@ class BluetoothService {
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
                 return;
+            } finally {
+                mConnectThreads.remove(mmContact);
             }
 
             // if already connected, return.
-            if (mConnectedThreads.containsKey(new DeviceContact(mmDevice))) {
+            if (mConnectedThreads.containsKey(mmContact)) {
                 Log.i(TAG, "Already connected to device: " + mmDevice.getName());
                 try {
                     mmSocket.close();
                 } catch (IOException e) {
                     Log.e(TAG, "Could not close unwanted socket", e);
                 }
+
+                mConnectThreads.remove(mmContact);
                 return;
             }
 
             if (mmSocket == null){
+                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -230,17 +238,20 @@ class BluetoothService {
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
+
+                mConnectThreads.remove(mmContact);
                 return;
             }
 
             // Start the connected thread
             connected(mmSocket, mmDevice);
+
+            mConnectThreads.remove(mmContact);
         }
 
         long getStartTime(){
             return mStartTime;
         }
-
 
         private UUID byteSwappedUuid(UUID toSwap) {
             ByteBuffer buffer = ByteBuffer.allocate(16);
