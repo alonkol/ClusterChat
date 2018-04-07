@@ -373,7 +373,7 @@ public class BluetoothService {
         public void write(byte[] buffer) throws IOException {
             mmOutStream.write(buffer);
             // Share the sent message back to the UI Activity
-            mHandler.obtainMessage(myMessageHandler.MESSAGE_WRITE, -1, -1, buffer)
+            mMessageHandler.obtainMessage(myMessageHandler.MESSAGE_WRITE, -1, -1, buffer)
                     .sendToTarget();
         }
 
