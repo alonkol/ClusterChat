@@ -14,12 +14,10 @@ public class myMessageHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
-        String[] splitMessage;
-        BluetoothService.ConnectedThread.MessageBundle bundle =
-                (BluetoothService.ConnectedThread.MessageBundle) msg.obj;
-        byte[] buffer = bundle.buffer;
-        DeviceContact deviceContact = bundle.contact;
-        //Message format is SENDER-RECIEVER-MESSAGE
+        MessageBundle bundle = MessageBundle.fromBytes(msg.obj);
+        byte[] buffer = bundle.getMessageBuffer();
+        DeviceContact deviceContact = bundle.getContact();
+
         switch (msg.what) {
             case MESSAGE_WRITE:
                 // construct a string from the buffer

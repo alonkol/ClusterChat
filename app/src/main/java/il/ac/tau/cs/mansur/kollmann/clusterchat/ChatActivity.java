@@ -113,13 +113,13 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage(String message) {
         // Check that there's actually something to send
         if (message.length() > 0) {
+            MessageBundle mb = new MessageBundle(mDeviceContact, message.getBytes());
             // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
+            byte[] send = mb.getBytes();
             try {
                 mThread.write(send);
             } catch (IOException e){
-                Log.e(TAG, "Can't send message");
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, "Can't send message", e);
             }
 
             // Reset out string buffer to zero and clear the edit text field
@@ -150,13 +150,4 @@ public class ChatActivity extends AppCompatActivity {
         MainActivity.mConversationManager.discardObserver(mDeviceContact);
     }
 
-    public class MessageBundle{
-        public DeviceContact contact;
-        public byte[] buffer;
-
-        public MessageBundle(DeviceContact contact, byte[] buffer){
-            this.contact = contact;
-            this.buffer = buffer;
-        }
-    }
 }

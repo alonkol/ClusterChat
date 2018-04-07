@@ -347,18 +347,7 @@ class BluetoothService {
             // Share the sent message back to the UI Activity
             mMessageHandler.obtainMessage(
                     myMessageHandler.MESSAGE_WRITE, -1, -1,
-                    new MessageBundle(mmContact, buffer)).sendToTarget();
-        }
-
-        public class MessageBundle{
-            public byte[] buffer;
-            public DeviceContact contact;
-
-            public MessageBundle(DeviceContact contact, byte[] buffer){
-
-                this.buffer = buffer;
-                this.contact = contact;
-            }
+                    buffer).sendToTarget();
         }
 
     }
