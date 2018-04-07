@@ -113,9 +113,9 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage(String message) {
         // Check that there's actually something to send
         if (message.length() > 0) {
-            MessageBundle mb = new MessageBundle(mDeviceContact, message.getBytes());
+            String newMessage = String.format("%s%s", mDeviceContact.getDeviceId(), message);
             // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = mb.getBytes();
+            byte[] send = newMessage.getBytes();
             try {
                 mThread.write(send);
             } catch (IOException e){

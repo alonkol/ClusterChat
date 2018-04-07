@@ -14,14 +14,16 @@ public class myMessageHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
-        MessageBundle bundle = MessageBundle.fromBytes((byte[]) msg.obj);
-        byte[] buffer = bundle.getMessageBuffer();
-        DeviceContact deviceContact = bundle.getContact();
-
+        byte[] buffer = (byte[]) msg.obj;
+        String deviceId;
+        DeviceContact deviceContact;
         switch (msg.what) {
             case MESSAGE_WRITE:
                 // construct a string from the buffer
                 String writeMessage = new String(buffer);
+                deviceId = writeMessage.substring(0, 17);
+                writeMessage = writeMessage.substring(18,writeMessage.length());
+                deviceContact = MainActivity.findDeviceContact(deviceId);
                 Log.i(TAG, "Handler caught outgoing message for device " + deviceContact.getDeviceId() +
                         "\nwith content: " + writeMessage);
                 MainActivity.mConversationManager.addMessage(
@@ -30,6 +32,9 @@ public class myMessageHandler extends Handler {
             case MESSAGE_READ:
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(buffer, 0, msg.arg1);
+                deviceId = readMessage.substring(0, 17);
+                readMessage = readMessage.substring(18,readMessage.length());
+                deviceContact = MainActivity.findDeviceContact(deviceId);
                 Log.i(TAG, "Handler caught incoming message from device " + deviceContact +
                         "\nwith content: " + readMessage);
                 MainActivity.mConversationManager.addMessage(
@@ -37,4 +42,5 @@ public class myMessageHandler extends Handler {
                 break;
         }
     }
+
 }

@@ -320,7 +320,7 @@ class BluetoothService {
 
                     mMessageHandler.obtainMessage(
                             myMessageHandler.MESSAGE_READ, bytes, -1,
-                            new MessageBundle(mmContact, buffer)).sendToTarget();
+                            buffer).sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
                     connectionLost();
