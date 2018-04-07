@@ -41,7 +41,7 @@ public class RoutingTable {
         addDeviceToTable(deviceName, t, true);
     }
 
-    //TODO needs __hash__ and __equals__ in connectedThread
+    //TODO needs __hash__ and __equals__ in connectedThread???
 
     public void addDeviceListToTable(ArrayList<String> deviceNames, BluetoothService.ConnectedThread t){
         for (String deviceName: deviceNames){
@@ -73,11 +73,13 @@ public class RoutingTable {
     }
 
     public void logTable(boolean showReversed){
+        Log.d(TAG, "Routing Table");
         for (String deviceName: mtable.keySet()){
             Log.d(TAG,
                     String.format("Device Name: %s Thread %s", deviceName, mtable.get(deviceName)));
         }
         if (showReversed){
+            Log.d(TAG, "Reversed Table");
             for (BluetoothService.ConnectedThread t: revertedTable.keySet()){
                 Log.d(TAG,
                         String.format(
@@ -99,6 +101,7 @@ public class RoutingTable {
                                 String.format("Mismatch in tables for thread %s and device %s", t, deviceName));
                         logTable(true);
                         // TODO all hell break loose
+                        return;
                     }
                 }
         }
@@ -108,8 +111,9 @@ public class RoutingTable {
                     "\nIn table: " + Arrays.toString(mtable.keySet().toArray()));
             logTable(true);
             // TODO all hell break loose
+            return;
         }
-        Log.d(TAG, "Consistency check done");
+        Log.d(TAG, "Consistency check passed");
         logTable(false);
     }
 

@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private static ArrayAdapter<String> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
+    public static RoutingTable mRoutingTable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler();
         mBluetoothService = new BluetoothService(handler);
         mConversationManager = new ConversationsManager();
+        mRoutingTable = new RoutingTable();
 
         // Load existing conversations
         File dir = getDir("Conversations", MODE_PRIVATE);

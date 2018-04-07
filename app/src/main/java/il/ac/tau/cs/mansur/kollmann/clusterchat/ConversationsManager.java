@@ -32,19 +32,22 @@ public class ConversationsManager {
         return safeGetMessages(deviceName);
     }
 
-    public List<String> safeGetMessages(String deviceName){
+    private void initDeviceObjects(String deviceName) {
         if (! mConversations.containsKey(deviceName)){
             mConversations.put(deviceName, new ArrayList<String>());
             if (mAddedMessagesFlags.get(deviceName) == null) {
                 mAddedMessagesFlags.put(deviceName, new AddedMessageFlag());
             }
         }
+    }
+
+    public List<String> safeGetMessages(String deviceName){
+        initDeviceObjects(deviceName);
         return mConversations.get(deviceName);
     }
 
     public void addMessage(String deviceName, String message) {
-        // This will init the requiered objects if needed
-        safeGetMessages(deviceName);
+        initDeviceObjects(deviceName);
         mConversations.get(deviceName).add(message);
         mAddedMessagesFlags.get(deviceName).addedMessage();
         Log.i(TAG, "Added message from device " + deviceName + "\nwith content: " + message);
@@ -84,7 +87,7 @@ public class ConversationsManager {
 
     public void initObserver(String deviceName, Observer o){
         // This will init the requiered objects if needed
-        safeGetMessages(deviceName);
+        initDeviceObjects(deviceName);
         mAddedMessagesFlags.get(deviceName).addObserver(o);
         Log.d(TAG, "Observer was init for device " + deviceName);
     }
