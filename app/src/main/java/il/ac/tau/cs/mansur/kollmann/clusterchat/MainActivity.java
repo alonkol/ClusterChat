@@ -108,6 +108,14 @@ public class MainActivity extends AppCompatActivity {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPeriodSeconds);
             startActivity(discoverableIntent);
+        } else {
+            // retry in 3 sec.
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    ensureDiscoverable();
+                }
+            }, 3000);
         }
     }
 
