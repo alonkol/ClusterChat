@@ -108,25 +108,22 @@ class BluetoothService {
 
     private class AcceptThread extends Thread {
         // The local server socket
-        private final BluetoothServerSocket mmServerSocket;
+        private BluetoothServerSocket mmServerSocket;
 
-        AcceptThread() {
-            BluetoothServerSocket tmp = null;
+        public void run() {
+            Log.d(TAG, "BEGIN mAcceptThread" + this);
+            setName("AcceptThread");
 
             // Create a new listening server socket
             try {
                 // Create random guid with 'ffffffff' prefix
                 UUID uuid = UUID.fromString("ffffffff" + UUID.randomUUID().toString().substring(8));
-                tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
+                mmServerSocket = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
             } catch (IOException e) {
                 Log.e(TAG, "Socket listen() failed", e);
+                return;
             }
-            mmServerSocket = tmp;
-        }
 
-        public void run() {
-            Log.d(TAG, "BEGIN mAcceptThread" + this);
-            setName("AcceptThread");
             BluetoothSocket socket;
 
             while (true) {
