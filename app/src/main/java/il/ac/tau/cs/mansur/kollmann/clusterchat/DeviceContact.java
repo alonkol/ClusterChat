@@ -32,4 +32,11 @@ public class DeviceContact {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        int result = deviceId.hashCode();
+        result = 31 * result + deviceName.hashCode();
+        return result;
+    }
 }

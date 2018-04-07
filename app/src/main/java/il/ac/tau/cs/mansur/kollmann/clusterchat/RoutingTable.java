@@ -10,8 +10,8 @@ import java.util.Set;
 
 public class RoutingTable {
     private static final String TAG="RoutingTable";
-    private static HashMap<String, BluetoothService.ConnectedThread> mtable;
-    private static HashMap<BluetoothService.ConnectedThread, HashSet<String>> revertedTable;
+    private static HashMap<DeviceContact, BluetoothService.ConnectedThread> mtable;
+    private static HashMap<BluetoothService.ConnectedThread, HashSet<DeviceContact>> revertedTable;
 
     public RoutingTable(){
         mtable = new HashMap<>();
@@ -19,82 +19,82 @@ public class RoutingTable {
         // TODO Lock???
     }
 
-    public BluetoothService.ConnectedThread getThread(String deviceName){
-        return mtable.get(deviceName);
+    public BluetoothService.ConnectedThread getThread(DeviceContact deviceContact){
+        return mtable.get(deviceContact);
     }
 
-    public HashSet<String> getAllDevicesForThread(BluetoothService.ConnectedThread t){
+    public HashSet<DeviceContact> getAllDevicesForThread(BluetoothService.ConnectedThread t){
         return revertedTable.get(t);
     }
 
-    private void addDeviceToTable(String deviceName, BluetoothService.ConnectedThread t,
+    private void addDeviceToTable(DeviceContact deviceContact, BluetoothService.ConnectedThread t,
                                   boolean overrideIfExists, boolean checkConsistency){
-        if (mtable.containsKey(deviceName)){
-            Log.i(TAG, "device "+ deviceName + "already exists in table");
+        if (mtable.containsKey(deviceContact)){
+            Log.i(TAG, "device "+ deviceContact + "already exists in table");
             if (overrideIfExists){
                 Log.d(TAG, "Override exists flag is on, removing and adding new");
-                removeDeviceFromTable(deviceName);
+                removeDeviceFromTable(deviceContact);
             }else{
                 return ;
             }
         }
-        mtable.put(deviceName, t);
+        mtable.put(deviceContact, t);
         Log.d(TAG, String.format(
-                "Added device name %s and thread %s to tables", deviceName, t));
+                "Added device name %s and thread %s to tables", deviceContact, t));
         if (!revertedTable.containsKey(t)){
-            revertedTable.put(t, new HashSet<String>());
+            revertedTable.put(t, new HashSet<DeviceContact>());
         }
-        revertedTable.get(t).add(deviceName);
+        revertedTable.get(t).add(deviceContact);
         if (checkConsistency)
             checkConsistency();
     }
 
-    public void addDeviceToTable(String deviceName, BluetoothService.ConnectedThread t,
+    public void addDeviceToTable(DeviceContact deviceContact, BluetoothService.ConnectedThread t,
                                  boolean overrideIfExists){
-        addDeviceToTable(deviceName, t,  overrideIfExists, true);
+        addDeviceToTable(deviceContact, t,  overrideIfExists, true);
     }
 
     //TODO needs __hash__ and __equals__ in connectedThread???
 
-    public void addDeviceListToTable(ArrayList<String> deviceNames,
+    public void addDeviceListToTable(ArrayList<DeviceContact> deviceContacts,
                                      BluetoothService.ConnectedThread t, boolean overrideIfExists){
-        for (String deviceName: deviceNames){
-            addDeviceToTable(deviceName, t, overrideIfExists, false);
+        for (DeviceContact deviceContact: deviceContacts){
+            addDeviceToTable(deviceContact, t, overrideIfExists, false);
         }
         checkConsistency();
     }
 
-    public void removeDeviceFromTable(String deviceName){
-        BluetoothService.ConnectedThread t = mtable.get(deviceName);
-        mtable.remove(deviceName);
-        revertedTable.get(t).remove(deviceName);
+    public void removeDeviceFromTable(DeviceContact deviceContact){
+        BluetoothService.ConnectedThread t = mtable.get(deviceContact);
+        mtable.remove(deviceContact);
+        revertedTable.get(t).remove(deviceContact);
         if (revertedTable.get(t).size() == 0){
             revertedTable.remove(t);
-            Log.d(TAG, String.format("Removed thread %s due to removal of device %s", t, deviceName));
+            Log.d(TAG, String.format("Removed thread %s due to removal of device %s", t, deviceContact));
         }
         checkConsistency();
-        Log.d(TAG, String.format("Removed device %s", deviceName));
+        Log.d(TAG, String.format("Removed device %s", deviceContact));
     }
 
     public void removeThreadFromTable(BluetoothService.ConnectedThread t){
-        for (String deviceName: revertedTable.get(t)){
-            Log.d(TAG, String.format("Removing device %s due to removal of thread %s", deviceName, t));
-            mtable.remove(deviceName);
+        for (DeviceContact deviceContact: revertedTable.get(t)){
+            Log.d(TAG, String.format("Removing device %s due to removal of thread %s", deviceContact, t));
+            mtable.remove(deviceContact);
         }
         revertedTable.remove(t);
         checkConsistency();
         Log.d(TAG, String.format("Removed thread %s and all of its devices", t));
     }
 
-    public Set<String> getAllConnectedDevices(){
+    public Set<DeviceContact> getAllConnectedDevices(){
         return mtable.keySet();
     }
 
     private void logTable(boolean showReversed){
         Log.d(TAG, "Routing Table");
-        for (String deviceName: mtable.keySet()){
+        for (DeviceContact deviceContact: mtable.keySet()){
             Log.d(TAG,
-                    String.format("Device Name: %s Thread %s", deviceName, mtable.get(deviceName)));
+                    String.format("Device Name: %s Thread %s", deviceContact, mtable.get(deviceContact)));
         }
         if (showReversed){
             Log.d(TAG, "Reversed Table");
@@ -108,15 +108,15 @@ public class RoutingTable {
 
     private void checkConsistency(){
         int count = 0;
-        ArrayList<String> allDevices = new ArrayList<>();
+        ArrayList<DeviceContact> allDevices = new ArrayList<>();
         for(BluetoothService.ConnectedThread t: revertedTable.keySet()){
-                HashSet<String> devicesList = revertedTable.get(t);
+                HashSet<DeviceContact> devicesList = revertedTable.get(t);
                 allDevices.addAll(devicesList);
-                for (String deviceName: devicesList){
+                for (DeviceContact deviceContact: devicesList){
                     count ++;
-                    if (mtable.get(deviceName) != t){
+                    if (mtable.get(deviceContact) != t){
                         Log.e(TAG,
-                                String.format("Mismatch in tables for thread %s and device %s", t, deviceName));
+                                String.format("Mismatch in tables for thread %s and device %s", t, deviceContact));
                         logTable(true);
                         // TODO all hell break loose
                         return;
