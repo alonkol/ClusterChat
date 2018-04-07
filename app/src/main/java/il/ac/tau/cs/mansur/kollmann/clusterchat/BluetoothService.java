@@ -5,21 +5,16 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -48,6 +43,7 @@ public class BluetoothService {
     private final MessageHandler mMessageHandler;
     private AcceptThread mSecureAcceptThread;
     private HashMap<String, ConnectedThread> mConnectedThreadsMap;
+    private HashSet<String> mConnectionAttempts;
     private ArrayList<ConnectThread> mConnectThreads;
     private KillOldConnectAttemptsThread mKillOldConnectAttemptsThread;
 
@@ -80,7 +76,7 @@ public class BluetoothService {
         mSecureAcceptThread = new AcceptThread();
         mSecureAcceptThread.start();
 
-        // do discovery every 10 seconds
+        // do discovery periodically
         Timer t = new Timer();
         t.schedule(new discoverTask(), 5 * 1000, 60 * 1000);
 
@@ -93,7 +89,28 @@ public class BluetoothService {
         return mConnectedThreadsMap.get(device_id);
     }
 
-    public void connect(BluetoothDevice device){
+    public void connect(final BluetoothDevice device){
+        // if already connected to device, return.
+        if (mConnectedThreadsMap.containsKey(device.getAddress())) {
+            Log.i(TAG, "Already connected to " + device.getName());
+            return;
+        }
+
+        // If already tried to connect recently, return.
+        if (mConnectionAttempts.contains(device.getAddress())) {
+            Log.i(TAG, "Already attempted to connect to " + device.getName());
+            return;
+        }
+        mConnectionAttempts.add(device.getAddress());
+
+        // Allow retry in 5 seconds
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mConnectionAttempts.remove(device.getAddress());
+            }
+        }, 5 * 1000);
+
         ConnectThread thread = new ConnectThread(device);
         thread.start();
         mConnectThreads.add(thread);
@@ -114,16 +131,6 @@ public class BluetoothService {
         ConnectedThread thread = new ConnectedThread(socket, device.getAddress());
         mConnectedThreadsMap.put(device.getAddress(), thread);
         thread.start();
-    }
-
-    // TODO: Implement
-    private void connectionFailed() {
-
-    }
-
-    // TODO: Implement
-    private void connectionLost() {
-
     }
 
     private class AcceptThread extends Thread {
@@ -204,6 +211,7 @@ public class BluetoothService {
 
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
+            mConnectionAttempts.add(device.getAddress());
         }
 
         private UUID byteSwappedUuid(UUID toSwap) {
@@ -253,11 +261,6 @@ public class BluetoothService {
                 Log.e(TAG, "Socket create() failed", e);
             }
 
-            if (mmSocket == null){
-                connectionFailed();
-                return;
-            }
-
             // if already connected, return.
             if (mConnectedThreadsMap.containsKey(mmDevice.getAddress())) {
                 Log.i(TAG, "Already connected to device: " + mmDevice.getName());
@@ -266,6 +269,10 @@ public class BluetoothService {
                 } catch (IOException e) {
                     Log.e(TAG, "Could not close unwanted socket", e);
                 }
+                return;
+            }
+
+            if (mmSocket == null){
                 return;
             }
 
@@ -283,7 +290,6 @@ public class BluetoothService {
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
-                connectionFailed();
                 return;
             }
 
@@ -322,7 +328,6 @@ public class BluetoothService {
             this.deviceAddress = deviceAddress;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
-
 
             // Get the BluetoothSocket input and output streams
             try {
