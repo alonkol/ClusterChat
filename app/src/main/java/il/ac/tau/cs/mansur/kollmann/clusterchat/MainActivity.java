@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
         }, 0, discoveryPeriodMillis);
 
         // Find and set up the ListView for newly discovered devices
-        mConnectedDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
+        mConnectedDevicesArrayAdapter = new ArrayAdapter<>(
+                this, R.layout.device_name);
         ListView newDevicesListView = findViewById(R.id.conversations);
         newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
@@ -71,11 +72,7 @@ public class MainActivity extends AppCompatActivity {
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();
 
-        // TODO:? Load existing conversations
-        File dir = getDir("Conversations", MODE_PRIVATE);
-        for (File contact: dir.listFiles()) {
-            mConversationManager.addMessagesFromHistory(contact);
-        }
+        getMessagesFromHistory();
     }
 
     // Adding device to UI
@@ -92,6 +89,13 @@ public class MainActivity extends AppCompatActivity {
             mConnectedDevicesArrayAdapter.remove(deviceContact);
         }
 
+    }
+
+    public void getMessagesFromHistory(){
+        File dir = getDir("Conversations", MODE_PRIVATE);
+        for (File contact: dir.listFiles()) {
+            mConversationManager.addMessagesFromHistory(contact);
+        }
     }
 
     /**
@@ -146,5 +150,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return mConnectedDevicesArrayAdapter.getItem(position);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "Destroying.... ");
+        //TODO write conversations to file
     }
 }
