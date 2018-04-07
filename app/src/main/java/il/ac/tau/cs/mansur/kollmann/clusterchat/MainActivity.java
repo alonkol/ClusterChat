@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,9 +16,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.io.File;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
+    private static final int discoveryPeriodSeconds = 5 * 60;
+    private static final int discoveryPeriodMillis = discoveryPeriodSeconds * 1000;
     public static String myDeviceName;
     private Context mContext;
     private MainActivity mainActivity;
@@ -49,7 +52,13 @@ public class MainActivity extends AppCompatActivity {
             // Otherwise, setup the chat session
         }
 
-        ensureDiscoverable();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                ensureDiscoverable();
+            }
+        }, 0, discoveryPeriodMillis);
+
 
         // Find and set up the ListView for newly discovered devices
         mConnectedDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
@@ -74,12 +83,17 @@ public class MainActivity extends AppCompatActivity {
 
     // Adding device to UI
     public static void addDeviceToUi(BluetoothDevice device) {
-        MainActivity.mConnectedDevicesArrayAdapter.add(new DeviceContact(device));
+        DeviceContact deviceContact = new DeviceContact(device);
+        if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) == -1) {
+            mConnectedDevicesArrayAdapter.add(deviceContact);
+        }
     }
 
     // Removing device from UI
-    public static void removeDeviceFromUi(String deviceId) {
-        MainActivity.mConnectedDevicesArrayAdapter.remove(new DeviceContact(deviceId));
+    public static void removeDeviceFromUi(DeviceContact deviceContact) {
+        if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) != -1) {
+            mConnectedDevicesArrayAdapter.remove(deviceContact);
+        }
     }
 
     /**
@@ -90,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         if (BluetoothAdapter.getDefaultAdapter().getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPeriodSeconds);
             startActivity(discoverableIntent);
         }
     }

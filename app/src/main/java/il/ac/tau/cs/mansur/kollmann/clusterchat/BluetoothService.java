@@ -339,7 +339,7 @@ class BluetoothService {
             // Update UI
             mUiConnectHandler.post(new Runnable() {
                 public void run() {
-                    MainActivity.removeDeviceFromUi(deviceAddress);
+                    MainActivity.removeDeviceFromUi(new DeviceContact(deviceAddress));
                 }
             });
         }
