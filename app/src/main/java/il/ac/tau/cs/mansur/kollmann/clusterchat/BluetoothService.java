@@ -250,6 +250,8 @@ public class BluetoothService {
                 ParcelUuid[] uuids = mmDevice.getUuids();
                 UUID uuid = findUuid(uuids);
                 while (uuid == null) {
+                    Log.d(TAG, "Failed to get UUID for " + mmDevice.getName() + "." +
+                            "Trying again...");
                     mmDevice.fetchUuidsWithSdp();
                     Thread.sleep(5000);
                     uuids = mmDevice.getUuids();
