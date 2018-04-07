@@ -11,13 +11,11 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     public static String myDeviceName;
     private Context mContext;
     private MainActivity mainActivity;
-    private static ArrayAdapter<String> mConnectedDevicesArrayAdapter;
+    private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
     public static RoutingTable mRoutingTable;
@@ -54,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         ensureDiscoverable();
 
         // Find and set up the ListView for newly discovered devices
-        mConnectedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
+        mConnectedDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
         ListView newDevicesListView = (ListView) findViewById(R.id.conversations);
         newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
@@ -63,28 +61,25 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
 
-        Handler handler = new Handler();
-        mBluetoothService = new BluetoothService(handler);
+        mBluetoothService = new BluetoothService();
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();
 
-        // Load existing conversations
+        // TODO:? Load existing conversations
         File dir = getDir("Conversations", MODE_PRIVATE);
         for (File contact: dir.listFiles()) {
             mConversationManager.addMessagesFromHistory(contact);
-            addDeviceLabelToUi("name", contact.getName());
         }
     }
 
     // Adding device to UI
     public static void addDeviceToUi(BluetoothDevice device) {
-        addDeviceLabelToUi(device.getName(), device.getAddress());
+        MainActivity.mConnectedDevicesArrayAdapter.add(new DeviceContact(device));
     }
 
-    private static void addDeviceLabelToUi(String name, String address) {
-        String deviceName = name == null ? "Unknown" : name;
-        String deviceLabel = deviceName + "\n" + address;
-        MainActivity.mConnectedDevicesArrayAdapter.add(deviceLabel);
+    // Removing device from UI
+    public static void removeDeviceFromUi(String deviceId) {
+        MainActivity.mConnectedDevicesArrayAdapter.remove(new DeviceContact(deviceId));
     }
 
     /**
