@@ -43,9 +43,6 @@ class BluetoothService {
     BluetoothService() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
-        MainActivity.myDeviceName = mAdapter.getName();
-        MainActivity.myDeviceId = mAdapter.getAddress();
-
         mUiConnectHandler = new Handler();
         mMessageHandler = new myMessageHandler();
         mConnectedThreads = new HashMap<>();
@@ -313,8 +310,9 @@ class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
 
-                    mMessageHandler.obtainMessage(myMessageHandler.MESSAGE_READ, bytes, -1, buffer)
-                            .sendToTarget();
+                    mMessageHandler.obtainMessage(
+                            myMessageHandler.MESSAGE_READ, bytes, -1,
+                            new MessageBundle(contact, buffer)).sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
                     connectionLost();
@@ -339,9 +337,12 @@ class BluetoothService {
         void write(byte[] buffer) throws IOException {
             mmOutStream.write(buffer);
             // Share the sent message back to the UI Activity
-            mMessageHandler.obtainMessage(myMessageHandler.MESSAGE_WRITE, -1, -1, buffer)
-                    .sendToTarget();
+            mMessageHandler.obtainMessage(
+                    myMessageHandler.MESSAGE_WRITE, -1, -1,
+                    new MessageBundle(contact, buffer)).sendToTarget();
         }
+
+
     }
 
     class discoverTask extends TimerTask{

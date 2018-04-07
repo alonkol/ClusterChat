@@ -24,8 +24,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
     private static final int discoveryPeriodSeconds = 5 * 60;
     private static final int discoveryPeriodMillis = discoveryPeriodSeconds * 1000;
-    public static String myDeviceName;
-    public static String myDeviceId;
     private MainActivity mainActivity;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
@@ -117,9 +115,7 @@ public class MainActivity extends AppCompatActivity {
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
-            String name = info.substring(0, info.length() - 18);
             Intent intent = new Intent(mainActivity, ChatActivity.class);
-            intent.putExtra("clusterchat.deviceName", name);
             intent.putExtra("clusterchat.deviceAddress", address);
             startActivity(intent);
         }

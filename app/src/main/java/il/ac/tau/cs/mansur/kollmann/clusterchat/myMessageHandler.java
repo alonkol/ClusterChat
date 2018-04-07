@@ -15,30 +15,27 @@ public class myMessageHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         String[] splitMessage;
-        DeviceContact deviceContact;
+        BluetoothService.ConnectedThread.MessageBundle bundle =
+                (BluetoothService.ConnectedThread.MessageBundle) msg.obj;
+        byte[] buffer = bundle.buffer;
+        DeviceContact deviceContact = bundle.contact;
         //Message format is SENDER-RECIEVER-MESSAGE
         switch (msg.what) {
             case MESSAGE_WRITE:
-                byte[] writeBuf = (byte[]) msg.obj;
                 // construct a string from the buffer
-                String writeMessage = new String(writeBuf);
-                splitMessage = writeMessage.split("~", 3);
-                Log.i(TAG, "Handler caught outgoing message for device " + splitMessage[1] +
-                        "\nwith content: " + splitMessage[2]);
-                deviceContact = MainActivity.findDeviceContact(splitMessage[1]);
+                String writeMessage = new String(buffer);
+                Log.i(TAG, "Handler caught outgoing message for device " + deviceContact.getDeviceId() +
+                        "\nwith content: " + writeMessage);
                 MainActivity.mConversationManager.addMessage(
-                        deviceContact, "Me:  " + splitMessage[2]);
+                        deviceContact, "Me:  " + writeMessage);
                 break;
             case MESSAGE_READ:
-                byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
-                String readMessage = new String(readBuf, 0, msg.arg1);
-                splitMessage = readMessage.split("~", 3);
-                Log.i(TAG, "Handler caught incoming message from device " + splitMessage[0] +
-                        "\nwith content: " + splitMessage[2]);
-                deviceContact = MainActivity.findDeviceContact(splitMessage[0]);
+                String readMessage = new String(buffer, 0, msg.arg1);
+                Log.i(TAG, "Handler caught incoming message from device " + deviceContact +
+                        "\nwith content: " + readMessage);
                 MainActivity.mConversationManager.addMessage(
-                        deviceContact, deviceContact.getDeviceName() + ":  " + splitMessage[2]);
+                        deviceContact, deviceContact.getDeviceName() + ":  " + readMessage);
                 break;
         }
     }

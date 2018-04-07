@@ -113,10 +113,8 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage(String message) {
         // Check that there's actually something to send
         if (message.length() > 0) {
-            String newMessage = String.format(
-                    "%s~%s~%s", MainActivity.myDeviceId, mDeviceContact.getDeviceId(), message);
             // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = newMessage.getBytes();
+            byte[] send = message.getBytes();
             try {
                 mThread.write(send);
             } catch (IOException e){
@@ -150,5 +148,15 @@ public class ChatActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         MainActivity.mConversationManager.discardObserver(mDeviceContact);
+    }
+
+    public class MessageBundle{
+        public DeviceContact contact;
+        public byte[] buffer;
+
+        public MessageBundle(DeviceContact contact, byte[] buffer){
+            this.contact = contact;
+            this.buffer = buffer;
+        }
     }
 }
