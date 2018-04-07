@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -34,6 +36,7 @@ public class ChatActivity extends AppCompatActivity {
     private Button mSendButton;
     public static ArrayAdapter<String> mConversationArrayAdapter;
     private StringBuffer mOutStringBuffer;
+    private Observer mObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +57,12 @@ public class ChatActivity extends AppCompatActivity {
         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
         mSendButton = (Button) findViewById(R.id.button_send);
         mCurrentIndex = 0;
+        mObserver = new Observer() {
+            @Override
+            public void update(Observable observable, Object o) {
+                addMessagesToUI();
+            }
+        };
         setupChat();
     }
 
@@ -81,6 +90,7 @@ public class ChatActivity extends AppCompatActivity {
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
         addMessagesToUI();
+        MainActivity.mConversationManager.initObserver(mdeviceName, mObserver);
     }
 
     private void addMessagesToUI(){
@@ -133,6 +143,9 @@ public class ChatActivity extends AppCompatActivity {
         }
     };
 
-    // TODO add some listener to new incoming messages (timedtask? Observer/Observable)
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MainActivity.mConversationManager.discardObserver(mdeviceName);
+    }
 }

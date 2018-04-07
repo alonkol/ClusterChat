@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         // Load existing conversations
         File dir = getDir("Conversations", MODE_PRIVATE);
         for (File contact: dir.listFiles()) {
-            // TODO add to convesationManager
+            mConversationManager.addMessagesFromHistory(contact);
             addDeviceLabelToUi("name", contact.getName());
         }
     }

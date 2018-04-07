@@ -233,6 +233,8 @@ public class BluetoothService {
         }
 
         private UUID findUuid(ParcelUuid[] uuids){
+            if (uuids == null)
+                return null;
             for (int i = 0; i < uuids.length; i++) {
                 if (uuids[i].getUuid().toString().endsWith("ffffffff")){
                     return uuids[i].getUuid();
