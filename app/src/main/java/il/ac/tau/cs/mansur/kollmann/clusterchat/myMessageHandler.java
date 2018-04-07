@@ -14,7 +14,7 @@ public class myMessageHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
-        MessageBundle bundle = MessageBundle.fromBytes(msg.obj);
+        MessageBundle bundle = MessageBundle.fromBytes((byte[]) msg.obj);
         byte[] buffer = bundle.getMessageBuffer();
         DeviceContact deviceContact = bundle.getContact();
 
