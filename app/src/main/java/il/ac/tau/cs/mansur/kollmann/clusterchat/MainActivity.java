@@ -20,11 +20,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "Main Activity";
     private static final int discoveryPeriodSeconds = 5 * 60;
     private static final int discoveryPeriodMillis = discoveryPeriodSeconds * 1000;
     public static String myDeviceName;
-    private Context mContext;
     private MainActivity mainActivity;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
@@ -35,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mContext = this.getApplicationContext();
         mainActivity = this;
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
@@ -59,10 +56,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 0, discoveryPeriodMillis);
 
-
         // Find and set up the ListView for newly discovered devices
         mConnectedDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
-        ListView newDevicesListView = (ListView) findViewById(R.id.conversations);
+        ListView newDevicesListView = findViewById(R.id.conversations);
         newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 

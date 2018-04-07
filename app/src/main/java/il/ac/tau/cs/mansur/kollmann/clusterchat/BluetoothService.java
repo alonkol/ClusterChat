@@ -34,8 +34,8 @@ class BluetoothService {
     private final BluetoothAdapter mAdapter;
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
-    private final HashMap<String, ConnectedThread> mConnectedThreads;
-    private final ConcurrentHashMap<String, ConnectThread> mConnectThreads;
+    private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
+    private final ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads;
 
     /**
          * Constructor. Prepares a new BluetoothChat session.
@@ -63,32 +63,28 @@ class BluetoothService {
         new AcceptThread().start();
 
         // do discovery periodically
-        Timer t = new Timer();
-        t.schedule(new discoverTask(), 5 * 1000, 30 * 1000);
+        new Timer().schedule(new discoverTask(), 5 * 1000, 30 * 1000);
 
         // Start thread to kill old connect attempts
         new KillOldConnectAttemptsThread().start();
     }
 
-    ConnectedThread getConnectedThread(String device_id) {
-        return mConnectedThreads.get(device_id);
-    }
-
     synchronized void connect(BluetoothDevice device){
+        DeviceContact contact = new DeviceContact(device);
         // if already connected to device, return.
-        if (mConnectedThreads.containsKey(device.getAddress())) {
+        if (mConnectedThreads.containsKey(contact)) {
             Log.i(TAG, "Already connected to " + device.getName());
             return;
         }
 
         // If already trying to connect, return.
-        if (mConnectThreads.containsKey(device.getAddress())) {
+        if (mConnectThreads.containsKey(contact)) {
             Log.i(TAG, "Already attempting to connect " + device.getName());
             return;
         }
 
         ConnectThread thread = new ConnectThread(device);
-        mConnectThreads.put(device.getAddress(), thread);
+        mConnectThreads.put(contact, thread);
         thread.start();
     }
 
@@ -104,8 +100,9 @@ class BluetoothService {
         });
 
         // Start the thread to manage the connection and perform transmissions
-        ConnectedThread thread = new ConnectedThread(socket, device.getAddress());
-        mConnectedThreads.put(device.getAddress(), thread);
+        final DeviceContact contact = new DeviceContact(device);
+        ConnectedThread thread = new ConnectedThread(socket, contact);
+        mConnectedThreads.put(contact, thread);
         thread.start();
     }
 
@@ -147,7 +144,7 @@ class BluetoothService {
                 // If a connection was accepted
                 if (socket != null) {
                     // if already connected, Terminate new socket.
-                    if (mConnectedThreads.containsKey(socket.getRemoteDevice().getAddress())) {
+                    if (mConnectedThreads.containsKey(new DeviceContact(socket.getRemoteDevice()))) {
                         try {
                             socket.close();
                         } catch (IOException e) {
@@ -177,30 +174,6 @@ class BluetoothService {
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
         }
-
-        private UUID byteSwappedUuid(UUID toSwap) {
-            ByteBuffer buffer = ByteBuffer.allocate(16);
-            buffer
-                    .putLong(toSwap.getLeastSignificantBits())
-                    .putLong(toSwap.getMostSignificantBits());
-            buffer.rewind();
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            return new UUID(buffer.getLong(), buffer.getLong());
-        }
-
-        private UUID findUuid(ParcelUuid[] uuids){
-            if (uuids == null) {
-                return null;
-            }
-
-            for (ParcelUuid uuid : uuids) {
-                if (uuid.getUuid().toString().endsWith("ffffffff")) {
-                    return uuid.getUuid();
-                }
-            }
-            return null;
-        }
-
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread - " + mmDevice.getName());
             mStartTime = System.currentTimeMillis();
@@ -232,7 +205,7 @@ class BluetoothService {
             }
 
             // if already connected, return.
-            if (mConnectedThreads.containsKey(mmDevice.getAddress())) {
+            if (mConnectedThreads.containsKey(new DeviceContact(mmDevice))) {
                 Log.i(TAG, "Already connected to device: " + mmDevice.getName());
                 try {
                     mmSocket.close();
@@ -267,19 +240,33 @@ class BluetoothService {
             connected(mmSocket, mmDevice);
         }
 
-        void cancel() {
-            try {
-                if (mmSocket != null)
-                    mmSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "close() of connect socket failed", e);
-            }
-        }
-
         long getStartTime(){
             return mStartTime;
         }
 
+
+        private UUID byteSwappedUuid(UUID toSwap) {
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            buffer
+                    .putLong(toSwap.getLeastSignificantBits())
+                    .putLong(toSwap.getMostSignificantBits());
+            buffer.rewind();
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            return new UUID(buffer.getLong(), buffer.getLong());
+        }
+
+        private UUID findUuid(ParcelUuid[] uuids){
+            if (uuids == null) {
+                return null;
+            }
+
+            for (ParcelUuid uuid : uuids) {
+                if (uuid.getUuid().toString().endsWith("ffffffff")) {
+                    return uuid.getUuid();
+                }
+            }
+            return null;
+        }
     }
 
     /**
@@ -290,12 +277,12 @@ class BluetoothService {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
-        private final String deviceAddress;
+        private final DeviceContact contact;
 
-        ConnectedThread(BluetoothSocket socket, String deviceAddress) {
+        ConnectedThread(BluetoothSocket socket, DeviceContact contact) {
             Log.d(TAG, "create ConnectedThread");
             mmSocket = socket;
-            this.deviceAddress = deviceAddress;
+            this.contact = contact;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
@@ -334,12 +321,12 @@ class BluetoothService {
         }
 
         private void connectionLost() {
-            mConnectedThreads.remove(deviceAddress);
+            mConnectedThreads.remove(contact);
 
             // Update UI
             mUiConnectHandler.post(new Runnable() {
                 public void run() {
-                    MainActivity.removeDeviceFromUi(new DeviceContact(deviceAddress));
+                    MainActivity.removeDeviceFromUi(contact);
                 }
             });
         }
@@ -367,14 +354,13 @@ class BluetoothService {
             setName("OldConnectThreadKiller");
 
             while (true) {
-                Iterator<HashMap.Entry<String, ConnectThread>> it = mConnectThreads.entrySet().iterator();
+                Iterator<HashMap.Entry<DeviceContact, ConnectThread>> it = mConnectThreads.entrySet().iterator();
                 while (it.hasNext()) {
-                    HashMap.Entry<String,ConnectThread> entry = it.next();
+                    HashMap.Entry<DeviceContact, ConnectThread> entry = it.next();
                     ConnectThread thread = entry.getValue();
                     Log.d(TAG, "Killing Thread - " + entry.getKey());
 
                     if (thread != null && thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
-                        thread.cancel();
                         thread.interrupt();
                         it.remove();
                     }

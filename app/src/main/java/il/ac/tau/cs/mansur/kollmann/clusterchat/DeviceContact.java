@@ -35,8 +35,6 @@ public class DeviceContact {
 
     @Override
     public int hashCode() {
-        int result = deviceId.hashCode();
-        result = 31 * result + deviceName.hashCode();
-        return result;
+        return deviceId.hashCode();
     }
 }
