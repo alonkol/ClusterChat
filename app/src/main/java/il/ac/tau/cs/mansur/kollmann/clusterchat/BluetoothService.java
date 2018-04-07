@@ -39,7 +39,7 @@ public class BluetoothService {
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
     // Constants
-    private static final long CONNECT_TIMEOUT_MS = 10000;
+    private static final long CONNECT_TIMEOUT_MS = 30 * 1000;
 
     // Member fields
     private final BluetoothAdapter mAdapter;
@@ -82,7 +82,7 @@ public class BluetoothService {
 
         // do discovery every 10 seconds
         Timer t = new Timer();
-        t.schedule(new discoverTask(), 5 * 1000, 60*1000);
+        t.schedule(new discoverTask(), 5 * 1000, 60 * 1000);
 
         // Start thread to kill old connect attempts
         mKillOldConnectAttemptsThread = new KillOldConnectAttemptsThread();
@@ -99,9 +99,16 @@ public class BluetoothService {
         mConnectThreads.add(thread);
     }
 
-    public synchronized void connected(BluetoothSocket socket, BluetoothDevice
+    public synchronized void connected(BluetoothSocket socket, final BluetoothDevice
             device) {
         Log.d(TAG, "connected");
+
+        // Update UI
+        mUiConnectHandler.post(new Runnable() {
+            public void run() {
+                MainActivity.addDeviceToUi(device);
+            }
+        });
 
         // Start the thread to manage the connection and perform transmissions
         ConnectedThread thread = new ConnectedThread(socket, device.getAddress());
@@ -191,14 +198,41 @@ public class BluetoothService {
      * succeeds or fails.
      */
     private class ConnectThread extends Thread {
-        private final BluetoothSocket mmSocket;
+        private BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
         private long mStartTime;
 
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
-            Log.i(TAG, "trying to connect to " + device.getName());
-            BluetoothSocket tmp = null;
+        }
+
+        private UUID byteSwappedUuid(UUID toSwap) {
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            buffer
+                    .putLong(toSwap.getLeastSignificantBits())
+                    .putLong(toSwap.getMostSignificantBits());
+            buffer.rewind();
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            return new UUID(buffer.getLong(), buffer.getLong());
+        }
+
+        private UUID findUuid(ParcelUuid[] uuids){
+            if (uuids == null) {
+                return null;
+            }
+
+            for (int i = 0; i < uuids.length; i++) {
+                if (uuids[i].getUuid().toString().endsWith("ffffffff")){
+                    return uuids[i].getUuid();
+                }
+            }
+            return null;
+        }
+
+        public void run() {
+            Log.i(TAG, "BEGIN mConnectThread - " + mmDevice.getName());
+            mStartTime = System.currentTimeMillis();
+            setName("ConnectThread-" + mmDevice.getName());
 
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
@@ -214,43 +248,15 @@ public class BluetoothService {
                 }
 
                 // TODO: when is this swapped and when is not?
-                tmp = device.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
+                mmSocket = mmDevice.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
-                // TODO need to kill thread now!!!!
             }
-            mmSocket = tmp;
-        }
 
-        private UUID byteSwappedUuid(UUID toSwap) {
-            ByteBuffer buffer = ByteBuffer.allocate(16);
-            buffer
-                    .putLong(toSwap.getLeastSignificantBits())
-                    .putLong(toSwap.getMostSignificantBits());
-            buffer.rewind();
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            return new UUID(buffer.getLong(), buffer.getLong());
-        }
-
-        private UUID findUuid(ParcelUuid[] uuids){
-            if (uuids == null)
-                return null;
-            for (int i = 0; i < uuids.length; i++) {
-                if (uuids[i].getUuid().toString().endsWith("ffffffff")){
-                    return uuids[i].getUuid();
-                }
-            }
-            return null;
-        }
-
-        public void run() {
             if (mmSocket == null){
                 connectionFailed();
                 return;
             }
-            Log.i(TAG, "BEGIN mConnectThread");
-            mStartTime = System.currentTimeMillis();
-            setName("ConnectThread-" + mmDevice.getName());
 
             // if already connected, return.
             if (mConnectedThreadsMap.containsKey(mmDevice.getAddress())) {
@@ -269,6 +275,8 @@ public class BluetoothService {
                 // successful connection or an exception
                 mmSocket.connect();
             } catch (IOException e) {
+                Log.e(TAG, "Failed to connect to " + mmDevice.getName(), e);
+
                 // Close the socket
                 try {
                     mmSocket.close();
@@ -281,13 +289,6 @@ public class BluetoothService {
 
             // Start the connected thread
             connected(mmSocket, mmDevice);
-
-            // Update UI
-            mUiConnectHandler.post(new Runnable() {
-                public void run() {
-                    MainActivity.addDeviceToUi(mmDevice);
-                }
-            });
         }
 
         public void cancel() {
