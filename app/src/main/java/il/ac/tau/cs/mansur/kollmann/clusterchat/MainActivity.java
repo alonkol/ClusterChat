@@ -143,13 +143,12 @@ public class MainActivity extends AppCompatActivity {
     };
 
     public static DeviceContact findDeviceContact(String deviceId) {
-        for(int i=0 ; i< mConnectedDevicesArrayAdapter.getCount() ; i++){
-            DeviceContact dc = mConnectedDevicesArrayAdapter.getItem(i);
-            if (dc.getDeviceId().equals(deviceId)){
-                return dc;
-            }
+        int position = mConnectedDevicesArrayAdapter.getPosition(new DeviceContact(deviceId));
+        if (position == -1) {
+            Log.e(TAG, "Cant find device contact with id " + deviceId);
+            return null;
         }
-        Log.e(TAG, "Cant find device contact with id " + deviceId);
-        return null;
+
+        return mConnectedDevicesArrayAdapter.getItem(position);
     }
 }

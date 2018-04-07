@@ -44,6 +44,8 @@ class BluetoothService {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
         MainActivity.myDeviceName = mAdapter.getName();
+        MainActivity.myDeviceId = mAdapter.getAddress();
+
         mUiConnectHandler = new Handler();
         mMessageHandler = new myMessageHandler();
         mConnectedThreads = new HashMap<>();

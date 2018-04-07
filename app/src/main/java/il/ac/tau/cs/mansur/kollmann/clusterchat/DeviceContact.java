@@ -20,7 +20,7 @@ public class DeviceContact {
     }
 
     public String toString(){
-        return deviceId + "\n" + deviceName;
+        return deviceName + "\n" + deviceId;
     }
 
     @Override
