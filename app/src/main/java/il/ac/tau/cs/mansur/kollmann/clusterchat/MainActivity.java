@@ -98,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void writeHistoryToFiles(){
+        // Create directory if missing
+        File dir = getDir("Conversations", MODE_PRIVATE);
+        mConversationManager.writeMessagesToFiles(dir);
+    }
+
     /**
      * Makes this device discoverable for 300 seconds (5 minutes).
      * This is the maximal possible value.
@@ -163,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "Destroying.... ");
-        //TODO write conversations to file
+        Log.d(TAG, "Writing History to files ");
+        writeHistoryToFiles();
     }
 }

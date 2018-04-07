@@ -9,9 +9,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 
 public class ConversationsManager {
     private final String TAG = "ConversationsManager";
@@ -54,21 +58,20 @@ public class ConversationsManager {
     }
 
     public void addMessagesFromHistory(File contact){
-        String contactName = contact.getName();
+        String contactID = contact.getName();
         String line;
 
         try {
             // FileReader reads text files in the default encoding.
             FileReader fileReader =
-                    new FileReader(contactName);
+                    new FileReader(contactID);
 
             // Always wrap FileReader in BufferedReader.
             BufferedReader bufferedReader =
                     new BufferedReader(fileReader);
 
             while((line = bufferedReader.readLine()) != null) {
-                //addMessage(contactName, line);
-                //TODO decide on format to create deviceContact
+                addMessage(new DeviceContact(contactID), line);
             }
 
             // Always close files.
@@ -77,13 +80,20 @@ public class ConversationsManager {
         catch(FileNotFoundException ex) {
             Log.e(TAG,
                     "Unable to open file '" +
-                            contactName + "'");
+                            contactID + "'");
         }
         catch(IOException ex) {
             Log.e(TAG,
                     "Error reading file '"
-                            + contactName + "'");
+                            + contactID + "'");
         }
+    }
+
+    public void writeMessagesToFiles(File convDirectory){
+            for (DeviceContact dc: mConversations.keySet()){
+                String deviceAddress = dc.getDeviceId();
+
+            }
     }
 
     public void initObserver(DeviceContact deviceContact, Observer o){
