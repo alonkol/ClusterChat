@@ -16,11 +16,11 @@ import java.util.Observer;
 public class ConversationsManager {
     private final String TAG = "ConversationsManager";
     private HashMap<String, ArrayList<String>> mConversations;
-    private HashMap<String, Observable> mChangeFlags;
+    private HashMap<String, AddedMessageFlag> mAddedMessagesFlags;
 
     public ConversationsManager(){
         mConversations = new HashMap<>();
-        mChangeFlags = new HashMap<>();
+        mAddedMessagesFlags = new HashMap<>();
     }
 
     public List<String> getMessagesForConversation(String deviceName, int index){
@@ -35,24 +35,20 @@ public class ConversationsManager {
     public List<String> safeGetMessages(String deviceName){
         List<String> messages = mConversations.get(deviceName);
         if (messages == null){
-            return new ArrayList<>();
+            mConversations.put(deviceName, new ArrayList<String>());
+            if (mAddedMessagesFlags.get(deviceName) == null) {
+                mAddedMessagesFlags.put(deviceName, new AddedMessageFlag());
+            }
         }
-        return messages;
+        return mConversations.get(deviceName);
     }
 
     public void addMessage(String deviceName, String message) {
-        List<String> deviceMessages = safeGetMessages(deviceName);
-        if (deviceMessages.size() == 0){
-            mConversations.put(deviceName, new ArrayList<String>());
-            if (mChangeFlags.get(deviceName) == null) {
-                mChangeFlags.put(deviceName, new Observable());
-            }
-
-        }
+        // This will init the requiered objects if needed
+        safeGetMessages(deviceName);
         mConversations.get(deviceName).add(message);
-        mChangeFlags.get(deviceName).notifyObservers();
+        mAddedMessagesFlags.get(deviceName).addedMessage();
         Log.i(TAG, "Added message from device " + deviceName + "\nwith content: " + message);
-        Log.d(TAG, "All observers for device " + deviceName + "were notified");
     }
 
     public void addMessagesFromHistory(File contact){
@@ -88,14 +84,21 @@ public class ConversationsManager {
     }
 
     public void initObserver(String deviceName, Observer o){
-        if (mChangeFlags.get(deviceName) == null){
-            mChangeFlags.put(deviceName, new Observable());
-        }
-        mChangeFlags.get(deviceName).addObserver(o);
+        // This will init the requiered objects if needed
+        safeGetMessages(deviceName);
+        mAddedMessagesFlags.get(deviceName).addObserver(o);
         Log.d(TAG, "Observer was init for device " + deviceName);
     }
 
     public void discardObserver(String deviceName){
-        mChangeFlags.get(deviceName).deleteObservers();
+        mAddedMessagesFlags.get(deviceName).deleteObservers();
+        Log.d(TAG, "Observer was removed for device " + deviceName);
+    }
+
+    class AddedMessageFlag extends Observable{
+        public void addedMessage(){
+            setChanged();
+            notifyObservers();
+        }
     }
 }
