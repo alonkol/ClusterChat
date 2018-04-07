@@ -46,7 +46,6 @@ public class BluetoothService {
     private AcceptThread mSecureAcceptThread;
     private HashMap<String, ConnectedThread> mConnectedThreads;
     private HashMap<String, ConnectThread> mConnectThreads;
-    private HashSet<String> mConnectionAttempts;
     private KillOldConnectAttemptsThread mKillOldConnectAttemptsThread;
 
         /**
@@ -63,7 +62,6 @@ public class BluetoothService {
         mMessageHandler = new myMessageHandler();
         mConnectedThreads = new HashMap<>();
         mConnectThreads = new HashMap<>();
-        mConnectionAttempts = new HashSet<>();
 
         start();
     }
@@ -105,15 +103,9 @@ public class BluetoothService {
             return;
         }
 
-        // If already tried to connect recently, return.
-        if (mConnectionAttempts.contains(device.getAddress())) {
-            Log.i(TAG, "Already attempted to connect to " + device.getName());
-            return;
-        }
-
         ConnectThread thread = new ConnectThread(device);
-        thread.start();
         mConnectThreads.put(device.getAddress(), thread);
+        thread.start();
     }
 
     public synchronized void connected(BluetoothSocket socket, final BluetoothDevice
@@ -211,16 +203,6 @@ public class BluetoothService {
 
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
-            mConnectionAttempts.add(device.getAddress());
-
-            // Allow retry in 5 seconds
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    mConnectionAttempts.remove(mmDevice.getAddress());
-                }
-            }, 5 * 1000);
-
         }
 
         private UUID byteSwappedUuid(UUID toSwap) {
@@ -420,7 +402,7 @@ public class BluetoothService {
                 }
 
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(15 * 1000);
                 } catch (Exception e){
                     Log.d(TAG, "Exception: " + e.getMessage());
                 }
