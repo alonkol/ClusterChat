@@ -237,7 +237,7 @@ public class BluetoothService {
                 mmDevice.fetchUuidsWithSdp();
                 ParcelUuid[] uuids = mmDevice.getUuids();
                 UUID uuid = findUuid(uuids);
-                while (uuid == null && !Thread.currentThread().isInterrupted()) {
+                while (uuid == null) {
                     Log.d(TAG, "Failed to get UUID for " + mmDevice.getName() + "." +
                             "Trying again...");
                     mmDevice.fetchUuidsWithSdp();
@@ -246,15 +246,14 @@ public class BluetoothService {
                     uuid = findUuid(uuids);
                 }
 
-                if (uuid == null) {
-                    Log.d(TAG, "Failed to get UUID and create socket for " + mmDevice.getName());
-                    return;
-                }
-
                 // Swapping bytes to handle Android bug.
                 mmSocket = mmDevice.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
+            } catch (InterruptedException e) {
+                Log.d(TAG, "Failed to get UUID, killed thread for " + mmDevice.getName());
+                return;
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
+                return;
             }
 
             // if already connected, return.
