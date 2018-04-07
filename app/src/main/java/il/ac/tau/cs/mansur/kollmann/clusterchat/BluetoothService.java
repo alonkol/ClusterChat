@@ -78,7 +78,7 @@ public class BluetoothService {
 
         // do discovery periodically
         Timer t = new Timer();
-        t.schedule(new discoverTask(), 5 * 1000, 60 * 1000);
+        t.schedule(new discoverTask(), 5 * 1000, 30 * 1000);
 
         // Start thread to kill old connect attempts
         mKillOldConnectAttemptsThread = new KillOldConnectAttemptsThread();
@@ -255,7 +255,7 @@ public class BluetoothService {
                     uuid = findUuid(uuids);
                 }
 
-                // TODO: when is this swapped and when is not?
+                // Swapping bytes to handle Android bug.
                 mmSocket = mmDevice.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
