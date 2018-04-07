@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -20,9 +21,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "Main Activity";
     private static final int discoveryPeriodSeconds = 5 * 60;
     private static final int discoveryPeriodMillis = discoveryPeriodSeconds * 1000;
     public static String myDeviceName;
+    public static String myDeviceId;
     private MainActivity mainActivity;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
@@ -90,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) != -1) {
             mConnectedDevicesArrayAdapter.remove(deviceContact);
         }
+
     }
 
     /**
@@ -138,4 +142,14 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public static DeviceContact findDeviceContact(String deviceId) {
+        for(int i=0 ; i< mConnectedDevicesArrayAdapter.getCount() ; i++){
+            DeviceContact dc = mConnectedDevicesArrayAdapter.getItem(i);
+            if (dc.getDeviceId().equals(deviceId)){
+                return dc;
+            }
+        }
+        Log.e(TAG, "Cant find device contact with id " + deviceId);
+        return null;
+    }
 }

@@ -15,6 +15,7 @@ public class myMessageHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         String[] splitMessage;
+        DeviceContact deviceContact;
         //Message format is SENDER-RECIEVER-MESSAGE
         switch (msg.what) {
             case MESSAGE_WRITE:
@@ -24,7 +25,9 @@ public class myMessageHandler extends Handler {
                 splitMessage = writeMessage.split("~", 3);
                 Log.i(TAG, "Handler caught outgoing message for device " + splitMessage[1] +
                         "\nwith content: " + splitMessage[2]);
-                MainActivity.mConversationManager.addMessage(splitMessage[1], "Me:  " + splitMessage[2]);
+                deviceContact = MainActivity.findDeviceContact(splitMessage[1]);
+                MainActivity.mConversationManager.addMessage(
+                        deviceContact, "Me:  " + splitMessage[2]);
                 break;
             case MESSAGE_READ:
                 byte[] readBuf = (byte[]) msg.obj;
@@ -33,7 +36,9 @@ public class myMessageHandler extends Handler {
                 splitMessage = readMessage.split("~", 3);
                 Log.i(TAG, "Handler caught incoming message from device " + splitMessage[0] +
                         "\nwith content: " + splitMessage[2]);
-                MainActivity.mConversationManager.addMessage(splitMessage[0], splitMessage[0]+ ":  " + splitMessage[2]);
+                deviceContact = MainActivity.findDeviceContact(splitMessage[0]);
+                MainActivity.mConversationManager.addMessage(
+                        deviceContact, deviceContact.getDeviceName() + ":  " + splitMessage[2]);
                 break;
         }
     }

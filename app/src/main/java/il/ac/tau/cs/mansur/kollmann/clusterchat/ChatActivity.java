@@ -25,9 +25,7 @@ import java.util.Observer;
 public class ChatActivity extends AppCompatActivity {
 
     private static final String TAG = "ChatActivity";
-    public static String mdeviceName;
     private BluetoothService.ConnectedThread mThread;
-    private String mdeviceAddress;
     private Integer mCurrentIndex;
 
     // Layout Views
@@ -37,21 +35,23 @@ public class ChatActivity extends AppCompatActivity {
     public static ArrayAdapter<String> mConversationArrayAdapter;
     private StringBuffer mOutStringBuffer;
     private Observer mObserver;
+    private DeviceContact mDeviceContact;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chat_window);
         Intent intent = getIntent();
-        mdeviceName = intent.getStringExtra("clusterchat.deviceName");
-        mdeviceAddress = intent.getStringExtra("clusterchat.deviceAddress");
-        Log.d(TAG, String.format("Init chatService for device %s address %s" ,mdeviceName, mdeviceAddress));
-        mThread = MainActivity.mBluetoothService.getConnectedThread(mdeviceAddress);
+        String deviceAddress = intent.getStringExtra("clusterchat.deviceAddress");
+        mDeviceContact = MainActivity.findDeviceContact(deviceAddress);
+        Log.d(TAG, String.format("Init chatService for device %s address %s" ,
+                mDeviceContact.getDeviceName(), mDeviceContact.getDeviceId()));
+        mThread = MainActivity.mRoutingTable.getThread(mDeviceContact);
         if (mThread == null){
             Log.e(TAG, "Connection thread not found");
             finish();
         }
-        getSupportActionBar().setTitle(mdeviceName);
+        getSupportActionBar().setTitle(mDeviceContact.getDeviceName());
 
         mConversationView = (ListView) findViewById(R.id.in);
         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
@@ -91,14 +91,14 @@ public class ChatActivity extends AppCompatActivity {
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
         addMessagesToUI();
-        MainActivity.mConversationManager.initObserver(mdeviceName, mObserver);
+        MainActivity.mConversationManager.initObserver(mDeviceContact, mObserver);
     }
 
     private void addMessagesToUI(){
         Log.i(TAG, "Adding messages to UI starting with index " + mCurrentIndex);
         // Get messages from ConversationManager
         List<String> conversations = MainActivity.mConversationManager.getMessagesForConversation(
-                mdeviceName, mCurrentIndex);
+                mDeviceContact, mCurrentIndex);
         for(String message: conversations){
             mConversationArrayAdapter.add(message);
         }
@@ -114,7 +114,7 @@ public class ChatActivity extends AppCompatActivity {
         // Check that there's actually something to send
         if (message.length() > 0) {
             String newMessage = String.format(
-                    "%s~%s~%s", MainActivity.myDeviceName, mdeviceName, message);
+                    "%s~%s~%s", MainActivity.myDeviceId, mDeviceContact.getDeviceId(), message);
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.getBytes();
             try {
@@ -149,6 +149,6 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MainActivity.mConversationManager.discardObserver(mdeviceName);
+        MainActivity.mConversationManager.discardObserver(mDeviceContact);
     }
 }

@@ -103,6 +103,7 @@ class BluetoothService {
         final DeviceContact contact = new DeviceContact(device);
         ConnectedThread thread = new ConnectedThread(socket, contact);
         mConnectedThreads.put(contact, thread);
+        MainActivity.mRoutingTable.addDeviceToTable(contact, thread, true);
         thread.start();
     }
 
@@ -321,6 +322,8 @@ class BluetoothService {
         }
 
         private void connectionLost() {
+            ConnectedThread t = mConnectedThreads.get(contact);
+            MainActivity.mRoutingTable.removeThreadFromTable(t);
             mConnectedThreads.remove(contact);
 
             // Update UI

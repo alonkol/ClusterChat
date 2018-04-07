@@ -37,4 +37,12 @@ public class DeviceContact {
     public int hashCode() {
         return deviceId.hashCode();
     }
+
+    public String getDeviceName() {
+        return this.deviceName;
+    }
+
+    public String getDeviceId(){
+        return this.deviceId;
+    }
 }

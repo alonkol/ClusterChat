@@ -15,42 +15,42 @@ import java.util.Observer;
 
 public class ConversationsManager {
     private final String TAG = "ConversationsManager";
-    private HashMap<String, ArrayList<String>> mConversations;
-    private HashMap<String, AddedMessageFlag> mAddedMessagesFlags;
+    private HashMap<DeviceContact, ArrayList<String>> mConversations;
+    private HashMap<DeviceContact, AddedMessageFlag> mAddedMessagesFlags;
 
     public ConversationsManager(){
         mConversations = new HashMap<>();
         mAddedMessagesFlags = new HashMap<>();
     }
 
-    public List<String> getMessagesForConversation(String deviceName, int index){
-        List<String> allMessages =  safeGetMessages(deviceName);
+    public List<String> getMessagesForConversation(DeviceContact deviceContact, int index){
+        List<String> allMessages =  safeGetMessages(deviceContact);
         return allMessages.subList(index, allMessages.size());
     }
 
-    public List<String> getAllMessagesForConversation(String deviceName){
-        return safeGetMessages(deviceName);
+    public List<String> getAllMessagesForConversation(DeviceContact deviceContact){
+        return safeGetMessages(deviceContact);
     }
 
-    private void initDeviceObjects(String deviceName) {
-        if (! mConversations.containsKey(deviceName)){
-            mConversations.put(deviceName, new ArrayList<String>());
-            if (mAddedMessagesFlags.get(deviceName) == null) {
-                mAddedMessagesFlags.put(deviceName, new AddedMessageFlag());
+    private void initDeviceObjects(DeviceContact deviceContact) {
+        if (! mConversations.containsKey(deviceContact)){
+            mConversations.put(deviceContact, new ArrayList<String>());
+            if (mAddedMessagesFlags.get(deviceContact) == null) {
+                mAddedMessagesFlags.put(deviceContact, new AddedMessageFlag());
             }
         }
     }
 
-    public List<String> safeGetMessages(String deviceName){
-        initDeviceObjects(deviceName);
-        return mConversations.get(deviceName);
+    public List<String> safeGetMessages(DeviceContact deviceContact){
+        initDeviceObjects(deviceContact);
+        return mConversations.get(deviceContact);
     }
 
-    public void addMessage(String deviceName, String message) {
-        initDeviceObjects(deviceName);
-        mConversations.get(deviceName).add(message);
-        mAddedMessagesFlags.get(deviceName).addedMessage();
-        Log.i(TAG, "Added message from device " + deviceName + "\nwith content: " + message);
+    public void addMessage(DeviceContact deviceContact, String message) {
+        initDeviceObjects(deviceContact);
+        mConversations.get(deviceContact).add(message);
+        mAddedMessagesFlags.get(deviceContact).addedMessage();
+        Log.i(TAG, "Added message from device " + deviceContact.getDeviceName() + "\nwith content: " + message);
     }
 
     public void addMessagesFromHistory(File contact){
@@ -67,7 +67,8 @@ public class ConversationsManager {
                     new BufferedReader(fileReader);
 
             while((line = bufferedReader.readLine()) != null) {
-                addMessage(contactName, line);
+                //addMessage(contactName, line);
+                //TODO decide on format to create deviceContact
             }
 
             // Always close files.
@@ -85,16 +86,15 @@ public class ConversationsManager {
         }
     }
 
-    public void initObserver(String deviceName, Observer o){
-        // This will init the requiered objects if needed
-        initDeviceObjects(deviceName);
-        mAddedMessagesFlags.get(deviceName).addObserver(o);
-        Log.d(TAG, "Observer was init for device " + deviceName);
+    public void initObserver(DeviceContact deviceContact, Observer o){
+        initDeviceObjects(deviceContact);
+        mAddedMessagesFlags.get(deviceContact).addObserver(o);
+        Log.d(TAG, "Observer was init for device " + deviceContact.getDeviceName());
     }
 
-    public void discardObserver(String deviceName){
-        mAddedMessagesFlags.get(deviceName).deleteObservers();
-        Log.d(TAG, "Observer was removed for device " + deviceName);
+    public void discardObserver(DeviceContact deviceContact){
+        mAddedMessagesFlags.get(deviceContact).deleteObservers();
+        Log.d(TAG, "Observer was removed for device " + deviceContact.getDeviceName());
     }
 
     class AddedMessageFlag extends Observable{
