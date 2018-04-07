@@ -33,8 +33,7 @@ public class ConversationsManager {
     }
 
     public List<String> safeGetMessages(String deviceName){
-        List<String> messages = mConversations.get(deviceName);
-        if (messages == null){
+        if (! mConversations.containsKey(deviceName)){
             mConversations.put(deviceName, new ArrayList<String>());
             if (mAddedMessagesFlags.get(deviceName) == null) {
                 mAddedMessagesFlags.put(deviceName, new AddedMessageFlag());
