@@ -40,7 +40,7 @@ public class BluetoothService {
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private final Handler mUiConnectHandler;
-    private final MessageHandler mMessageHandler;
+    private final myMessageHandler mMessageHandler;
     private AcceptThread mSecureAcceptThread;
     private HashMap<String, ConnectedThread> mConnectedThreadsMap;
     private HashSet<String> mConnectionAttempts;
@@ -58,7 +58,7 @@ public class BluetoothService {
         MainActivity.myDeviceName = mAdapter.getName();
         mHandler = handler;
         mUiConnectHandler = new Handler();
-        mMessageHandler = new MessageHandler();
+        mMessageHandler = new myMessageHandler();
         mConnectedThreadsMap = new HashMap<>();
         mConnectThreads = new ArrayList<>();
         mConnectionAttempts = new HashSet<>();
@@ -354,7 +354,7 @@ public class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
 
-                    mMessageHandler.obtainMessage(MessageHandler.MESSAGE_READ, bytes, -1, buffer)
+                    mMessageHandler.obtainMessage(myMessageHandler.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
@@ -370,6 +370,9 @@ public class BluetoothService {
 
         public void write(byte[] buffer) throws IOException {
             mmOutStream.write(buffer);
+            // Share the sent message back to the UI Activity
+            mHandler.obtainMessage(myMessageHandler.MESSAGE_WRITE, -1, -1, buffer)
+                    .sendToTarget();
         }
 
         public void cancel() {

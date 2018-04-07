@@ -20,6 +20,7 @@ public class ConversationsManager {
 
     public ConversationsManager(){
         mConversations = new HashMap<>();
+        mChangeFlags = new HashMap<>();
     }
 
     public List<String> getMessagesForConversation(String deviceName, int index){
@@ -51,6 +52,7 @@ public class ConversationsManager {
         mConversations.get(deviceName).add(message);
         mChangeFlags.get(deviceName).notifyObservers();
         Log.i(TAG, "Added message from device " + deviceName + "\nwith content: " + message);
+        Log.d(TAG, "All observers for device " + deviceName + "were notified");
     }
 
     public void addMessagesFromHistory(File contact){
@@ -90,6 +92,7 @@ public class ConversationsManager {
             mChangeFlags.put(deviceName, new Observable());
         }
         mChangeFlags.get(deviceName).addObserver(o);
+        Log.d(TAG, "Observer was init for device " + deviceName);
     }
 
     public void discardObserver(String deviceName){

@@ -60,6 +60,7 @@ public class ChatActivity extends AppCompatActivity {
         mObserver = new Observer() {
             @Override
             public void update(Observable observable, Object o) {
+                Log.d(TAG, "Invoked update method of observer");
                 addMessagesToUI();
             }
         };
@@ -94,6 +95,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void addMessagesToUI(){
+        Log.i(TAG, "Adding messages to UI starting with index " + mCurrentIndex);
         // Get messages from ConversationManager
         List<String> conversations = MainActivity.mConversationManager.getMessagesForConversation(
                 mdeviceName, mCurrentIndex);

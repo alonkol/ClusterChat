@@ -4,9 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import java.util.ArrayList;
-
-public class MessageHandler extends Handler {
+public class myMessageHandler extends Handler {
     private final String TAG = "MessageHandler";
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
