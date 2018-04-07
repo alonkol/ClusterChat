@@ -12,14 +12,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BluetoothService {
 
@@ -44,8 +42,8 @@ public class BluetoothService {
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private AcceptThread mSecureAcceptThread;
-    private HashMap<String, ConnectedThread> mConnectedThreads;
-    private HashMap<String, ConnectThread> mConnectThreads;
+    private final HashMap<String, ConnectedThread> mConnectedThreads;
+    private final ConcurrentHashMap<String, ConnectThread> mConnectThreads;
     private KillOldConnectAttemptsThread mKillOldConnectAttemptsThread;
 
         /**
@@ -61,7 +59,7 @@ public class BluetoothService {
         mUiConnectHandler = new Handler();
         mMessageHandler = new myMessageHandler();
         mConnectedThreads = new HashMap<>();
-        mConnectThreads = new HashMap<>();
+        mConnectThreads = new ConcurrentHashMap<>();
 
         start();
     }
@@ -90,7 +88,7 @@ public class BluetoothService {
         return mConnectedThreads.get(device_id);
     }
 
-    public void connect(BluetoothDevice device){
+    public synchronized void connect(BluetoothDevice device){
         // if already connected to device, return.
         if (mConnectedThreads.containsKey(device.getAddress())) {
             Log.i(TAG, "Already connected to " + device.getName());
@@ -394,11 +392,14 @@ public class BluetoothService {
 
                 Iterator<HashMap.Entry<String, ConnectThread>> it = mConnectThreads.entrySet().iterator();
                 while (it.hasNext()) {
-                    ConnectThread thread = it.next().getValue();
+                    HashMap.Entry<String,ConnectThread> entry = it.next();
+                    ConnectThread thread = entry.getValue();
+                    Log.d(TAG, "Killing Thread - " + entry.getKey());
+
                     if (thread != null && thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
                         thread.cancel();
+                        it.remove();
                     }
-                    it.remove();
                 }
 
                 try {
