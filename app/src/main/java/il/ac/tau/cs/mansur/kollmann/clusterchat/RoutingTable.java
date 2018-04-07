@@ -68,7 +68,7 @@ public class RoutingTable {
     public void logTable(){
         for (String deviceName: mtable.keySet()){
             Log.d(TAG,
-                    String.format("Device Name: %s Thread %s", deviceName, mtable.get(deviceName));
+                    String.format("Device Name: %s Thread %s", deviceName, mtable.get(deviceName)));
         }
     }
 
