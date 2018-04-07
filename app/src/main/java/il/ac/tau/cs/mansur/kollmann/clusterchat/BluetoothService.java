@@ -61,6 +61,7 @@ public class BluetoothService {
         mMessageHandler = new MessageHandler();
         mConnectedThreadsMap = new HashMap<>();
         mConnectThreads = new ArrayList<>();
+        mConnectionAttempts = new HashSet<>();
 
         start();
     }
@@ -89,7 +90,7 @@ public class BluetoothService {
         return mConnectedThreadsMap.get(device_id);
     }
 
-    public void connect(final BluetoothDevice device){
+    public void connect(BluetoothDevice device){
         // if already connected to device, return.
         if (mConnectedThreadsMap.containsKey(device.getAddress())) {
             Log.i(TAG, "Already connected to " + device.getName());
@@ -101,15 +102,6 @@ public class BluetoothService {
             Log.i(TAG, "Already attempted to connect to " + device.getName());
             return;
         }
-        mConnectionAttempts.add(device.getAddress());
-
-        // Allow retry in 5 seconds
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mConnectionAttempts.remove(device.getAddress());
-            }
-        }, 5 * 1000);
 
         ConnectThread thread = new ConnectThread(device);
         thread.start();
@@ -212,6 +204,15 @@ public class BluetoothService {
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
             mConnectionAttempts.add(device.getAddress());
+
+            // Allow retry in 5 seconds
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    mConnectionAttempts.remove(mmDevice.getAddress());
+                }
+            }, 5 * 1000);
+
         }
 
         private UUID byteSwappedUuid(UUID toSwap) {
