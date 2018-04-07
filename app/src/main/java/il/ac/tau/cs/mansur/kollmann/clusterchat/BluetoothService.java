@@ -237,13 +237,18 @@ public class BluetoothService {
                 mmDevice.fetchUuidsWithSdp();
                 ParcelUuid[] uuids = mmDevice.getUuids();
                 UUID uuid = findUuid(uuids);
-                while (uuid == null) {
+                while (uuid == null && !Thread.currentThread().isInterrupted()) {
                     Log.d(TAG, "Failed to get UUID for " + mmDevice.getName() + "." +
                             "Trying again...");
                     mmDevice.fetchUuidsWithSdp();
                     Thread.sleep(5000);
                     uuids = mmDevice.getUuids();
                     uuid = findUuid(uuids);
+                }
+
+                if (uuid == null) {
+                    Log.d(TAG, "Failed to get UUID and create socket for " + mmDevice.getName());
+                    return;
                 }
 
                 // Swapping bytes to handle Android bug.
@@ -398,6 +403,7 @@ public class BluetoothService {
 
                     if (thread != null && thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
                         thread.cancel();
+                        thread.interrupt();
                         it.remove();
                     }
                 }
