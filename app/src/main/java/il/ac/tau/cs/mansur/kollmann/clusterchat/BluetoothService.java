@@ -31,7 +31,7 @@ class BluetoothService {
     private static final long CONNECT_TIMEOUT_MS = 30 * 1000;
 
     // Member fields
-    private final BluetoothAdapter mAdapter;
+    public final BluetoothAdapter mAdapter;
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
@@ -309,6 +309,7 @@ class BluetoothService {
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
+            sendHandshake();
             byte[] buffer = new byte[1024];
             int bytes;
 
@@ -342,12 +343,25 @@ class BluetoothService {
             });
         }
 
-        void write(byte[] buffer) throws IOException {
+        void write(byte[] buffer, int messageType) throws IOException {
             mmOutStream.write(buffer);
             // Share the sent message back to the UI Activity
             mMessageHandler.obtainMessage(
-                    myMessageHandler.MESSAGE_WRITE, -1, -1,
+                    messageType, -1, -1,
                     buffer).sendToTarget();
+        }
+
+        void sendHandshake(){
+            MessageBundle newMessage = new MessageBundle(
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
+            // Get the message bytes and tell the BluetoothChatService to write
+            byte[] send = newMessage.toJson().getBytes();
+            try {
+                write(send, myMessageHandler.MESSAGE_OUT_HANDSHAKE);
+                Log.d(TAG, "Sent HS to device: " + mmContact.getDeviceId());
+            } catch (IOException e){
+                Log.e(TAG, "Can't send HS message", e);
+            }
         }
 
     }

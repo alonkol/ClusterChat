@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
     private static final int discoveryPeriodSeconds = 5 * 60;
     private static final int discoveryPeriodMillis = discoveryPeriodSeconds * 1000;
+    public static DeviceContact myDeviceContact;
     private MainActivity mainActivity;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
@@ -73,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
         mRoutingTable = new RoutingTable();
 
         getMessagesFromHistory();
+        // the address will update on first handshake
+        myDeviceContact = new DeviceContact("00-00-00-00-00-00",
+                mBluetoothService.mAdapter.getName());
     }
 
     // Adding device to UI

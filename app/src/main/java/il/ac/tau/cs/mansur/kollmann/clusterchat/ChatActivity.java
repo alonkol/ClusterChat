@@ -2,9 +2,6 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -15,7 +12,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
@@ -113,11 +109,12 @@ public class ChatActivity extends AppCompatActivity {
     private void sendMessage(String message) {
         // Check that there's actually something to send
         if (message.length() > 0) {
-            String newMessage = String.format("%s%s", mDeviceContact.getDeviceId(), message);
+            MessageBundle newMessage = new MessageBundle(
+                    message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact);
             // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = newMessage.getBytes();
+            byte[] send = newMessage.toJson().getBytes();
             try {
-                mThread.write(send);
+                mThread.write(send, myMessageHandler.MESSAGE_WRITE);
             } catch (IOException e){
                 Log.e(TAG, "Can't send message", e);
             }
