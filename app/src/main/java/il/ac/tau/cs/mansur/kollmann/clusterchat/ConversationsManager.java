@@ -54,7 +54,7 @@ class ConversationsManager {
         String line;
 
         try {
-            FileReader fileReader = new FileReader(contactID);
+            FileReader fileReader = new FileReader(contact);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             while((line = bufferedReader.readLine()) != null) {
