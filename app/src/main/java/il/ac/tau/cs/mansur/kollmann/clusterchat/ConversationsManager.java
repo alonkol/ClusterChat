@@ -46,7 +46,8 @@ class ConversationsManager {
         initDeviceObjects(deviceContact);
         mConversations.get(deviceContact).add(message);
         mAddedMessagesFlags.get(deviceContact).addedMessage();
-        Log.i(TAG, "Added message from device " + deviceContact.getDeviceName() + "\nwith content: " + message);
+        Log.i(TAG, "Added message with device " + deviceContact.getDeviceName() +
+                "\nwith content: " + message);
     }
 
     void addMessagesFromHistory(File contact){
