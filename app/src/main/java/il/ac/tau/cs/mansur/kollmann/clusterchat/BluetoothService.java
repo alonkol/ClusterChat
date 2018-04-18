@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.UUID;
@@ -249,7 +250,23 @@ class BluetoothService {
                 // successful connection or an exception
                 mmSocket.connect();
             } catch (IOException e) {
-                Log.e(TAG, "Failed to connect to " + mmDevice.getName(), e);
+                Log.w(TAG, "Failed, trying fallback for " + mmDevice.getName(), e);
+
+                // Try fallback
+                try
+                {
+                    Class<?> clazz = mmSocket.getRemoteDevice().getClass();
+                    Class<?>[] paramTypes = new Class<?>[] {Integer.TYPE};
+                    Method m = clazz.getMethod("createRfcommSocket", paramTypes);
+                    Object[] params = new Object[] {Integer.valueOf(1)};
+                    BluetoothSocket fallbackSocket = (BluetoothSocket) m.invoke(mmSocket.getRemoteDevice(), params);
+                    Thread.sleep(500);
+                    fallbackSocket.connect();
+                }
+                catch (Exception e2)
+                {
+                    Log.e(TAG, "Failed to connect to " + mmDevice.getName(), e);
+                }
 
                 // Close the socket
                 try {
@@ -257,6 +274,7 @@ class BluetoothService {
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
+
                 mConnectThreads.remove(mmContact);
                 return;
             }
