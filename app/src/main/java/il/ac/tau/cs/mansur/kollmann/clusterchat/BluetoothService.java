@@ -24,7 +24,7 @@ class BluetoothService {
 
     // Member fields
     final BluetoothAdapter mAdapter;
-    volatile boolean mDiscoveryLock;
+    volatile int mConnectCount = 0;
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
@@ -226,9 +226,10 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
-                while (mDiscoveryLock){
+                while (mConnectCount == -1){
                     Thread.sleep(100);
                 }
+                mConnectCount++;
                 mmSocket.connect();
             } catch (InterruptedException e3) {
                 // ignore
@@ -260,6 +261,7 @@ class BluetoothService {
 
                 return;
             } finally {
+                mConnectCount--;
                 mConnectThreads.remove(mmContact);
             }
 

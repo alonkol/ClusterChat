@@ -51,12 +51,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         return new UUID(buffer.getLong(), buffer.getLong());
     }
 
-    void restartDiscovery(){
-        Log.d(TAG, "Discovering...");
-        mBluetoothService.mDiscoveryLock = true;
-        mBluetoothService.mAdapter.startDiscovery();
-    }
-
     void tryFetchNextDevice(){
         if (!mDeviceList.isEmpty()) {
             BluetoothDevice device = mDeviceList.remove(0);
@@ -115,7 +109,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             addNewDiscoveredDevice(device);
 
         } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-            mBluetoothService.mDiscoveryLock = false;
+            mBluetoothService.mConnectCount = 0;
             Log.d(TAG, "Discovery finished starting to handle waiting list");
             tryFetchNextDevice();
 
