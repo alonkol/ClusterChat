@@ -131,6 +131,7 @@ class BluetoothService {
             try {
                 // Create random guid with constant prefix
                 UUID uuid = UUID.fromString(MainActivity.UUID_PREFIX + UUID.randomUUID().toString().substring(8));
+                Log.d(TAG, "Listening using uuid " + uuid.toString());
                 mmServerSocket = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
             } catch (IOException e) {
                 Log.e(TAG, "Socket listen() failed", e);
@@ -156,6 +157,8 @@ class BluetoothService {
                     // if already connected, Terminate new socket.
                     if (mConnectedThreads.containsKey(new DeviceContact(socket.getRemoteDevice()))) {
                         try {
+                            Log.d(TAG, "Accept thread established connection with: " +
+                                    socket.getRemoteDevice().getName() + "but this exists so closing");
                             socket.close();
                         } catch (IOException e) {
                             Log.e(TAG, "Could not close unwanted socket", e);
@@ -164,6 +167,8 @@ class BluetoothService {
                     }
 
                     // Normal situation - start the connected thread.
+                    Log.d(TAG, "Accept thread established connection with: " +
+                            socket.getRemoteDevice().getName());
                     connected(socket, socket.getRemoteDevice());
                 }
             }
@@ -201,9 +206,8 @@ class BluetoothService {
                 mmSocket = mmDevice.createRfcommSocketToServiceRecord(mUuid);
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
-                return;
-            } finally {
                 mConnectThreads.remove(mmContact);
+                return;
             }
 
             // if already connected, return.
@@ -214,7 +218,6 @@ class BluetoothService {
                 } catch (IOException e) {
                     Log.e(TAG, "Could not close unwanted socket", e);
                 }
-
                 mConnectThreads.remove(mmContact);
                 return;
             }
@@ -238,14 +241,12 @@ class BluetoothService {
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
-
                 mConnectThreads.remove(mmContact);
                 return;
             }
 
             // Start the connected thread
             connected(mmSocket, mmDevice);
-
             mConnectThreads.remove(mmContact);
         }
 

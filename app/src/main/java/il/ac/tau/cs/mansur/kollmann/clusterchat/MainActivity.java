@@ -166,11 +166,10 @@ public class MainActivity extends AppCompatActivity {
 
             for (Parcelable p : uuids) {
                 UUID uuid = ((ParcelUuid) p).getUuid();
-
+                Log.d(TAG, uuid.toString());
                 if (uuid.toString().startsWith(UUID_PREFIX)) {
                     return uuid;
                 }
-
                 // Handle Android bug swap bug
                 if (uuid.toString().endsWith(UUID_PREFIX)) {
                     return byteSwappedUuid(uuid);
@@ -193,7 +192,8 @@ public class MainActivity extends AppCompatActivity {
                 if (device.getName() != null){
                     if (!mBluetoothService.checkIfDeviceConnected(device)){
                         mDeviceList.add(device);
-                        Log.d(TAG, "Found new device, adding to waiting list " + device.getAddress());
+                        Log.d(TAG, "Found new device, adding to waiting list " +
+                                device.getAddress() + '/' + device.getName());
                     }
                 }
             }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
@@ -205,8 +205,8 @@ public class MainActivity extends AppCompatActivity {
                     boolean result = device.fetchUuidsWithSdp();
                 }else {
                     // Start discovery again
-                    mBluetoothService.mAdapter.startDiscovery();
                     Log.d(TAG, "Waiting List empty, Discovering...");
+                    mBluetoothService.mAdapter.startDiscovery();
                 }
             } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
                 // This is when we can be assured that fetchUuidsWithSdp has completed.
@@ -215,12 +215,12 @@ public class MainActivity extends AppCompatActivity {
 
                 BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-                Log.d(TAG,"DeviceExtra address - " + deviceExtra.getAddress());
+                Log.d(TAG,"DeviceExtra address - " + deviceExtra.getName());
                 if (uuidExtra != null) {
                     UUID uuid = findUuid(uuidExtra);
                     if (uuid == null){
                         Log.d(TAG, "No matching uuid found for device " +
-                                deviceExtra.getAddress());
+                                deviceExtra.getName());
                     }
                     else {
                         mBluetoothService.connect(deviceExtra, uuid);
@@ -230,13 +230,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (!mDeviceList.isEmpty()) {
                     BluetoothDevice device = mDeviceList.remove(0);
-                    Log.d(TAG, "Fetching from device " + device.getAddress());
+                    Log.d(TAG, "Fetching from device " + device.getName());
                     boolean result = device.fetchUuidsWithSdp();
-                    // Check if good and if so connect
                 } else {
                     // Start discovery again
-                    mBluetoothService.mAdapter.startDiscovery();
                     Log.d(TAG, "Waiting List empty, Discovering...");
+                    mBluetoothService.mAdapter.startDiscovery();
                 }
             }
         }
@@ -265,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        this.unregisterReceiver(mReceiver);
         Log.d(TAG, "Writing History to files ");
         writeHistoryToFiles();
     }
