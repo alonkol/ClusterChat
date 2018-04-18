@@ -13,6 +13,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class BluetoothService {
 
@@ -22,11 +24,9 @@ class BluetoothService {
     // Name for the SDP record when creating server socket
     private static final String NAME_SECURE = "BluetoothChatSecure";
 
-    // Constants
-    private static final long CONNECT_TIMEOUT_MS = 30 * 1000;
-
     // Member fields
     final BluetoothAdapter mAdapter;
+    final ReentrantLock mDiscoveryLock = new ReentrantLock();
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
@@ -228,19 +228,11 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
-                // Wait until Discovery finished before attempting to connect
-                while (mAdapter.isDiscovering()) {
-                    try {
-                        Thread.sleep(1000);
-                    }
-                    catch (Exception e) {
-                        // ignore
-                    }
-                }
-
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
+                mDiscoveryLock.lock();
                 mmSocket.connect();
+                mDiscoveryLock.unlock();
             } catch (IOException e) {
                 Log.w(TAG, "Failed, trying fallback for " + mmDevice.getName(), e);
 
