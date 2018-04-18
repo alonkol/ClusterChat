@@ -76,13 +76,11 @@ public class MainActivity extends AppCompatActivity {
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
         // Register for broadcasts when a device is discovered
-        IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_UUID);
-        this.registerReceiver(mReceiver, filter1);
-        this.registerReceiver(mReceiver, filter2);
-        this.registerReceiver(mReceiver, filter3);
-
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothDevice.ACTION_UUID);
+        this.registerReceiver(mReceiver, filter);
 
         mBluetoothService = new BluetoothService();
         mConversationManager = new ConversationsManager();
@@ -166,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
             for (Parcelable p : uuids) {
                 UUID uuid = ((ParcelUuid) p).getUuid();
-                Log.d(TAG, uuid.toString());
+                //Log.d(TAG, uuid.toString());
                 if (uuid.toString().startsWith(UUID_PREFIX)) {
                     return uuid;
                 }
@@ -183,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
             // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 Log.d(TAG, "Discovery found a device!");
