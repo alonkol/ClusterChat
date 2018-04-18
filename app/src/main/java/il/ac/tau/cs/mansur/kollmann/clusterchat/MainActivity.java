@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
@@ -37,9 +36,8 @@ public class MainActivity extends AppCompatActivity {
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
     public static RoutingTable mRoutingTable;
-    ArrayList<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+    private static myBroadcastReceiver mReceiver;
     public static final String UUID_PREFIX = "ffffffff";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +78,11 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
-        this.registerReceiver(mReceiver, filter);
 
         mBluetoothService = new BluetoothService();
+        mReceiver = new myBroadcastReceiver(mBluetoothService);
+        this.registerReceiver(mReceiver, filter);
+        mReceiver.restartDiscovery();
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();
 
@@ -153,98 +153,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(mainActivity, ChatActivity.class);
             intent.putExtra("clusterchat.deviceAddress", address);
             startActivity(intent);
-        }
-    };
-
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        private UUID findUuid(Parcelable[] uuids){
-            if (uuids == null) {
-                return null;
-            }
-
-            for (Parcelable p : uuids) {
-                UUID uuid = ((ParcelUuid) p).getUuid();
-                //Log.d(TAG, uuid.toString());
-                if (uuid.toString().startsWith(UUID_PREFIX)) {
-                    return uuid;
-                }
-                // Handle Android bug swap bug
-                if (uuid.toString().endsWith(UUID_PREFIX)) {
-                    return byteSwappedUuid(uuid);
-                }
-            }
-
-            return null;
-        }
-
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                Log.d(TAG, "Discovery found a device!");
-                // Get the BluetoothDevice object from the Intent
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device.getName() != null){
-                    if (!mBluetoothService.checkIfDeviceConnected(device)){
-                        mDeviceList.add(device);
-                        Log.d(TAG, "Found new device, adding to waiting list " +
-                                device.getAddress() + '/' + device.getName());
-                    }
-                }
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                Log.d(TAG, "Discovery finished starting to handle waiting list");
-
-                if (!mDeviceList.isEmpty()) {
-                    BluetoothDevice device = mDeviceList.remove(0);
-                    Log.d(TAG, "Fetching from device " + device.getAddress());
-                    boolean result = device.fetchUuidsWithSdp();
-                } else {
-                    // Start discovery again
-                    Log.d(TAG, "Waiting List empty, Discovering...");
-                    mBluetoothService.mAdapter.startDiscovery();
-                }
-            } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
-                // This is when we can be assured that fetchUuidsWithSdp has completed.
-                // So get the uuids and call fetchUuidsWithSdp on another device in list
-                Log.d(TAG, "Done fetching ");
-
-                BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-                Log.d(TAG,"DeviceExtra address - " + deviceExtra.getName());
-                if (uuidExtra != null) {
-                    UUID uuid = findUuid(uuidExtra);
-                    if (uuid == null){
-                        Log.d(TAG, "No matching uuid found for device " +
-                                deviceExtra.getName());
-                    }
-                    else {
-                        mBluetoothService.connect(deviceExtra, uuid);
-                    }
-                } else {
-                    Log.d(TAG,"uuidExtra is still null");
-                }
-                if (!mDeviceList.isEmpty()) {
-                    BluetoothDevice device = mDeviceList.remove(0);
-                    Log.d(TAG, "Fetching from device " + device.getName());
-                    boolean result = device.fetchUuidsWithSdp();
-                } else {
-                    // Start discovery again
-                    Log.d(TAG, "Waiting List empty, Discovering...");
-                    mBluetoothService.mAdapter.startDiscovery();
-                }
-            }
-        }
-
-        private UUID byteSwappedUuid(UUID toSwap) {
-            ByteBuffer buffer = ByteBuffer.allocate(16);
-            buffer
-                    .putLong(toSwap.getLeastSignificantBits())
-                    .putLong(toSwap.getMostSignificantBits());
-            buffer.rewind();
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            return new UUID(buffer.getLong(), buffer.getLong());
         }
     };
 

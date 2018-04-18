@@ -57,10 +57,6 @@ class BluetoothService {
         // Start the thread to listen on a BluetoothServerSocket
         new AcceptThread().start();
 
-        // do discovery periodically
-        Log.d(TAG, "Discovering...");
-        mAdapter.startDiscovery();
-
         // Start thread to kill old connect attempts
         new KillOldConnectAttemptsThread().start();
     }
