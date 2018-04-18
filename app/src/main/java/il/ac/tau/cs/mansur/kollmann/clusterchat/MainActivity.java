@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                     BluetoothDevice device = mDeviceList.remove(0);
                     Log.d(TAG, "Fetching from device " + device.getAddress());
                     boolean result = device.fetchUuidsWithSdp();
-                }else {
+                } else {
                     // Start discovery again
                     Log.d(TAG, "Waiting List empty, Discovering...");
                     mBluetoothService.mAdapter.startDiscovery();

@@ -154,6 +154,7 @@ class BluetoothService {
                             Log.d(TAG, "Accept thread established connection with: " +
                                     socket.getRemoteDevice().getName() + "but this exists so closing");
                             socket.close();
+                            server_socket.close();
                         } catch (IOException e) {
                             Log.e(TAG, "Could not close unwanted socket", e);
                         }
@@ -208,7 +209,6 @@ class BluetoothService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-                // Swapping bytes to handle Android bug.
                 mmSocket = mmDevice.createRfcommSocketToServiceRecord(mUuid);
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
@@ -235,6 +235,16 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
+                // Wait until Discovery finished before attempting to connect
+                while (mAdapter.isDiscovering()) {
+                    try {
+                        Thread.sleep(1000);
+                    }
+                    catch (Exception e) {
+                        // ignore
+                    }
+                }
+
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
                 mmSocket.connect();
@@ -375,6 +385,7 @@ class BluetoothService {
 
                 try {
                     Thread.sleep(15 * 1000);
+                    Log.d(TAG, "Connect Killer Woke up...");
                 } catch (Exception e){
                     Log.d(TAG, "Exception: " + e.getMessage());
                 }
