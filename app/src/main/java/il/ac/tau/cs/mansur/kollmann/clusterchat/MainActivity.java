@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     public static ConversationsManager mConversationManager;
     public static RoutingTable mRoutingTable;
     ArrayList<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+    public static final String UUID_PREFIX = "ffffffff";
 
 
     @Override
@@ -166,16 +167,16 @@ public class MainActivity extends AppCompatActivity {
             for (Parcelable p : uuids) {
                 UUID uuid = ((ParcelUuid) p).getUuid();
 
-                // Handle Android bug swap bug
-                if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1
-                        && android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.M){
-                    uuid = byteSwappedUuid(uuid);
-                }
-
-                if (uuid.toString().startsWith("ffffffff")) {
+                if (uuid.toString().startsWith(UUID_PREFIX)) {
                     return uuid;
                 }
+
+                // Handle Android bug swap bug
+                if (uuid.toString().endsWith(UUID_PREFIX)) {
+                    return byteSwappedUuid(uuid);
+                }
             }
+
             return null;
         }
 
