@@ -56,9 +56,6 @@ class BluetoothService {
 
         // Start the thread to listen on a BluetoothServerSocket
         new AcceptThread().start();
-
-        // Start thread to kill old connect attempts
-        new KillOldConnectAttemptsThread().start();
     }
 
     boolean checkIfDeviceConnected(BluetoothDevice device){
@@ -378,33 +375,6 @@ class BluetoothService {
             return true;
         }
 
-    }
-
-    private class KillOldConnectAttemptsThread extends Thread {
-        public void run(){
-            setName("OldConnectThreadKiller");
-
-            while (true) {
-                Iterator<HashMap.Entry<DeviceContact, ConnectThread>> it = mConnectThreads.entrySet().iterator();
-                while (it.hasNext()) {
-                    HashMap.Entry<DeviceContact, ConnectThread> entry = it.next();
-                    ConnectThread thread = entry.getValue();
-                    Log.d(TAG, "Killing Thread - " + entry.getKey());
-
-                    if (thread != null && thread.getStartTime() + CONNECT_TIMEOUT_MS < System.currentTimeMillis()){
-                        thread.interrupt();
-                        it.remove();
-                    }
-                }
-
-                try {
-                    Thread.sleep(15 * 1000);
-                    Log.d(TAG, "Connect Killer Woke up...");
-                } catch (Exception e){
-                    Log.d(TAG, "Exception: " + e.getMessage());
-                }
-            }
-        }
     }
 
 }
