@@ -198,7 +198,7 @@ class BluetoothService {
             // given BluetoothDevice
             try {
                 // Swapping bytes to handle Android bug.
-                mmSocket = mmDevice.createRfcommSocketToServiceRecord(byteSwappedUuid(mUuid));
+                mmSocket = mmDevice.createRfcommSocketToServiceRecord(mUuid);
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
                 return;
@@ -251,16 +251,6 @@ class BluetoothService {
 
         long getStartTime(){
             return mStartTime;
-        }
-
-        private UUID byteSwappedUuid(UUID toSwap) {
-            ByteBuffer buffer = ByteBuffer.allocate(16);
-            buffer
-                    .putLong(toSwap.getLeastSignificantBits())
-                    .putLong(toSwap.getMostSignificantBits());
-            buffer.rewind();
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            return new UUID(buffer.getLong(), buffer.getLong());
         }
 
     }

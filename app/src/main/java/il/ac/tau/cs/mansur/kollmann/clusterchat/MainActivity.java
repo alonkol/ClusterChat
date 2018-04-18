@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
@@ -19,6 +20,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -161,9 +164,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
             for (Parcelable p : uuids) {
-                ParcelUuid uuid = (ParcelUuid) p;
-                if (uuid.getUuid().toString().endsWith("ffffffff")) {
-                    return uuid.getUuid();
+                UUID uuid = ((ParcelUuid) p).getUuid();
+
+                // Handle Android bug swap bug
+                if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1
+                        && android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.M){
+                    uuid = byteSwappedUuid(uuid);
+                }
+
+                if (uuid.toString().startsWith("ffffffff")) {
+                    return uuid;
                 }
             }
             return null;
@@ -228,6 +238,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "Waiting List empty, Discovering...");
                 }
             }
+        }
+
+        private UUID byteSwappedUuid(UUID toSwap) {
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            buffer
+                    .putLong(toSwap.getLeastSignificantBits())
+                    .putLong(toSwap.getMostSignificantBits());
+            buffer.rewind();
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            return new UUID(buffer.getLong(), buffer.getLong());
         }
     };
 
