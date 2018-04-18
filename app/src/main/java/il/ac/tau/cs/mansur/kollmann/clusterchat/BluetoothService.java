@@ -13,8 +13,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class BluetoothService {
 
@@ -26,7 +24,7 @@ class BluetoothService {
 
     // Member fields
     final BluetoothAdapter mAdapter;
-    final ReentrantLock mDiscoveryLock = new ReentrantLock();
+    volatile boolean mDiscoveryLock;
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
@@ -228,7 +226,7 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
-                while (mDiscoveryLock.isLocked()){
+                while (mDiscoveryLock){
                     Thread.sleep(100);
                 }
                 mmSocket.connect();
