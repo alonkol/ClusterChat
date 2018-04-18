@@ -294,7 +294,10 @@ class BluetoothService {
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
-            sendHandshake();
+            boolean sendHS = sendHandshake();
+            if (!sendHS){
+                return;
+            }
             byte[] buffer = new byte[1024];
             int bytes;
 
@@ -303,7 +306,6 @@ class BluetoothService {
                 try {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
-
                     mMessageHandler.obtainMessage(
                             myMessageHandler.MESSAGE_READ, bytes, -1,
                             buffer).sendToTarget();
@@ -336,7 +338,7 @@ class BluetoothService {
                     buffer).sendToTarget();
         }
 
-        void sendHandshake(){
+        boolean sendHandshake(){
             MessageBundle newMessage = new MessageBundle(
                     "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
             // Get the message bytes and tell the BluetoothChatService to write
@@ -346,7 +348,10 @@ class BluetoothService {
                 Log.d(TAG, "Sent HS to device: " + mmContact.getDeviceId());
             } catch (IOException e){
                 Log.e(TAG, "Can't send HS message", e);
+                connectionLost();
+                return false;
             }
+            return true;
         }
 
     }
