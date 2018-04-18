@@ -5,17 +5,12 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
-import android.os.ParcelUuid;
 import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,7 +26,7 @@ class BluetoothService {
     private static final long CONNECT_TIMEOUT_MS = 30 * 1000;
 
     // Member fields
-    public final BluetoothAdapter mAdapter;
+    final BluetoothAdapter mAdapter;
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
@@ -130,7 +125,8 @@ class BluetoothService {
             // Create a new listening server socket
             try {
                 // Create random guid with constant prefix
-                UUID uuid = UUID.fromString(MainActivity.UUID_PREFIX + UUID.randomUUID().toString().substring(8));
+                UUID uuid = UUID.fromString(MainActivity.UUID_PREFIX +
+                        UUID.randomUUID().toString().substring(MainActivity.UUID_PREFIX.length()));
                 Log.d(TAG, "Listening using uuid " + uuid.toString());
                 mmServerSocket = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
             } catch (IOException e) {
@@ -343,16 +339,6 @@ class BluetoothService {
             }
         }
 
-    }
-
-    class discoverTask extends TimerTask{
-
-        @Override
-        public void run() {
-            Log.d(TAG, "discovering...");
-            mAdapter.cancelDiscovery();
-            mAdapter.startDiscovery();
-        }
     }
 
     private class KillOldConnectAttemptsThread extends Thread {

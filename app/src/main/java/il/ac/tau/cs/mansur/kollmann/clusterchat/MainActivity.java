@@ -128,19 +128,19 @@ public class MainActivity extends AppCompatActivity {
      * This is the maximal possible value.
      * */
     private void ensureDiscoverable() {
+        while (BluetoothAdapter.getDefaultAdapter().getScanMode() == BluetoothAdapter.SCAN_MODE_NONE){
+            try {
+                Thread.sleep(1000);
+            } catch(Exception e){
+                // ignore
+            }
+        }
+
         if (BluetoothAdapter.getDefaultAdapter().getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPeriodSeconds);
             startActivity(discoverableIntent);
-        } else {
-            // retry in 3 sec.
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    ensureDiscoverable();
-                }
-            }, 3000);
         }
     }
 
