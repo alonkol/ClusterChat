@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                                 device.getAddress() + '/' + device.getName());
                     }
                 }
-            }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 Log.d(TAG, "Discovery finished starting to handle waiting list");
 
                 if (!mDeviceList.isEmpty()) {

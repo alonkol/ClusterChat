@@ -115,34 +115,32 @@ class BluetoothService {
     }
 
     private class AcceptThread extends Thread {
-        // The local server socket
-        private BluetoothServerSocket mmServerSocket;
-
         public void run() {
             Log.d(TAG, "BEGIN mAcceptThread" + this);
             setName("AcceptThread");
 
-            // Create a new listening server socket
-            try {
-                // Create random guid with constant prefix
-                UUID uuid = UUID.fromString(MainActivity.UUID_PREFIX +
-                        UUID.randomUUID().toString().substring(MainActivity.UUID_PREFIX.length()));
-                Log.d(TAG, "Listening using uuid " + uuid.toString());
-                mmServerSocket = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
-            } catch (IOException e) {
-                Log.e(TAG, "Socket listen() failed", e);
-                return;
-            }
-
+            BluetoothServerSocket server_socket;
             BluetoothSocket socket;
 
             while (true) {
                 socket = null;
 
+                // Create a new listening server socket
+                try {
+                    // Create random guid with constant prefix
+                    UUID uuid = getRandomUuid();
+                    Log.d(TAG, "Listening using uuid " + uuid.toString());
+                    server_socket = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE, uuid);
+                } catch (IOException e) {
+                    Log.e(TAG, "Socket listen() failed", e);
+                    continue;
+                }
+
                 try {
                     // This is a blocking call and will only return on a
                     // successful connection or an exception
-                    socket = mmServerSocket.accept();
+                    Log.d(TAG, "Listening to the next connection...");
+                    socket = server_socket.accept();
                 } catch (IOException e) {
                     Log.e(TAG, "accept() failed", e);
                     break;
@@ -167,7 +165,19 @@ class BluetoothService {
                             socket.getRemoteDevice().getName());
                     connected(socket, socket.getRemoteDevice());
                 }
+
+                try {
+                    Log.d(TAG, "Connected, closing Server Socket");
+                    server_socket.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Could not close server socket", e);
+                }
             }
+        }
+
+        private UUID getRandomUuid(){
+            return UUID.fromString(MainActivity.UUID_PREFIX +
+                    UUID.randomUUID().toString().substring(MainActivity.UUID_PREFIX.length()));
         }
     }
 
