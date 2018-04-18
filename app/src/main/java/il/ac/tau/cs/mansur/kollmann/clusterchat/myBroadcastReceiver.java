@@ -59,10 +59,11 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     void tryFetchNextDevice(){
         if (!mDeviceList.isEmpty()) {
             BluetoothDevice device = mDeviceList.remove(0);
-            startFetchUUIDS(device);
-        }else{
-            // Start discovery again
-            restartDiscovery();
+            if (!mBluetoothService.checkIfDeviceConnected(device)) {
+                startFetchUUIDS(device);
+            } else {
+                tryFetchNextDevice();
+            }
         }
     }
 
@@ -73,7 +74,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     }
 
     void addNewDiscoveredDevice(BluetoothDevice device){
-        Log.d(TAG, "Discovery found a device!" + device.getName() + '/' +
+        Log.d(TAG, "Discovery found a device! " + device.getName() + '/' +
                 device.getAddress());
         if (device.getName() != null){
             if (!mBluetoothService.checkIfDeviceConnected(device)){
@@ -85,7 +86,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     }
 
     void handleUUIDResult(BluetoothDevice deviceExtra, Parcelable[] uuidExtra){
-        Log.d(TAG,"Handling UUIDS for device - " + deviceExtra.getName() +
+        Log.d(TAG,"Handling UUIDS for device " + deviceExtra.getName() +
                 '/' + deviceExtra.getAddress());
         if (uuidExtra != null) {
             UUID uuid = findUuid(uuidExtra);

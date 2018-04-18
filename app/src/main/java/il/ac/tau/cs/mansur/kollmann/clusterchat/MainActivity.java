@@ -82,7 +82,14 @@ public class MainActivity extends AppCompatActivity {
         mBluetoothService = new BluetoothService();
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
-        mReceiver.restartDiscovery();
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mReceiver.restartDiscovery();
+            }
+        }, 1000, 30 * 1000);
+
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();
 
