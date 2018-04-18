@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -229,15 +228,8 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
-                // Wait until Discovery finished before attempting to connect
-                while (mAdapter.isDiscovering()) {
-                    try {
-                        Thread.sleep(1000);
-                    }
-                    catch (Exception e) {
-                        // ignore
-                    }
-                }
+                // Cancel ongoing discovery operations
+                mAdapter.cancelDiscovery();
 
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
@@ -268,13 +260,14 @@ class BluetoothService {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
 
-                mConnectThreads.remove(mmContact);
                 return;
+            } finally {
+                mConnectThreads.remove(mmContact);
+                mAdapter.startDiscovery();
             }
 
             // Start the connected thread
             connected(mmSocket, mmDevice);
-            mConnectThreads.remove(mmContact);
         }
 
         long getStartTime(){
