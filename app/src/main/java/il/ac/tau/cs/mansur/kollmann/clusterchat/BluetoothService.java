@@ -228,11 +228,12 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
-                // This is a blocking call and will only return on a
-                // successful connection or an exception
-                mDiscoveryLock.lock();
+                while (mDiscoveryLock.isLocked()){
+                    Thread.sleep(100);
+                }
                 mmSocket.connect();
-                mDiscoveryLock.unlock();
+            } catch (InterruptedException e3) {
+                // ignore
             } catch (IOException e) {
                 Log.w(TAG, "Failed, trying fallback for " + mmDevice.getName(), e);
 
@@ -259,13 +260,13 @@ class BluetoothService {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
 
-                mConnectThreads.remove(mmContact);
                 return;
+            } finally {
+                mConnectThreads.remove(mmContact);
             }
 
             // Start the connected thread
             connected(mmSocket, mmDevice);
-            mConnectThreads.remove(mmContact);
         }
 
         long getStartTime(){
