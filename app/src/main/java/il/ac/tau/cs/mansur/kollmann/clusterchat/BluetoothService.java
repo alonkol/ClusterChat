@@ -62,19 +62,32 @@ class BluetoothService {
         new AcceptThread().start();
 
         // do discovery periodically
-        new Timer().schedule(new discoverTask(), 5 * 1000, 30 * 1000);
+        Log.d(TAG, "Discovering...");
+        mAdapter.startDiscovery();
 
         // Start thread to kill old connect attempts
         new KillOldConnectAttemptsThread().start();
     }
 
-    synchronized void connect(BluetoothDevice device){
+    boolean checkIfDeviceConnected(BluetoothDevice device){
+        DeviceContact contact = new DeviceContact(device);
+        return checkIfContactConnected(contact);
+    }
+
+    boolean checkIfContactConnected(DeviceContact contact){
+        if (mConnectedThreads.containsKey(contact)) {
+            Log.i(TAG, "Already connected to " + contact.getDeviceName() + '/' +
+                    contact.getDeviceId());
+            return true;
+        }
+        return false;
+    }
+
+    synchronized void connect(BluetoothDevice device, UUID uuid){
         DeviceContact contact = new DeviceContact(device);
         // if already connected to device, return.
-        if (mConnectedThreads.containsKey(contact)) {
-            Log.i(TAG, "Already connected to " + device.getName());
-            return;
-        }
+        if (checkIfContactConnected(contact))
+                return;
 
         // If already trying to connect, return.
         if (mConnectThreads.containsKey(contact)) {
@@ -82,7 +95,7 @@ class BluetoothService {
             return;
         }
 
-        ConnectThread thread = new ConnectThread(device);
+        ConnectThread thread = new ConnectThread(device, uuid);
         mConnectThreads.put(contact, thread);
         thread.start();
     }
@@ -168,9 +181,11 @@ class BluetoothService {
         private final BluetoothDevice mmDevice;
         private final DeviceContact mmContact;
         private long mStartTime;
+        private UUID mUuid;
 
-        ConnectThread(BluetoothDevice device) {
+        ConnectThread(BluetoothDevice device, UUID uuid) {
             mmDevice = device;
+            mUuid = uuid;
             mmContact = new DeviceContact(mmDevice);
         }
 
@@ -182,23 +197,8 @@ class BluetoothService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-                mmDevice.fetchUuidsWithSdp();
-                ParcelUuid[] uuids = mmDevice.getUuids();
-                UUID uuid = findUuid(uuids);
-                while (uuid == null) {
-                    Log.d(TAG, "Failed to get UUID for " + mmDevice.getName() + "." +
-                            "Trying again...");
-                    mmDevice.fetchUuidsWithSdp();
-                    Thread.sleep(5000);
-                    uuids = mmDevice.getUuids();
-                    uuid = findUuid(uuids);
-                }
-
                 // Swapping bytes to handle Android bug.
-                mmSocket = mmDevice.createRfcommSocketToServiceRecord(byteSwappedUuid(uuid));
-            } catch (InterruptedException e) {
-                Log.d(TAG, "Failed to get UUID, killed thread for " + mmDevice.getName());
-                return;
+                mmSocket = mmDevice.createRfcommSocketToServiceRecord(byteSwappedUuid(mUuid));
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
                 return;
@@ -263,18 +263,6 @@ class BluetoothService {
             return new UUID(buffer.getLong(), buffer.getLong());
         }
 
-        private UUID findUuid(ParcelUuid[] uuids){
-            if (uuids == null) {
-                return null;
-            }
-
-            for (ParcelUuid uuid : uuids) {
-                if (uuid.getUuid().toString().endsWith("ffffffff")) {
-                    return uuid.getUuid();
-                }
-            }
-            return null;
-        }
     }
 
     /**

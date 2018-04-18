@@ -7,6 +7,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,8 +19,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
@@ -30,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
     public static RoutingTable mRoutingTable;
+    ArrayList<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +72,13 @@ public class MainActivity extends AppCompatActivity {
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
         // Register for broadcasts when a device is discovered
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        this.registerReceiver(mReceiver, filter);
+        IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_UUID);
+        this.registerReceiver(mReceiver, filter1);
+        this.registerReceiver(mReceiver, filter2);
+        this.registerReceiver(mReceiver, filter3);
+
 
         mBluetoothService = new BluetoothService();
         mConversationManager = new ConversationsManager();
@@ -144,17 +155,77 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        private UUID findUuid(Parcelable[] uuids){
+            if (uuids == null) {
+                return null;
+            }
+
+            for (Parcelable p : uuids) {
+                ParcelUuid uuid = (ParcelUuid) p;
+                if (uuid.getUuid().toString().endsWith("ffffffff")) {
+                    return uuid.getUuid();
+                }
+            }
+            return null;
+        }
+
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
             // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                Log.d(TAG, "Discovery found a device!");
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
                 if (device.getName() != null){
-                    mBluetoothService.connect(device);
+                    if (!mBluetoothService.checkIfDeviceConnected(device)){
+                        mDeviceList.add(device);
+                        Log.d(TAG, "Found new device, adding to waiting list " + device.getAddress());
+                    }
+                }
+            }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                Log.d(TAG, "Discovery finished starting to handle waiting list");
+
+                if (!mDeviceList.isEmpty()) {
+                    BluetoothDevice device = mDeviceList.remove(0);
+                    Log.d(TAG, "Fetching from device " + device.getAddress());
+                    boolean result = device.fetchUuidsWithSdp();
+                }else {
+                    // Start discovery again
+                    mBluetoothService.mAdapter.startDiscovery();
+                    Log.d(TAG, "Waiting List empty, Discovering...");
+                }
+            } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
+                // This is when we can be assured that fetchUuidsWithSdp has completed.
+                // So get the uuids and call fetchUuidsWithSdp on another device in list
+                Log.d(TAG, "Done fetching ");
+
+                BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
+                Log.d(TAG,"DeviceExtra address - " + deviceExtra.getAddress());
+                if (uuidExtra != null) {
+                    UUID uuid = findUuid(uuidExtra);
+                    if (uuid == null){
+                        Log.d(TAG, "No matching uuid found for device " +
+                                deviceExtra.getAddress());
+                    }
+                    else {
+                        mBluetoothService.connect(deviceExtra, uuid);
+                    }
+                } else {
+                    Log.d(TAG,"uuidExtra is still null");
+                }
+                if (!mDeviceList.isEmpty()) {
+                    BluetoothDevice device = mDeviceList.remove(0);
+                    Log.d(TAG, "Fetching from device " + device.getAddress());
+                    boolean result = device.fetchUuidsWithSdp();
+                    // Check if good and if so connect
+                } else {
+                    // Start discovery again
+                    mBluetoothService.mAdapter.startDiscovery();
+                    Log.d(TAG, "Waiting List empty, Discovering...");
                 }
             }
         }
