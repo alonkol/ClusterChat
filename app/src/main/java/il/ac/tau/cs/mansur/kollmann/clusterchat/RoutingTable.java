@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class RoutingTable {
+public class RoutingTable<T> {
     private static final String TAG="RoutingTable";
-    private static HashMap<DeviceContact, BluetoothService.ConnectedThread> mtable;
-    private static HashMap<BluetoothService.ConnectedThread, HashSet<DeviceContact>> revertedTable;
+    private HashMap<DeviceContact, T> mtable;
+    private HashMap<T, HashSet<DeviceContact>> revertedTable;
 
     public RoutingTable(){
         mtable = new HashMap<>();
@@ -19,15 +19,15 @@ public class RoutingTable {
         // TODO Lock???
     }
 
-    public BluetoothService.ConnectedThread getThread(DeviceContact deviceContact){
+    public T getThread(DeviceContact deviceContact){
         return mtable.get(deviceContact);
     }
 
-    public HashSet<DeviceContact> getAllDevicesForThread(BluetoothService.ConnectedThread t){
+    public HashSet<DeviceContact> getAllDevicesForThread(T t){
         return revertedTable.get(t);
     }
 
-    private void addDeviceToTable(DeviceContact deviceContact, BluetoothService.ConnectedThread t,
+    private void addDeviceToTable(DeviceContact deviceContact, T t,
                                   boolean overrideIfExists, boolean checkConsistency){
         if (mtable.containsKey(deviceContact)){
             Log.i(TAG, "device "+ deviceContact + "already exists in table");
@@ -49,7 +49,7 @@ public class RoutingTable {
             checkConsistency();
     }
 
-    public void addDeviceToTable(DeviceContact deviceContact, BluetoothService.ConnectedThread t,
+    public void addDeviceToTable(DeviceContact deviceContact, T t,
                                  boolean overrideIfExists){
         addDeviceToTable(deviceContact, t,  overrideIfExists, true);
     }
@@ -57,7 +57,7 @@ public class RoutingTable {
     //TODO needs __hash__ and __equals__ in connectedThread???
 
     public void addDeviceListToTable(ArrayList<DeviceContact> deviceContacts,
-                                     BluetoothService.ConnectedThread t, boolean overrideIfExists){
+                                     T t, boolean overrideIfExists){
         for (DeviceContact deviceContact: deviceContacts){
             addDeviceToTable(deviceContact, t, overrideIfExists, false);
         }
@@ -65,7 +65,7 @@ public class RoutingTable {
     }
 
     public void removeDeviceFromTable(DeviceContact deviceContact){
-        BluetoothService.ConnectedThread t = mtable.get(deviceContact);
+        T t = mtable.get(deviceContact);
         mtable.remove(deviceContact);
         revertedTable.get(t).remove(deviceContact);
         if (revertedTable.get(t).size() == 0){
@@ -76,7 +76,7 @@ public class RoutingTable {
         Log.d(TAG, String.format("Removed device %s", deviceContact));
     }
 
-    public void removeThreadFromTable(BluetoothService.ConnectedThread t){
+    public void removeThreadFromTable(T t){
         for (DeviceContact deviceContact: revertedTable.get(t)){
             Log.d(TAG, String.format("Removing device %s due to removal of thread %s", deviceContact, t));
             mtable.remove(deviceContact);
@@ -98,7 +98,7 @@ public class RoutingTable {
         }
         if (showReversed){
             Log.d(TAG, "Reversed Table");
-            for (BluetoothService.ConnectedThread t: revertedTable.keySet()){
+            for (T t: revertedTable.keySet()){
                 Log.d(TAG,
                         String.format(
                                 "Thread: %s Devices %s", t, Arrays.toString(revertedTable.get(t).toArray())));
@@ -109,7 +109,7 @@ public class RoutingTable {
     private void checkConsistency(){
         int count = 0;
         ArrayList<DeviceContact> allDevices = new ArrayList<>();
-        for(BluetoothService.ConnectedThread t: revertedTable.keySet()){
+        for(T t: revertedTable.keySet()){
                 HashSet<DeviceContact> devicesList = revertedTable.get(t);
                 allDevices.addAll(devicesList);
                 for (DeviceContact deviceContact: devicesList){

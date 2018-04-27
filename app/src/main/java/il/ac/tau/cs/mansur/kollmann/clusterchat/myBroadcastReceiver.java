@@ -29,7 +29,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         }
         for (Parcelable p : uuids) {
             UUID uuid = ((ParcelUuid) p).getUuid();
-            //Log.d(TAG, uuid.toString());
             if (uuid.toString().startsWith(MainActivity.UUID_PREFIX)) {
                 return uuid;
             }
