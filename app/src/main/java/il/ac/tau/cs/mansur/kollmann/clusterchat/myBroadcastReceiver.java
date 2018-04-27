@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.util.Log;
@@ -18,7 +19,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     private final static String TAG = "Broadcast Reciever";
     private BluetoothService mBluetoothService;
     ArrayList<BluetoothDevice> mDeviceList = new ArrayList<>();
-    boolean mIsFetchingUuids = false;
 
     public myBroadcastReceiver(BluetoothService bluetoothService){
         mBluetoothService = bluetoothService;
@@ -53,7 +53,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
 
     void tryFetchNextDevice(){
         if (!mDeviceList.isEmpty()) {
-            BluetoothDevice device = mDeviceList.remove(0);
+            final BluetoothDevice device = mDeviceList.remove(0);
             if (!mBluetoothService.checkIfDeviceConnected(device)) {
                 Log.d(TAG, "Fetching from device " + device.getAddress() + '/' +
                         device.getName());
@@ -61,7 +61,16 @@ public class myBroadcastReceiver extends BroadcastReceiver {
                 if (BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
                     Log.e(TAG, "Trying to fetch UUIDs while discovery is running");
                 }
-                mIsFetchingUuids = device.fetchUuidsWithSdp();
+
+                final Runnable r = new Runnable() {
+                    public void run() {
+                        Log.d("FetchUuids", "Acquiring all locks...");
+                        mBluetoothService.mSemaphore.acquireUninterruptibly(BluetoothService.MAX_CONNECTED_THREADS);
+                        boolean result = device.fetchUuidsWithSdp();
+                    }
+                };
+
+                new Handler().postDelayed(r, 0);
             } else {
                 tryFetchNextDevice();
             }
@@ -114,7 +123,8 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             tryFetchNextDevice();
 
         } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
-            mIsFetchingUuids = false;
+            mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
+            Log.d(TAG, "Released all locks...");
             // This is when we can be assured that fetchUuidsWithSdp has completed.
             // So get the uuids and call fetchUuidsWithSdp on another device in list
             Log.d(TAG, "Done fetching ");
