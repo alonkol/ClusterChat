@@ -58,10 +58,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
                 Log.d(TAG, "Fetching from device " + device.getAddress() + '/' +
                         device.getName());
 
-                if (BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
-                    Log.e(TAG, "Trying to fetch UUIDs while discovery is running");
-                }
-
                 final Runnable r = new Runnable() {
                     public void run() {
                         Log.d("FetchUuids", "Acquiring all locks...");
