@@ -54,13 +54,9 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         if (!mDeviceList.isEmpty()) {
             BluetoothDevice device = mDeviceList.remove(0);
             if (!mBluetoothService.checkIfDeviceConnected(device)) {
-                mBluetoothService.mSemaphore.acquireUninterruptibly();
                 Log.d(TAG, "Fetching from device " + device.getAddress() + '/' +
                         device.getName());
                 boolean result = device.fetchUuidsWithSdp();
-                if (!result) {
-                    mBluetoothService.mSemaphore.release();
-                }
             } else {
                 tryFetchNextDevice();
             }
@@ -116,7 +112,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             // This is when we can be assured that fetchUuidsWithSdp has completed.
             // So get the uuids and call fetchUuidsWithSdp on another device in list
             Log.d(TAG, "Done fetching ");
-            mBluetoothService.mSemaphore.release();
             BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
             handleUUIDResult(deviceExtra, uuidExtra);

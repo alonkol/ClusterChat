@@ -101,16 +101,21 @@ public class MainActivity extends AppCompatActivity {
         mReceiver.tryFetchNextDevice();
 
         new Timer().schedule(new TimerTask() {
+            final String TIMER_TAG = "TIMER";
             @Override
             public void run() {
                 try {
-                    Log.d(TAG, "Acquiring all locks...");
+                    // Waiting for devices list to be empty.
+                    while (mReceiver.mDeviceList.size() > 0) {
+                        Thread.sleep(100);
+                    }
+                    Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }
                 catch (Exception e) {
                     // ignore
                 }
-                Log.d(TAG, "All locks acquired. Discovering...");
+                Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
         }, 1000, 30 * 1000);
