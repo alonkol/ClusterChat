@@ -22,6 +22,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK){
             Init();
         } else {
-            finish();
+            finishAndRemoveTask();
         }
     }
 
@@ -94,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
         mBluetoothService = new BluetoothService();
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
+
+        Set<BluetoothDevice> pairedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
+        mReceiver.mDeviceList.addAll(pairedDevices);
+        mReceiver.tryFetchNextDevice();
 
         new Timer().schedule(new TimerTask() {
             @Override
