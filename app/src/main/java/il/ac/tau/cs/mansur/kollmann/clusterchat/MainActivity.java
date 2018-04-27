@@ -86,15 +86,13 @@ public class MainActivity extends AppCompatActivity {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                Log.d(TAG, "Discovering...");
-                while (mBluetoothService.mConnectCount > 0) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (Exception e) {
-                        // ignore
-                    }
+                try {
+                    mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }
-                mBluetoothService.mConnectCount = -1;
+                catch (Exception e) {
+                    // ignore
+                }
+                Log.d(TAG, "Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
         }, 1000, 30 * 1000);

@@ -108,7 +108,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             addNewDiscoveredDevice(device);
 
         } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-            mBluetoothService.mConnectCount = 0;
+            mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
             Log.d(TAG, "Discovery finished starting to handle waiting list");
             tryFetchNextDevice();
 

@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 class BluetoothService {
 
@@ -24,7 +25,9 @@ class BluetoothService {
 
     // Member fields
     final BluetoothAdapter mAdapter;
-    volatile int mConnectCount = 0;
+
+    static final int MAX_CONNECTED_THREADS = 7;
+    Semaphore mSemaphore = new Semaphore(MAX_CONNECTED_THREADS);
     private final Handler mUiConnectHandler;
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
@@ -226,10 +229,7 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
-                while (mConnectCount == -1){
-                    Thread.sleep(100);
-                }
-                mConnectCount++;
+                mSemaphore.acquire();
                 mmSocket.connect();
             } catch (InterruptedException e3) {
                 // ignore
@@ -261,7 +261,7 @@ class BluetoothService {
 
                 return;
             } finally {
-                mConnectCount--;
+                mSemaphore.release();
                 mConnectThreads.remove(mmContact);
             }
 
