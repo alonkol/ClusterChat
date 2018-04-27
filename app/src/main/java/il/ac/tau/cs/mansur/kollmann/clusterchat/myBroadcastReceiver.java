@@ -18,6 +18,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     private final static String TAG = "Broadcast Reciever";
     private BluetoothService mBluetoothService;
     ArrayList<BluetoothDevice> mDeviceList = new ArrayList<>();
+    boolean mIsFetchingUuids = false;
 
     public myBroadcastReceiver(BluetoothService bluetoothService){
         mBluetoothService = bluetoothService;
@@ -56,7 +57,8 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             if (!mBluetoothService.checkIfDeviceConnected(device)) {
                 Log.d(TAG, "Fetching from device " + device.getAddress() + '/' +
                         device.getName());
-                boolean result = device.fetchUuidsWithSdp();
+
+                mIsFetchingUuids = device.fetchUuidsWithSdp();
             } else {
                 tryFetchNextDevice();
             }
@@ -109,6 +111,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             tryFetchNextDevice();
 
         } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
+            mIsFetchingUuids = false;
             // This is when we can be assured that fetchUuidsWithSdp has completed.
             // So get the uuids and call fetchUuidsWithSdp on another device in list
             Log.d(TAG, "Done fetching ");

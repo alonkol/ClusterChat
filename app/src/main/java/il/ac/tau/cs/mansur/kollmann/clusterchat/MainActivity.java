@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     // Waiting for devices list to be empty.
-                    while (mReceiver.mDeviceList.size() > 0) {
+                    while (mReceiver.mIsFetchingUuids) {
                         Thread.sleep(100);
                     }
                     Log.d(TIMER_TAG, "Acquiring all locks...");
