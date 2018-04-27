@@ -229,7 +229,9 @@ class BluetoothService {
 
             // Make a connection to the BluetoothSocket
             try {
+                Log.d(TAG, "Acquiring connection lock");
                 mSemaphore.acquire();
+                Log.d(TAG, "Lock acquired, connecting...");
                 mmSocket.connect();
             } catch (InterruptedException e3) {
                 // ignore

@@ -121,6 +121,9 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
             handleUUIDResult(deviceExtra, uuidExtra);
             tryFetchNextDevice();
+        } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+            // TODO: register ACTION_STATE_CHANGED.
+            // TODO: bluetooth disabled during usage.
         }
     }
 }

@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
 
         // If BT is not on, request that it be enabled.
-        // setupChat() will then be called during onActivityResult
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
@@ -56,9 +55,22 @@ public class MainActivity extends AppCompatActivity {
             final int REQUEST_ENABLE_BT = 3;
 
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-            // Otherwise, setup the chat session
+        } else {
+            Init();
         }
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == RESULT_OK){
+            Init();
+        } else {
+            finish();
+        }
+    }
+
+    private void Init(){
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -87,12 +99,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    Log.d(TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }
                 catch (Exception e) {
                     // ignore
                 }
-                Log.d(TAG, "Discovering...");
+                Log.d(TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
         }, 1000, 30 * 1000);
