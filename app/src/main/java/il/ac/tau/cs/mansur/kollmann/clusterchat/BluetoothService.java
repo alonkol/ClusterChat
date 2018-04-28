@@ -311,6 +311,7 @@ class BluetoothService {
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
             boolean sendHS = sendHandshake();
             if (!sendHS){
+                connectionLost();
                 return;
             }
             byte[] buffer = new byte[1024];
@@ -362,7 +363,6 @@ class BluetoothService {
                 Log.d(TAG, "Sent HS to device: " + mmContact.getDeviceId());
             } catch (IOException e){
                 Log.e(TAG, "Can't send HS message", e);
-                connectionLost();
                 return false;
             }
             return true;

@@ -114,9 +114,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         
         switch (action) {
             case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
-                Log.d(TAG, "Discovery finished starting to handle waiting list");
-                tryFetchNextDevice();
+                onDiscoveryEnd();
                 break;
             case BluetoothDevice.ACTION_FOUND:
                 // When discovery finds a device
@@ -142,5 +140,11 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             default:
                 break;
         }
+    }
+
+    public void onDiscoveryEnd() {
+        mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
+        Log.d(TAG, "Discovery finished starting to handle waiting list");
+        tryFetchNextDevice();
     }
 }
