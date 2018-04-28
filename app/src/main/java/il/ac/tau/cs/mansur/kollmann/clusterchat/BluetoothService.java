@@ -216,17 +216,20 @@ class BluetoothService {
                 mMessageHandler.obtainMessage(
                         myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
+
             } catch (IOException e) {
                 Log.e(TAG, "disconnected", e);
                 mConnectThreads.remove(mmContact);
                 return;
             }
 
-            // Should have device id after HS.
-            if (MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")) {
-                Log.e(TAG, "Handshake not yet received");
-                mConnectThreads.remove(mmContact);
-                return;
+            while(MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
             }
 
             // Send HS
@@ -262,8 +265,8 @@ class BluetoothService {
 
             // Create a new listening server socket
             try {
-                server_socket = mAdapter.listenUsingRfcommWithServiceRecord("Dedicated" + mmContact.getDeviceName(), mmUuid);
-
+                server_socket = mAdapter.listenUsingRfcommWithServiceRecord(
+                        "Dedicated" + mmContact.getDeviceName(), mmUuid);
                 Log.d(TAG, "Listening to the next connection...");
                 socket = server_socket.accept();
             } catch (Exception e) {
