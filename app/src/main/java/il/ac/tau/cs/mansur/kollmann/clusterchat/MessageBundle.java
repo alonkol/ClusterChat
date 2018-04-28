@@ -1,45 +1,56 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import com.google.gson.Gson;
 
-public class MessageBundle{
-    private static final String TAG="Message";
+import java.util.UUID;
+
+class MessageBundle{
     private String message;
     private MessageTypes messageType;
     private DeviceContact sender;
     private DeviceContact receiver;
+    private UUID uuid;
 
-    public MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
-                         DeviceContact receiver){
+    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
+                         DeviceContact receiver, UUID uuid){
         this.message = message;
         this.sender = sender;
         this.receiver = receiver;
         this.messageType = messageType;
+        this.uuid = uuid;
     }
 
-    public String toJson(){
+    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
+                         DeviceContact receiver){
+        this(message, messageType, sender, receiver, null);
+    }
+
+    String toJson(){
         Gson gson = new Gson();
         return gson.toJson(this);
     }
 
-    public static MessageBundle fromJson(String messageJson){
+    static MessageBundle fromJson(String messageJson){
         Gson gson = new Gson();
         return gson.fromJson(messageJson, MessageBundle.class);
     }
 
-
-    public String getMessage() {
+    String getMessage() {
         return message;
     }
 
-    public DeviceContact getSender() {
+    DeviceContact getSender() {
         return sender;
     }
 
-    public DeviceContact getReceiver() {
+    DeviceContact getReceiver() {
         return receiver;
     }
 
-    public MessageTypes getMessageType() {
+    MessageTypes getMessageType() {
         return messageType;
+    }
+
+    UUID getUuid() {
+        return uuid;
     }
 }

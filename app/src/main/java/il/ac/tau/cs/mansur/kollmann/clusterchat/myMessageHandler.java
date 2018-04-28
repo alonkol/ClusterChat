@@ -6,30 +6,40 @@ import android.util.Log;
 
 public class myMessageHandler extends Handler {
     private final String TAG = "MessageHandler";
-    public static final int MESSAGE_OUT_HANDSHAKE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
+    static final int MESSAGE_IN = 0;
+    static final int MESSAGE_OUT = 1;
+
 
     @Override
     public void handleMessage(Message msg) {
-        byte[] buffer = (byte[]) msg.obj;
         switch (msg.what) {
-            case MESSAGE_WRITE:
-                // construct a string from the buffer
-                handleOutgoingTextMessage(buffer);
-                break;
-            case MESSAGE_READ:
+            case MESSAGE_IN:
                 handleIncomingMessage(msg);
                 break;
-            case MESSAGE_OUT_HANDSHAKE:
-                handleOutgoingHSMessage();
+            case MESSAGE_OUT:
+                handleOutgoingMessage(msg);
                 break;
         }
     }
 
-    private void handleOutgoingTextMessage(byte[] buffer){
-        String writeMessage = new String(buffer);
-        MessageBundle messageBundle = MessageBundle.fromJson(writeMessage);
+    private void handleOutgoingMessage(Message msg){
+        byte[] buffer = (byte[]) msg.obj;
+        String readMessage = new String(buffer);
+        MessageBundle messageBundle = MessageBundle.fromJson(readMessage);
+        switch (messageBundle.getMessageType()){
+            case TEXT:
+                handleOutgoingTextMessage(messageBundle);
+                break;
+            case HS:
+                handleOutgoingHSMessage();
+                break;
+            case UUID:
+                handleOutgoingUuid();
+                break;
+        }
+    }
+
+    private void handleOutgoingTextMessage(MessageBundle messageBundle){
         DeviceContact deviceContact = messageBundle.getReceiver();
         Log.i(TAG, "Handler caught outgoing message for device " +
                 deviceContact.getDeviceId() + "\nwith content: " +
@@ -40,8 +50,13 @@ public class myMessageHandler extends Handler {
     }
 
     private void handleOutgoingHSMessage(){
-        Log.i(TAG, "Handler caught outgoing HI message");
+        Log.i(TAG, "Handler caught outgoing HS message");
     }
+
+    private void handleOutgoingUuid(){
+        Log.i(TAG, "Handler caught outgoing UUID message");
+    }
+
 
     private void handleIncomingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
@@ -53,6 +68,9 @@ public class myMessageHandler extends Handler {
                 break;
             case HS:
                 handleIncomingHSMessage(messageBundle);
+                break;
+            case UUID:
+                handleIncomingUuid(messageBundle);
                 break;
         }
     }
@@ -67,7 +85,7 @@ public class myMessageHandler extends Handler {
     }
 
     private void handleIncomingHSMessage(MessageBundle messageBundle){
-        Log.i(TAG, "Handler caught incoming HI message");
+        Log.i(TAG, "Handler caught incoming HS message");
         if (MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")) {
             Log.i(TAG, "Initializing myDeviceContact address to " +
                     messageBundle.getReceiver().getDeviceId());
@@ -75,4 +93,14 @@ public class myMessageHandler extends Handler {
         }
     }
 
+    private void handleIncomingUuid(MessageBundle messageBundle){
+        Log.i(TAG, "Handler caught incoming UUID message");
+        DeviceContact device = messageBundle.getSender();
+        BluetoothService.ConnectThread thread = BluetoothService.mConnectThreads.get(device);
+        if (thread == null) {
+            Log.e(TAG, "Incoming UUID - requesting thread not found.");
+            return;
+        }
+        thread.setUuid(messageBundle.getUuid());
+    }
 }

@@ -21,8 +21,8 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
-    private static final int discoveryPeriodSeconds = 5 * 60;
-    private static final int discoveryPeriodMillis = discoveryPeriodSeconds * 1000;
+    private static final int discoveryPermissionPeriodSeconds = 5 * 60;
+    private static final int discoveryPermissionPeriodMillis = discoveryPermissionPeriodSeconds * 1000;
     public static DeviceContact myDeviceContact;
     private MainActivity mainActivity;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 ensureDiscoverable();
             }
-        }, 0, discoveryPeriodMillis);
+        }, 0, discoveryPermissionPeriodMillis);
 
         // Find and set up the ListView for newly discovered devices
         mConnectedDevicesArrayAdapter = new ArrayAdapter<>(
@@ -88,18 +88,32 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
-//        Set<BluetoothDevice> pairedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
-//        mReceiver.mDeviceList.addAll(pairedDevices);
-//        mReceiver.tryFetchNextDevice();
+        connectPairedDevices();
+        startPeriodicDiscovery();
 
+        mConversationManager = new ConversationsManager();
+        mRoutingTable = new RoutingTable();
+
+        getMessagesFromHistory();
+        // the address will update on first handshake
+        myDeviceContact = new DeviceContact("00-00-00-00-00-00",
+                mBluetoothService.mAdapter.getName());
+    }
+
+    void connectPairedDevices() {
+        Set<BluetoothDevice> pairedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
+        for (BluetoothDevice device: pairedDevices) {
+            mReceiver.tryConnect(device);
+        }
+
+    }
+
+    void startPeriodicDiscovery() {
         new Timer().schedule(new TimerTask() {
             final String TIMER_TAG = "TIMER";
             @Override
             public void run() {
                 try {
-                    while (!mReceiver.mDeviceList.isEmpty()){
-                        Thread.sleep(100);
-                    }
                     Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }
@@ -110,14 +124,6 @@ public class MainActivity extends AppCompatActivity {
                 mBluetoothService.mAdapter.startDiscovery();
             }
         }, 3 * 1000, 30 * 1000);
-
-        mConversationManager = new ConversationsManager();
-        mRoutingTable = new RoutingTable();
-
-        getMessagesFromHistory();
-        // the address will update on first handshake
-        myDeviceContact = new DeviceContact("00-00-00-00-00-00",
-                mBluetoothService.mAdapter.getName());
     }
 
     // Adding device to UI
@@ -165,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         if (BluetoothAdapter.getDefaultAdapter().getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPeriodSeconds);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPermissionPeriodSeconds);
             startActivity(discoverableIntent);
         }
     }

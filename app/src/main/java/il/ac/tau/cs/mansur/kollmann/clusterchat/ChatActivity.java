@@ -115,7 +115,7 @@ public class ChatActivity extends AppCompatActivity {
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {
-                mThread.write(send, myMessageHandler.MESSAGE_WRITE);
+                mThread.write(send, myMessageHandler.MESSAGE_OUT);
             } catch (IOException e){
                 Log.e(TAG, "Can't send message", e);
             }
