@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
 
-        mBluetoothService = new BluetoothService();
+        mBluetoothService = new BluetoothService(this);
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
@@ -93,16 +93,10 @@ public class MainActivity extends AppCompatActivity {
         mReceiver.tryFetchNextDevice();
 
         new Timer().schedule(new TimerTask() {
-            final String TIMER_TAG = "DISCOVERY_INIT";
+            final String TIMER_TAG = "TIMER";
             @Override
             public void run() {
                 try {
-                    while (!mReceiver.mDeviceList.isEmpty()){
-                        Thread.sleep(100);
-                    }
-                    if (mBluetoothService.mAdapter.isDiscovering()) {
-                        mBluetoothService.mAdapter.cancelDiscovery();
-                    }
                     Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }

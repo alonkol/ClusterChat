@@ -1,15 +1,19 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,6 +23,8 @@ class BluetoothService {
 
     // Debugging
     private static final String TAG = "BluetoothService";
+
+    private Context mContext;
 
     // Name for the SDP record when creating server socket
     private static final String NAME_SECURE = "BluetoothChatSecure";
@@ -36,7 +42,8 @@ class BluetoothService {
     /**
          * Constructor. Prepares a new BluetoothChat session.
          */
-    BluetoothService() {
+    BluetoothService(Context context) {
+        mContext = context;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
         mUiConnectHandler = new Handler();
@@ -163,6 +170,8 @@ class BluetoothService {
                     // Normal situation - start the connected thread.
                     Log.d(TAG, "Accept thread established connection with: " +
                             socket.getRemoteDevice().getName());
+
+                    PlaySound();
                     connected(socket, socket.getRemoteDevice());
                 }
 
@@ -357,6 +366,17 @@ class BluetoothService {
             return true;
         }
 
+    }
+
+    private void PlaySound(){
+        try {
+            Uri defaultRingtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            MediaPlayer mp = new MediaPlayer();
+            mp.setDataSource(mContext, defaultRingtoneUri);
+            mp.start();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
 }
