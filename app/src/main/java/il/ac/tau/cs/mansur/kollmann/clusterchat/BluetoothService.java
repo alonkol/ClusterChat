@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
 class BluetoothService {
@@ -34,6 +35,7 @@ class BluetoothService {
     private static final myMessageHandler mMessageHandler = new myMessageHandler();
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     static ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
+    static ConcurrentHashMap<DeviceContact, DedicatedAcceptThread> mAcceptThreads = new ConcurrentHashMap<>();
     private final MediaPlayer mMediaPlayer;
 
     /**
@@ -166,23 +168,27 @@ class BluetoothService {
                     Log.d(TAG, "Accept thread established connection with: " +
                             socket.getRemoteDevice().getName());
 
-                    new DedicatedAcceptThread(socket, UUID.randomUUID()).start();
+                    DedicatedAcceptThread thread = new DedicatedAcceptThread(socket, UUID.randomUUID());
+                    thread.start();
+                    mAcceptThreads.put(new DeviceContact(socket.getRemoteDevice()), thread);
                 }
             }
         }
 
     }
 
-    private class DedicatedAcceptThread extends Thread {
+    class DedicatedAcceptThread extends Thread {
         final UUID mmUuid;
         BluetoothSocket mmInitSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
         private final DeviceContact mmContact;
+        final CountDownLatch mmHSLatch;
 
         DedicatedAcceptThread(BluetoothSocket socket, UUID uuid){
             mmInitSocket = socket;
             mmUuid = uuid;
+            mmHSLatch = new CountDownLatch(1);
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
@@ -205,8 +211,9 @@ class BluetoothService {
 
             // Send HS
             boolean sendHS = sendHandshake();
-            if (!sendHS){
+            if (!sendHS) {
                 Log.e(TAG, "Failed to send handshake");
+                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -222,7 +229,15 @@ class BluetoothService {
                         buffer).sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "disconnected", e);
+                mConnectThreads.remove(mmContact);
                 return;
+            }
+
+            // Waiting for HS
+            try {
+                mmHSLatch.await();
+            } catch (Exception ex) {
+                // TODO: error
             }
 
             // Send dedicated UUID
@@ -232,8 +247,9 @@ class BluetoothService {
             try {
                 write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
                 Log.d(TAG, "Sent dedicated uuid to device: " + mmContact.getDeviceId());
-            } catch (IOException e){
+            } catch (IOException e) {
                 Log.e(TAG, "Can't send UUID message", e);
+                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -242,12 +258,13 @@ class BluetoothService {
 
             // Create a new listening server socket
             try {
-                server_socket = mAdapter.listenUsingRfcommWithServiceRecord("Dedicated"+mmContact.getDeviceName(), mmUuid);
+                server_socket = mAdapter.listenUsingRfcommWithServiceRecord("Dedicated" + mmContact.getDeviceName(), mmUuid);
 
                 Log.d(TAG, "Listening to the next connection...");
                 socket = server_socket.accept();
             } catch (Exception e) {
                 Log.e(TAG, "Dedicated socket creation failed", e);
+                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -264,6 +281,8 @@ class BluetoothService {
                 server_socket.close();
             } catch (IOException e) {
                 Log.e(TAG, "Could not close server socket", e);
+            } finally {
+                mConnectThreads.remove(mmContact);
             }
         }
 

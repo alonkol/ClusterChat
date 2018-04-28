@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
-        connectPairedDevices();
+        // connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
-        }, 3 * 1000, 30 * 1000);
+        }, 10 * 1000, 30 * 1000);
     }
 
     // Adding device to UI
