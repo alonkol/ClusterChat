@@ -227,7 +227,7 @@ class BluetoothService {
 
             // Send dedicated UUID
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid);
+                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid.toString());
             byte[] send = newMessage.toJson().getBytes();
             try {
                 write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
@@ -269,7 +269,7 @@ class BluetoothService {
 
         private boolean sendHandshake(){
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, "");
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {
@@ -394,7 +394,7 @@ class BluetoothService {
 
         private boolean sendHandshake(){
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, "");
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {

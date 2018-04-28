@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import java.util.UUID;
+
 public class myMessageHandler extends Handler {
     private final String TAG = "MessageHandler";
     static final int MESSAGE_IN = 0;
@@ -100,6 +102,6 @@ public class myMessageHandler extends Handler {
             Log.e(TAG, "Incoming UUID - requesting thread not found.");
             return;
         }
-        thread.setUuid(messageBundle.getUuid());
+        thread.setUuid(UUID.fromString(messageBundle.getUuid()));
     }
 }

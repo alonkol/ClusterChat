@@ -8,20 +8,15 @@ class MessageBundle{
     private MessageTypes messageType;
     private DeviceContact sender;
     private DeviceContact receiver;
-    private UUID uuid;
+    private String uuid;
 
     MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
-                         DeviceContact receiver, UUID uuid){
+                         DeviceContact receiver, String uuid){
         this.message = message;
         this.sender = sender;
         this.receiver = receiver;
         this.messageType = messageType;
         this.uuid = uuid;
-    }
-
-    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
-                         DeviceContact receiver){
-        this(message, messageType, sender, receiver, null);
     }
 
     String toJson(){
@@ -58,7 +53,7 @@ class MessageBundle{
                 '}';
     }
 
-    UUID getUuid() {
+    String getUuid() {
         return uuid;
     }
 }
