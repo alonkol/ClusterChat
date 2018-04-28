@@ -156,7 +156,6 @@ class BluetoothService {
                                     socket.getRemoteDevice().getName() + " but this exists so continue. " +
                                     "Don't close socket since it will close the original.");
                             socket.close();
-                            server_socket.close();
                         } catch (IOException e) {
                             Log.e(TAG, "Could not close unwanted socket", e);
                         }
@@ -239,26 +238,6 @@ class BluetoothService {
                 mConnectThreads.remove(mmContact);
                 return;
             }
-
-//            // Waiting for HS
-//            try {
-//                mmHSLatch.await();
-//            } catch (Exception ex) {
-//                // TODO: error
-//            }
-
-//            // Send dedicated UUID
-//            MessageBundle newMessage = new MessageBundle(
-//                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid.toString());
-//            byte[] send = newMessage.toJson().getBytes();
-//            try {
-//                write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
-//                Log.d(TAG, "Sent dedicated uuid to device: " + mmContact.getDeviceId());
-//            } catch (IOException e) {
-//                Log.e(TAG, "Can't send UUID message", e);
-//                mConnectThreads.remove(mmContact);
-//                return;
-//            }
 
             BluetoothServerSocket server_socket;
             BluetoothSocket socket;

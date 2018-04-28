@@ -23,11 +23,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
-        // TODO: temp
-        if (!device.getName().equals("Noam's phone")){
-            return;
-        }
-
         if (!mBluetoothService.checkIfDeviceConnected(device)){
             mBluetoothService.connect(device);
         }
