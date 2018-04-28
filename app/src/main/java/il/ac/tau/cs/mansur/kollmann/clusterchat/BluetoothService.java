@@ -215,7 +215,7 @@ class BluetoothService {
                         buffer).sendToTarget();
 
             } catch (IOException e) {
-                Log.e(TAG, "disconnected", e);
+                Log.e(TAG, "AcceptThread - failed to read handshake, disconnected", e);
                 return;
             }
 
@@ -390,7 +390,7 @@ class BluetoothService {
 
                 setUuid();
             } catch (Exception e) {
-                Log.e(TAG, "disconnected", e);
+                Log.e(TAG, "Failed to get UUID, disconnected", e);
             } finally {
                 finishConnect();
             }
@@ -498,7 +498,7 @@ class BluetoothService {
                             myMessageHandler.MESSAGE_IN, bytes, -1,
                             buffer).sendToTarget();
                 } catch (IOException e) {
-                    Log.e(TAG, "disconnected", e);
+                    Log.e(TAG, "Failed to read message, disconnected", e);
                     connectionLost();
                     break;
                 }
