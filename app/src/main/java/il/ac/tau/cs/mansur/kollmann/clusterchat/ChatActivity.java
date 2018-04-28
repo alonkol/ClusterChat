@@ -111,7 +111,7 @@ public class ChatActivity extends AppCompatActivity {
         // Check that there's actually something to send
         if (message.length() > 0) {
             MessageBundle newMessage = new MessageBundle(
-                    message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact, "");
+                    message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact, null);
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {
