@@ -57,7 +57,6 @@ public class myMessageHandler extends Handler {
         Log.i(TAG, "Handler caught outgoing UUID message");
     }
 
-
     private void handleIncomingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
         String readMessage = new String(buffer, 0, msg.arg1);

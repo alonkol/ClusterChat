@@ -142,7 +142,7 @@ class BluetoothService {
                     Log.d(TAG, "Listening to the next connection...");
                     socket = server_socket.accept();
                 } catch (IOException e) {
-                    Log.e(TAG, "accept() failed", e);
+                    Log.e(TAG, "main accept() failed", e);
                     break;
                 }
 
@@ -200,13 +200,28 @@ class BluetoothService {
         }
 
         public void run() {
-            Log.d(TAG, "BEGIN DedicatedAcceptThread" + mmUuid);
+            Log.d(TAG, "BEGIN DedicatedAcceptThread");
             setName("DedicatedAcceptThread");
 
             // Send HS
             boolean sendHS = sendHandshake();
             if (!sendHS){
                 Log.e(TAG, "Failed to send handshake");
+                return;
+            }
+
+            // Read Handshake
+            Log.d(TAG, "Reading Handshake");
+            byte[] buffer = new byte[1024];
+            int bytes;
+
+            try {
+                bytes = mmInStream.read(buffer);
+                mMessageHandler.obtainMessage(
+                        myMessageHandler.MESSAGE_OUT, bytes, -1,
+                        buffer).sendToTarget();
+            } catch (IOException e) {
+                Log.e(TAG, "disconnected", e);
                 return;
             }
 
