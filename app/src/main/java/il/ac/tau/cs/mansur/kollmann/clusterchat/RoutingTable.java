@@ -79,15 +79,21 @@ public class RoutingTable {
     }
 
     public void removeLinkFromTable(DeviceContact link){
-        for (DeviceContact deviceContact: revertedTable.get(link)){
-            Log.d(TAG, String.format(
-                    "Removing device %s due to removal of link %s",
-                    deviceContact.getDeviceName(), link.getDeviceName()));
-            mtable.remove(deviceContact);
+        try{
+            for (DeviceContact deviceContact: revertedTable.get(link)){
+                Log.d(TAG, String.format(
+                        "Removing device %s due to removal of link %s",
+                        deviceContact.getDeviceName(), link.getDeviceName()));
+                mtable.remove(deviceContact);
+            }
+            revertedTable.remove(link);
+            checkConsistency();
+            Log.d(TAG, String.format("Removed link %s and all of its devices", link.getDeviceName()));
+        } catch (NullPointerException e){
+            //TODO examine
+            Log.e(TAG, "Failed to find devices for link " + link.getDeviceId());
         }
-        revertedTable.remove(link);
-        checkConsistency();
-        Log.d(TAG, String.format("Removed link %s and all of its devices", link.getDeviceName()));
+
     }
 
     public Set<DeviceContact> getAllConnectedDevices(){
