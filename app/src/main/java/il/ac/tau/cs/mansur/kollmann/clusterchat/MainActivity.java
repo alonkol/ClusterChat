@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         this.registerReceiver(mReceiver, filter);
 
         //connectPairedDevices();
-        //startPeriodicDiscovery();
+        startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();

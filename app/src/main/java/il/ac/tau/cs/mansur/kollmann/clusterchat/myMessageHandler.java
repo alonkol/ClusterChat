@@ -70,9 +70,6 @@ public class myMessageHandler extends Handler {
             case HS:
                 handleIncomingHSMessage(messageBundle);
                 break;
-            case UUID:
-                handleIncomingUuid(messageBundle);
-                break;
         }
     }
 
@@ -99,18 +96,7 @@ public class myMessageHandler extends Handler {
                 Log.e(TAG, "Incoming UUID - requesting thread not found.");
                 return;
             }
-            thread.setUuid(messageBundle.getUuid());
+            thread.mmUuid = messageBundle.getUuid();
         }
-    }
-
-    private void handleIncomingUuid(MessageBundle messageBundle){
-        Log.i(TAG, "Handler caught incoming UUID message");
-        DeviceContact device = messageBundle.getSender();
-        BluetoothService.ConnectThread thread = BluetoothService.mConnectThreads.get(device);
-        if (thread == null) {
-            Log.e(TAG, "Incoming UUID - requesting thread not found.");
-            return;
-        }
-        thread.setUuid(messageBundle.getUuid());
     }
 }

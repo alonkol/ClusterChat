@@ -318,6 +318,7 @@ class BluetoothService {
         private final DeviceContact mmContact;
         private InputStream mmInStream;
         private OutputStream mmOutStream;
+        UUID mmUuid;
 
         ConnectThread(BluetoothDevice device) {
             mmDevice = device;
@@ -408,6 +409,11 @@ class BluetoothService {
                         myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
 
+                while (mmUuid == null) {
+                    Thread.sleep(500);
+                }
+
+                setUuid();
             } catch (Exception e) {
                 Log.e(TAG, "disconnected", e);
             } finally {
@@ -430,12 +436,12 @@ class BluetoothService {
             return true;
         }
 
-        void setUuid(UUID uuid){
+        void setUuid(){
             // Make a connection to the BluetoothSocket
             BluetoothSocket socket;
 
             try {
-                socket = mmDevice.createRfcommSocketToServiceRecord(uuid);
+                socket = mmDevice.createRfcommSocketToServiceRecord(mmUuid);
             } catch (Exception e) {
                 Log.e(TAG, "Socket create() failed", e);
                 finishConnect();
