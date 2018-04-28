@@ -146,8 +146,9 @@ class BluetoothService {
                     if (mConnectedThreads.containsKey(new DeviceContact(socket.getRemoteDevice()))) {
                         try {
                             Log.d(TAG, "Accept thread established connection with: " +
-                                    socket.getRemoteDevice().getName() + "but this exists so closing");
-                            socket.close();
+                                    socket.getRemoteDevice().getName() + " but this exists so continue. " +
+                                    "Don't close socket since it will close the original.");
+                            // socket.close();
                             server_socket.close();
                         } catch (IOException e) {
                             Log.e(TAG, "Could not close unwanted socket", e);
@@ -234,25 +235,9 @@ class BluetoothService {
                 Log.d(TAG, "Lock acquired, connecting...");
                 mmSocket.connect();
             } catch (InterruptedException e3) {
-                // ignore
+                Log.e(TAG, "Connect/Acquire interrupted for " + mmDevice.getName(), e3);
             } catch (IOException e) {
-                Log.w(TAG, "Failed, trying fallback for " + mmDevice.getName(), e);
-
-                // Try fallback
-                try
-                {
-                    Class<?> clazz = mmSocket.getRemoteDevice().getClass();
-                    Class<?>[] paramTypes = new Class<?>[] {Integer.TYPE};
-                    Method m = clazz.getMethod("createRfcommSocket", paramTypes);
-                    Object[] params = new Object[] {Integer.valueOf(1)};
-                    BluetoothSocket fallbackSocket = (BluetoothSocket) m.invoke(mmSocket.getRemoteDevice(), params);
-                    Thread.sleep(500);
-                    fallbackSocket.connect();
-                }
-                catch (Exception e2)
-                {
-                    Log.e(TAG, "Failed to connect to " + mmDevice.getName(), e);
-                }
+                Log.e(TAG, "Failed to connect to " + mmDevice.getName(), e);
 
                 // Close the socket
                 try {

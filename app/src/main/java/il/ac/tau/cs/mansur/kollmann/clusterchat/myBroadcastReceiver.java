@@ -108,30 +108,39 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        // When discovery finds a device
-        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-            // Get the BluetoothDevice object from the Intent
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            addNewDiscoveredDevice(device);
-
-        } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-            mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
-            Log.d(TAG, "Discovery finished starting to handle waiting list");
-            tryFetchNextDevice();
-
-        } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
-            mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
-            Log.d(TAG, "UUID scan finished, released all locks...");
-            // This is when we can be assured that fetchUuidsWithSdp has completed.
-            // So get the uuids and call fetchUuidsWithSdp on another device in list
-            Log.d(TAG, "Done fetching ");
-            BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-            handleUUIDResult(deviceExtra, uuidExtra);
-            tryFetchNextDevice();
-        } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-            // TODO: register ACTION_STATE_CHANGED.
-            // TODO: bluetooth disabled during usage.
+        if (action == null) {
+            return;
+        }
+        
+        switch (action) {
+            case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
+                Log.d(TAG, "Discovery finished starting to handle waiting list");
+                tryFetchNextDevice();
+                break;
+            case BluetoothDevice.ACTION_FOUND:
+                // When discovery finds a device
+                // Get the BluetoothDevice object from the Intent
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                addNewDiscoveredDevice(device);
+                break;
+            case BluetoothDevice.ACTION_UUID:
+                mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
+                Log.d(TAG, "UUID scan finished, released all locks...");
+                // This is when we can be assured that fetchUuidsWithSdp has completed.
+                // So get the uuids and call fetchUuidsWithSdp on another device in list
+                Log.d(TAG, "Done fetching ");
+                BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
+                handleUUIDResult(deviceExtra, uuidExtra);
+                tryFetchNextDevice();
+                break;
+            case BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED:
+                // TODO: register ACTION_STATE_CHANGED.
+                // TODO: bluetooth disabled during usage.
+                break;
+            default:
+                break;
         }
     }
 }
