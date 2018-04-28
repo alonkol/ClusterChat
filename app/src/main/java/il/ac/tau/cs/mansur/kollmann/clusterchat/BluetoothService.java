@@ -203,6 +203,13 @@ class BluetoothService {
             Log.d(TAG, "BEGIN DedicatedAcceptThread" + mmUuid);
             setName("DedicatedAcceptThread");
 
+            // Send HS
+            boolean sendHS = sendHandshake();
+            if (!sendHS){
+                Log.e(TAG, "Failed to send handshake");
+                return;
+            }
+
             // Send dedicated UUID
             MessageBundle newMessage = new MessageBundle(
                     "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid);
@@ -243,6 +250,21 @@ class BluetoothService {
             } catch (IOException e) {
                 Log.e(TAG, "Could not close server socket", e);
             }
+        }
+
+        private boolean sendHandshake(){
+            MessageBundle newMessage = new MessageBundle(
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
+            // Get the message bytes and tell the BluetoothChatService to write
+            byte[] send = newMessage.toJson().getBytes();
+            try {
+                write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
+                Log.d(TAG, "Sent HS to device: " + mmContact.getDeviceId());
+            } catch (IOException e){
+                Log.e(TAG, "Can't send HS message", e);
+                return false;
+            }
+            return true;
         }
     }
 
@@ -369,7 +391,6 @@ class BluetoothService {
             }
             return true;
         }
-
 
         void setUuid(UUID uuid){
             // Make a connection to the BluetoothSocket
