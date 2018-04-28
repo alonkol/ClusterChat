@@ -1,60 +1,78 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import java.util.ArrayList;
+
 public class MockDevice {
-    private static final String TAG = "Mock Device";
-    private RoutingTable<Link> routingTable;
+    private ArrayList<String> messages;
+    private RoutingTable routingTable;
     DeviceContact deviceContact;
-    private myMessageHandler messageHandler;
+    private MockNetwork network;
 
-    public MockDevice(String name, String id){
-        this.deviceContact = new DeviceContact(id, name);
+    public MockDevice(String id, MockNetwork network){
+        this.deviceContact = new DeviceContact(id, id);
         this.routingTable = new RoutingTable();
-        this.messageHandler = new myMessageHandler();
+        this.network = network;
+        this.messages = new ArrayList<>();
     }
 
-    public void initiateConnection(MockDevice newDevice){
-        this.routingTable.addDeviceToTable(newDevice.deviceContact, newDevice.deviceContact,
-                true);
-        newDevice.establishConnection(this);
-        this.sendMessage(newDevice, "HI", MessageTypes.HS);
+    public void connect(MockDevice b) {
+        this.routingTable.addDeviceToTable(b.deviceContact, b.deviceContact, true);
     }
 
-    public void establishConnection(MockDevice connectingDevice){
-        this.routingTable.addDeviceToTable(connectingDevice.deviceContact,
-                connectingDevice.deviceContact, true);
-        this.sendMessage(connectingDevice, "HI", MessageTypes.HS);
-
+    public void disconnect(MockDevice b) {
+        this.routingTable.removeDeviceFromTable(b.deviceContact);
     }
 
-    public void sendMessage(MockDevice recieverDevice, String msg, MessageTypes type){
-        System.out.println(String.format("%s sending message %s (type: %s) to %s",
-                this.deviceContact.getDeviceName(), msg, type,
-                recieverDevice.deviceContact.getDeviceName()));
-        DeviceContact dc = routingTable.getLink(recieverDevice.deviceContact);
-        MockDevice device = l.getDevice(recieverDevice.deviceContact);
-        MessageBundle mb = new MessageBundle(msg, type, this.deviceContact, recieverDevice.deviceContact);
-
-        device.receiveMessage(this, l, mb);
+    public ArrayList<String> showRouting() {
+        System.out.println("Routing table for device " + deviceContact.getDeviceName());
+        ArrayList<String> routingData = new ArrayList<String>();
+        for (DeviceContact d: routingTable.getAllConnectedDevices()){
+            routingData.add(d.getDeviceName());
+            System.out.println(d.getDeviceName());
+        }
+        return routingData;
     }
 
-    public void receiveMessage(MockDevice d, Link l, MessageBundle mb){
-        System.out.println(String.format("%s received message %s (type: %s) from %s",
-                this.deviceContact.getDeviceName(), mb.getMessage(), mb.getMessageType()
-                ,d.deviceContact.getDeviceName()));
+    public void sendMessage(MockDevice reciever, MessageBundle msg){
+        DeviceContact nextHop = routingTable.getLink(reciever.deviceContact);
+        if (nextHop==null){
+            System.out.println("No link was found from device " + this + "to " + reciever);
+            return;
+        }
+        MockDevice nextHopDevice = network.getDevice(nextHop.getDeviceId());
+        System.out.println(String.format("%s is sending messege %s to %s", this, msg, reciever));
+        nextHopDevice.recieveMessage(this, msg);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public void recieveMessage(MockDevice sender, MessageBundle msg){
+        System.out.println(String.format("%s recieved messege %s from %s", this, msg, sender));
+        messages.add(msg.getMessage());
+        handleIncomingMessage(msg);
+    }
 
-        MockDevice that = (MockDevice) o;
-
-        return deviceContact.equals(that.deviceContact);
+    private void handleIncomingMessage(MessageBundle msg) {
+        System.out.println(this + "is handling incoming message");
     }
 
     @Override
     public int hashCode() {
         return deviceContact.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "MockDevice{" +
+                "deviceContact=" + deviceContact.getDeviceId() +
+                '}';
+    }
+
+    public void broadcast(MessageTypes type, String msg) {
+        for (DeviceContact dc: routingTable.getAllNeighboursConnectedDevices()){
+            network.sendMessage(this, network.getDevice(dc.getDeviceId()), type, msg);
+        }
+    }
+
+    public ArrayList<String> getMessages(){
+        return this.messages;
     }
 }
