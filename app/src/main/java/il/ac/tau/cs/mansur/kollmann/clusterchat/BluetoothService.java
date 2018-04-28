@@ -38,6 +38,7 @@ class BluetoothService {
     private final myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     private final ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads;
+    private final MediaPlayer mMediaPlayer;
 
     /**
          * Constructor. Prepares a new BluetoothChat session.
@@ -50,6 +51,7 @@ class BluetoothService {
         mMessageHandler = new myMessageHandler();
         mConnectedThreads = new HashMap<>();
         mConnectThreads = new ConcurrentHashMap<>();
+        mMediaPlayer = new MediaPlayer();
 
         start();
     }
@@ -371,9 +373,8 @@ class BluetoothService {
     private void PlaySound(){
         try {
             Uri defaultRingtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            MediaPlayer mp = new MediaPlayer();
-            mp.setDataSource(mContext, defaultRingtoneUri);
-            mp.start();
+            mMediaPlayer.setDataSource(mContext, defaultRingtoneUri);
+            mMediaPlayer.start();
         } catch (Exception e) {
             // ignore
         }
