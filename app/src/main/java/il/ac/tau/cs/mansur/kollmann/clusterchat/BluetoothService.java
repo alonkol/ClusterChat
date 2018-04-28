@@ -72,6 +72,10 @@ class BluetoothService {
         return false;
     }
 
+    public ConnectedThread getConnectedThread(DeviceContact dc){
+        return mConnectedThreads.get(dc);
+    }
+
     synchronized void connect(BluetoothDevice device, UUID uuid){
         DeviceContact contact = new DeviceContact(device);
         // if already connected to device, return.
@@ -104,7 +108,7 @@ class BluetoothService {
         final DeviceContact contact = new DeviceContact(device);
         ConnectedThread thread = new ConnectedThread(socket, contact);
         mConnectedThreads.put(contact, thread);
-        MainActivity.mRoutingTable.addDeviceToTable(contact, thread, true);
+        MainActivity.mRoutingTable.addDeviceToTable(contact, contact, true);
         thread.start();
     }
 
@@ -318,8 +322,7 @@ class BluetoothService {
         }
 
         private void connectionLost() {
-            ConnectedThread t = mConnectedThreads.get(mmContact);
-            MainActivity.mRoutingTable.removeThreadFromTable(t);
+            MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
             mConnectedThreads.remove(mmContact);
 
             // Update UI

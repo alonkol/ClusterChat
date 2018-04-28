@@ -8,19 +8,20 @@ public class MockDevice {
 
     public MockDevice(String name, String id){
         this.deviceContact = new DeviceContact(id, name);
-        this.routingTable = new RoutingTable<>();
+        this.routingTable = new RoutingTable();
         this.messageHandler = new myMessageHandler();
     }
 
     public void initiateConnection(MockDevice newDevice){
-        Link l = new Link(this, newDevice);
-        this.routingTable.addDeviceToTable(newDevice.deviceContact, l, true);
-        newDevice.establishConnection(this, l);
+        this.routingTable.addDeviceToTable(newDevice.deviceContact, newDevice.deviceContact,
+                true);
+        newDevice.establishConnection(this);
         this.sendMessage(newDevice, "HI", MessageTypes.HS);
     }
 
-    public void establishConnection(MockDevice connectingDevice, Link l){
-        this.routingTable.addDeviceToTable(connectingDevice.deviceContact, l, true);
+    public void establishConnection(MockDevice connectingDevice){
+        this.routingTable.addDeviceToTable(connectingDevice.deviceContact,
+                connectingDevice.deviceContact, true);
         this.sendMessage(connectingDevice, "HI", MessageTypes.HS);
 
     }
@@ -29,7 +30,7 @@ public class MockDevice {
         System.out.println(String.format("%s sending message %s (type: %s) to %s",
                 this.deviceContact.getDeviceName(), msg, type,
                 recieverDevice.deviceContact.getDeviceName()));
-        Link l = routingTable.getThread(recieverDevice.deviceContact);
+        DeviceContact dc = routingTable.getLink(recieverDevice.deviceContact);
         MockDevice device = l.getDevice(recieverDevice.deviceContact);
         MessageBundle mb = new MessageBundle(msg, type, this.deviceContact, recieverDevice.deviceContact);
 

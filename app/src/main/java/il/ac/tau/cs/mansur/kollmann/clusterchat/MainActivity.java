@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
-    public static RoutingTable<BluetoothService.ConnectedThread> mRoutingTable;
+    public static RoutingTable mRoutingTable;
     private static myBroadcastReceiver mReceiver;
     public static final String UUID_PREFIX = "ffffffff";
 
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         }, 1000, 30 * 1000);
 
         mConversationManager = new ConversationsManager();
-        mRoutingTable = new RoutingTable<>();
+        mRoutingTable = new RoutingTable();
 
         getMessagesFromHistory();
         // the address will update on first handshake
