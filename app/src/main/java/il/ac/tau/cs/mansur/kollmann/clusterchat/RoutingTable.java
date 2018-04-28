@@ -30,7 +30,7 @@ public class RoutingTable {
     private void addDeviceToTable(DeviceContact deviceContact, DeviceContact linkDevice,
                                   boolean overrideIfExists, boolean checkConsistency){
         if (mtable.containsKey(deviceContact)){
-            Log.i(TAG, "device "+ deviceContact + "already exists in table");
+            Log.i(TAG, "device "+ deviceContact.getDeviceName() + "already exists in table");
             if (overrideIfExists){
                 Log.d(TAG, "Override exists flag is on, removing and adding new");
                 removeDeviceFromTable(deviceContact);
@@ -40,7 +40,8 @@ public class RoutingTable {
         }
         mtable.put(deviceContact, linkDevice);
         Log.d(TAG, String.format(
-                "Added device name %s and link %s to tables", deviceContact, linkDevice));
+                "Added device name %s and link %s to tables",
+                deviceContact.getDeviceName(), linkDevice.getDeviceName()));
         if (!revertedTable.containsKey(linkDevice)){
             revertedTable.put(linkDevice, new HashSet<DeviceContact>());
         }
@@ -70,21 +71,23 @@ public class RoutingTable {
         revertedTable.get(link).remove(deviceContact);
         if (revertedTable.get(link).size() == 0){
             revertedTable.remove(link);
-            Log.d(TAG, String.format("Removed link %s due to removal of device %s", link, deviceContact));
+            Log.d(TAG, String.format("Removed link %s due to removal of device %s",
+                    link.getDeviceName(), deviceContact.getDeviceName()));
         }
         checkConsistency();
-        Log.d(TAG, String.format("Removed device %s", deviceContact));
+        Log.d(TAG, String.format("Removed device %s", deviceContact.getDeviceName()));
     }
 
     public void removeLinkFromTable(DeviceContact link){
         for (DeviceContact deviceContact: revertedTable.get(link)){
             Log.d(TAG, String.format(
-                    "Removing device %s due to removal of link %s", deviceContact, link));
+                    "Removing device %s due to removal of link %s",
+                    deviceContact.getDeviceName(), link.getDeviceName()));
             mtable.remove(deviceContact);
         }
         revertedTable.remove(link);
         checkConsistency();
-        Log.d(TAG, String.format("Removed link %s and all of its devices", link));
+        Log.d(TAG, String.format("Removed link %s and all of its devices", link.getDeviceName()));
     }
 
     public Set<DeviceContact> getAllConnectedDevices(){
@@ -95,14 +98,15 @@ public class RoutingTable {
         Log.d(TAG, "Routing Table");
         for (DeviceContact deviceContact: mtable.keySet()){
             Log.d(TAG,
-                    String.format("Device Name: %s Thread %s", deviceContact, mtable.get(deviceContact)));
+                    String.format("Device Name: %s Link: %s",
+                            deviceContact.getDeviceName(), mtable.get(deviceContact).getDeviceName()));
         }
         if (showReversed){
             Log.d(TAG, "Reversed Table");
             for (DeviceContact link: revertedTable.keySet()){
                 Log.d(TAG,
                         String.format(
-                                "Link: %s Devices %s", link, Arrays.toString(revertedTable.get(link).toArray())));
+                                "Link: %s Devices %s", link.getDeviceName(), Arrays.toString(revertedTable.get(link).toArray())));
             }
         }
     }
@@ -117,7 +121,8 @@ public class RoutingTable {
                     count ++;
                     if (mtable.get(deviceContact) != link){
                         Log.e(TAG,
-                                String.format("Mismatch in tables for link %s and device %s", link, deviceContact));
+                                String.format("Mismatch in tables for link %s and device %s",
+                                        link.getDeviceName(), deviceContact.getDeviceName()));
                         logTable(true);
                         // TODO all hell break loose
                         return;
