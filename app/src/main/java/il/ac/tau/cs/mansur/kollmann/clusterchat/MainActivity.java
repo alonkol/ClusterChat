@@ -88,9 +88,9 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
-        Set<BluetoothDevice> pairedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
-        mReceiver.mDeviceList.addAll(pairedDevices);
-        mReceiver.tryFetchNextDevice();
+//        Set<BluetoothDevice> pairedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
+//        mReceiver.mDeviceList.addAll(pairedDevices);
+//        mReceiver.tryFetchNextDevice();
 
         new Timer().schedule(new TimerTask() {
             final String TIMER_TAG = "TIMER";
@@ -99,10 +99,6 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     while (!mReceiver.mDeviceList.isEmpty()){
                         Thread.sleep(100);
-                    }
-                    if (mBluetoothService.mAdapter.isDiscovering()) {
-                        mBluetoothService.mAdapter.cancelDiscovery();
-                        mReceiver.onDiscoveryEnd();
                     }
                     Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
@@ -113,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
-        }, 15 * 1000, 30 * 1000);
+        }, 3 * 1000, 30 * 1000);
 
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();
