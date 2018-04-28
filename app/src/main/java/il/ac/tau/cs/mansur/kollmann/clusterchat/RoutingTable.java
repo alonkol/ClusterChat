@@ -141,4 +141,8 @@ public class RoutingTable {
         logTable(false);
     }
 
+    public Set<DeviceContact> getAllNeighboursConnectedDevices() {
+        // Todo implement when added hop counts
+        return getAllConnectedDevices();
+    }
 }

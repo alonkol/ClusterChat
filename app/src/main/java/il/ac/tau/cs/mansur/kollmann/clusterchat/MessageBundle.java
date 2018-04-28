@@ -50,6 +50,14 @@ class MessageBundle{
         return messageType;
     }
 
+    @Override
+    public String toString() {
+        return "MessageBundle{" +
+                "message='" + message + '\'' +
+                ", messageType=" + messageType +
+                '}';
+    }
+
     UUID getUuid() {
         return uuid;
     }
