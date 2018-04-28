@@ -206,15 +206,7 @@ class BluetoothService {
             Log.d(TAG, "BEGIN DedicatedAcceptThread");
             setName("DedicatedAcceptThread");
 
-            // Send HS
-            boolean sendHS = sendHandshake();
-            if (!sendHS) {
-                Log.e(TAG, "Failed to send handshake");
-                mConnectThreads.remove(mmContact);
-                return;
-            }
-
-            // Read Handshake
+            // Wait for handshake
             Log.d(TAG, "Reading Handshake");
             byte[] buffer = new byte[1024];
             int bytes;
@@ -237,18 +229,33 @@ class BluetoothService {
                 return;
             }
 
-            // Send dedicated UUID
-            MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid);
-            byte[] send = newMessage.toJson().getBytes();
-            try {
-                write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
-                Log.d(TAG, "Sent dedicated uuid to device: " + mmContact.getDeviceId());
-            } catch (IOException e) {
-                Log.e(TAG, "Can't send UUID message", e);
+            // Send HS
+            boolean sendHS = sendHandshake(mmUuid);
+            if (!sendHS) {
+                Log.e(TAG, "Failed to send handshake");
                 mConnectThreads.remove(mmContact);
                 return;
             }
+
+//            // Waiting for HS
+//            try {
+//                mmHSLatch.await();
+//            } catch (Exception ex) {
+//                // TODO: error
+//            }
+
+//            // Send dedicated UUID
+//            MessageBundle newMessage = new MessageBundle(
+//                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid.toString());
+//            byte[] send = newMessage.toJson().getBytes();
+//            try {
+//                write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
+//                Log.d(TAG, "Sent dedicated uuid to device: " + mmContact.getDeviceId());
+//            } catch (IOException e) {
+//                Log.e(TAG, "Can't send UUID message", e);
+//                mConnectThreads.remove(mmContact);
+//                return;
+//            }
 
             BluetoothServerSocket server_socket;
             BluetoothSocket socket;
@@ -283,9 +290,10 @@ class BluetoothService {
             }
         }
 
-        private boolean sendHandshake(){
+        private boolean sendHandshake(UUID uuid){
+            String uuidStr = uuid != null ?  uuid.toString() : "";
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, uuidStr);
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {
