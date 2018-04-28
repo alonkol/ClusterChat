@@ -14,7 +14,6 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
 class BluetoothService {
@@ -183,12 +182,10 @@ class BluetoothService {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
         private final DeviceContact mmContact;
-        final CountDownLatch mmHSLatch;
 
         DedicatedAcceptThread(BluetoothSocket socket, UUID uuid){
             mmInitSocket = socket;
             mmUuid = uuid;
-            mmHSLatch = new CountDownLatch(1);
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
@@ -225,7 +222,7 @@ class BluetoothService {
             try {
                 bytes = mmInStream.read(buffer);
                 mMessageHandler.obtainMessage(
-                        myMessageHandler.MESSAGE_OUT, bytes, -1,
+                        myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "disconnected", e);
@@ -233,16 +230,16 @@ class BluetoothService {
                 return;
             }
 
-            // Waiting for HS
-            try {
-                mmHSLatch.await();
-            } catch (Exception ex) {
-                // TODO: error
+            // Should have device id after HS.
+            if (MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")) {
+                Log.e(TAG, "Handshake not yet received");
+                mConnectThreads.remove(mmContact);
+                return;
             }
 
             // Send dedicated UUID
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid.toString());
+                    "", MessageTypes.UUID, MainActivity.myDeviceContact, mmContact, mmUuid);
             byte[] send = newMessage.toJson().getBytes();
             try {
                 write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
@@ -288,7 +285,7 @@ class BluetoothService {
 
         private boolean sendHandshake(){
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, "");
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {
@@ -413,7 +410,7 @@ class BluetoothService {
 
         private boolean sendHandshake(){
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, "");
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {
@@ -510,7 +507,7 @@ class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
                     mMessageHandler.obtainMessage(
-                            myMessageHandler.MESSAGE_OUT, bytes, -1,
+                            myMessageHandler.MESSAGE_IN, bytes, -1,
                             buffer).sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
