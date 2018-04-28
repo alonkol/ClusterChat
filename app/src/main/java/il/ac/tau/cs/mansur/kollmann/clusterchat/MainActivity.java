@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (mBluetoothService.mAdapter.isDiscovering()) {
                         mBluetoothService.mAdapter.cancelDiscovery();
+                        mReceiver.onDiscoveryEnd();
                     }
                     Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
