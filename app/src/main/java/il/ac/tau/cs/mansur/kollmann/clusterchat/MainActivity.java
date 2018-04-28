@@ -97,6 +97,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    while (!mReceiver.mDeviceList.isEmpty()){
+                        Thread.sleep(100);
+                    }
+                    if (mBluetoothService.mAdapter.isDiscovering()) {
+                        mBluetoothService.mAdapter.cancelDiscovery();
+                    }
                     Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }

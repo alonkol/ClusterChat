@@ -51,7 +51,7 @@ class BluetoothService {
         mMessageHandler = new myMessageHandler();
         mConnectedThreads = new HashMap<>();
         mConnectThreads = new ConcurrentHashMap<>();
-        mMediaPlayer = new MediaPlayer();
+        mMediaPlayer = MediaPlayer.create(mContext, R.raw.light);
 
         start();
     }
@@ -372,8 +372,6 @@ class BluetoothService {
 
     private void PlaySound(){
         try {
-            Uri defaultRingtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            mMediaPlayer.setDataSource(mContext, defaultRingtoneUri);
             mMediaPlayer.start();
         } catch (Exception e) {
             // ignore
