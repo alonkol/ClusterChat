@@ -58,15 +58,16 @@ public class myBroadcastReceiver extends BroadcastReceiver {
                 Log.d(TAG, "Fetching from device " + device.getAddress() + '/' +
                         device.getName());
 
-                final Runnable r = new Runnable() {
+                new Thread() {
                     public void run() {
+                        setName("FetchingUuids-" + device.getAddress());
                         Log.d("FetchUuids", "Acquiring all locks...");
                         mBluetoothService.mSemaphore.acquireUninterruptibly(BluetoothService.MAX_CONNECTED_THREADS);
+                        Log.d("FetchUuids", "All locks acquired.");
                         boolean result = device.fetchUuidsWithSdp();
                     }
-                };
+                }.start();
 
-                new Handler().postDelayed(r, 0);
             } else {
                 tryFetchNextDevice();
             }
@@ -120,7 +121,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
 
         } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
             mBluetoothService.mSemaphore.release(BluetoothService.MAX_CONNECTED_THREADS);
-            Log.d(TAG, "Released all locks...");
+            Log.d(TAG, "UUID scan finished, released all locks...");
             // This is when we can be assured that fetchUuidsWithSdp has completed.
             // So get the uuids and call fetchUuidsWithSdp on another device in list
             Log.d(TAG, "Done fetching ");
