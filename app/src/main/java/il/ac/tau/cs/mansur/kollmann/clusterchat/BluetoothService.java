@@ -216,7 +216,6 @@ class BluetoothService {
 
             } catch (IOException e) {
                 Log.e(TAG, "disconnected", e);
-                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -233,7 +232,6 @@ class BluetoothService {
             boolean sendHS = sendHandshake(mmUuid);
             if (!sendHS) {
                 Log.e(TAG, "Failed to send handshake");
-                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -248,7 +246,6 @@ class BluetoothService {
                 socket = server_socket.accept();
             } catch (Exception e) {
                 Log.e(TAG, "Dedicated socket creation failed", e);
-                mConnectThreads.remove(mmContact);
                 return;
             }
 
@@ -265,8 +262,6 @@ class BluetoothService {
                 server_socket.close();
             } catch (IOException e) {
                 Log.e(TAG, "Could not close server socket", e);
-            } finally {
-                mConnectThreads.remove(mmContact);
             }
         }
 
