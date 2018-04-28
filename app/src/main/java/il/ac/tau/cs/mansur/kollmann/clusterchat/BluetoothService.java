@@ -34,7 +34,6 @@ class BluetoothService {
     private static final myMessageHandler mMessageHandler = new myMessageHandler();
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     static ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
-    static ConcurrentHashMap<DeviceContact, DedicatedAcceptThread> mAcceptThreads = new ConcurrentHashMap<>();
     private final MediaPlayer mMediaPlayer;
 
     /**
@@ -168,7 +167,6 @@ class BluetoothService {
 
                     DedicatedAcceptThread thread = new DedicatedAcceptThread(socket, UUID.randomUUID());
                     thread.start();
-                    mAcceptThreads.put(new DeviceContact(socket.getRemoteDevice()), thread);
                 }
             }
         }
