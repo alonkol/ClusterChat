@@ -291,9 +291,8 @@ class BluetoothService {
         }
 
         private boolean sendHandshake(UUID uuid){
-            String uuidStr = uuid != null ?  uuid.toString() : "";
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, uuidStr);
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, uuid);
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = newMessage.toJson().getBytes();
             try {

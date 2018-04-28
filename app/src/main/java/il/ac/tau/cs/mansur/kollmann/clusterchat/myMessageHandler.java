@@ -92,14 +92,14 @@ public class myMessageHandler extends Handler {
                     messageBundle.getReceiver().getDeviceId());
             MainActivity.myDeviceContact = messageBundle.getReceiver();
         }
-        if (!messageBundle.getUuid().equals("")) {
+        if (messageBundle.getUuid()!=null) {
             DeviceContact device = messageBundle.getSender();
             BluetoothService.ConnectThread thread = BluetoothService.mConnectThreads.get(device);
             if (thread == null) {
                 Log.e(TAG, "Incoming UUID - requesting thread not found.");
                 return;
             }
-            thread.setUuid(UUID.fromString(messageBundle.getUuid()));
+            thread.setUuid(messageBundle.getUuid());
         }
     }
 
