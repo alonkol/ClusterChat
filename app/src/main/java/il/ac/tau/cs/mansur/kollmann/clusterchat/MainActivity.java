@@ -93,20 +93,26 @@ public class MainActivity extends AppCompatActivity {
         mReceiver.tryFetchNextDevice();
 
         new Timer().schedule(new TimerTask() {
-            final String TAG = "TIMER";
+            final String TIMER_TAG = "DISCOVERY_INIT";
             @Override
             public void run() {
                 try {
-                    Log.d(TAG, "Acquiring all locks...");
+                    while (!mReceiver.mDeviceList.isEmpty()){
+                        Thread.sleep(100);
+                    }
+                    if (mBluetoothService.mAdapter.isDiscovering()) {
+                        mBluetoothService.mAdapter.cancelDiscovery();
+                    }
+                    Log.d(TIMER_TAG, "Acquiring all locks...");
                     mBluetoothService.mSemaphore.acquire(BluetoothService.MAX_CONNECTED_THREADS);
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error in timer", e);
+                    Log.e(TIMER_TAG, "Discovery init failed. ", e);
                 }
-                Log.d(TAG, "All locks acquired. Discovering...");
+                Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
-        }, 1000, 30 * 1000);
+        }, 15 * 1000, 30 * 1000);
 
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable();
