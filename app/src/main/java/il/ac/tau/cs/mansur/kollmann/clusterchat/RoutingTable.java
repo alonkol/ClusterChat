@@ -92,7 +92,7 @@ public class RoutingTable {
 
     public void removeLinkFromTable(DeviceContact linkDevice){
         try{
-            for (DeviceContact deviceContact: revertedTable.get(linkDevice)){
+            for (DeviceContact deviceContact: new HashSet<>(revertedTable.get(linkDevice))){
                 Log.d(TAG, String.format(
                         "Removing device %s due to removal of link %s",
                         deviceContact.getShortStr(), linkDevice.getShortStr()));
@@ -100,6 +100,7 @@ public class RoutingTable {
             }
             revertedTable.remove(linkDevice);
             checkConsistency();
+            shareRoutingInfo();
             Log.d(TAG, String.format("Removed link %s and all of its devices",
                     linkDevice.getShortStr()));
         } catch (NullPointerException e){
@@ -190,28 +191,29 @@ public class RoutingTable {
     }
 
     public void mergeRoutingData(String routingData, DeviceContact senderContact){
-        if (routingData.equals(""))
-            return;
         // prepare a list to make sure all devices related to this link are dealt
-        HashSet<DeviceContact> currentLinkedDevices = new HashSet<>(getAllDevicesForLink(senderContact));
+        HashSet<DeviceContact> currentLinkedDevices =
+                new HashSet<>(getAllDevicesForLink(senderContact));
         currentLinkedDevices.remove(senderContact);
 
         Integer senderHopCount = hopCounts.get(senderContact);
-        for (String line: routingData.split("\n")){
-            String info[] = line.split("#~#");
-            DeviceContact dc = new DeviceContact(info[0], info[1]);
-            // mark device as dealt
-            currentLinkedDevices.remove(dc);
-            Integer hopCount = Integer.parseInt(info[2]);
-            Integer currentHopCount = hopCounts.get(dc);
-            Integer newCount = senderHopCount + hopCount;
-            if (currentHopCount==null){
-                // If not known of device yet add it to table and UI
-                addDeviceToTable(dc, senderContact, newCount, true);
-                addDeviceToUI(dc);
-            } else if (newCount < currentHopCount){
-                // If better reach update link and hop count
-                addDeviceToTable(dc, senderContact, newCount, true);
+        if (!routingData.equals("")) {
+            for (String line : routingData.split("\n")) {
+                String info[] = line.split("#~#");
+                DeviceContact dc = new DeviceContact(info[0], info[1]);
+                // mark device as dealt
+                currentLinkedDevices.remove(dc);
+                Integer hopCount = Integer.parseInt(info[2]);
+                Integer currentHopCount = hopCounts.get(dc);
+                Integer newCount = senderHopCount + hopCount;
+                if (currentHopCount == null) {
+                    // If not known of device yet add it to table and UI
+                    addDeviceToTable(dc, senderContact, newCount, true);
+                    addDeviceToUI(dc);
+                } else if (newCount < currentHopCount) {
+                    // If better reach update link and hop count
+                    addDeviceToTable(dc, senderContact, newCount, true);
+                }
             }
         }
         // If any device related to current link was not dealt meaning it must have been
