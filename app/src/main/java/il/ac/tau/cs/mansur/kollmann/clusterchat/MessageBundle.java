@@ -9,6 +9,8 @@ class MessageBundle{
     private DeviceContact sender;
     private DeviceContact receiver;
     private UUID uuid;
+    private Integer ttl;
+    private Integer messageID;
 
     MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
                          DeviceContact receiver, UUID uuid){
@@ -17,11 +19,18 @@ class MessageBundle{
         this.receiver = receiver;
         this.messageType = messageType;
         this.uuid = uuid;
+        this.ttl = 5;
     }
 
     MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
                   DeviceContact receiver){
         this(message, messageType, sender, receiver, null);
+    }
+
+
+    public static MessageBundle AckBundle(MessageBundle messageBundle){
+        return new MessageBundle("", MessageTypes.ACK, MainActivity.myDeviceContact,
+                messageBundle.getSender());
     }
 
     String toJson(){
@@ -50,15 +59,22 @@ class MessageBundle{
         return messageType;
     }
 
+    Integer getTTL() { return ttl; }
+
+    void setTTL(Integer ttl){ this.ttl = ttl;}
+
+    void decreaseTTL(){ this.ttl -= 1; }
+
     @Override
     public String toString() {
         return "MessageBundle{" +
                 "message='" + message + '\'' +
-                ", messageType=" + messageType +
+                ", messageType=" + messageType + ", TTL = " + Integer.toString(ttl) +
                 '}';
     }
 
     UUID getUuid() {
         return uuid;
     }
+
 }

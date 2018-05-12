@@ -68,8 +68,7 @@ class BluetoothService {
 
     boolean checkIfContactConnected(DeviceContact contact){
         if (mConnectedThreads.containsKey(contact)) {
-            Log.i(TAG, "Already connected to " + contact.getDeviceName() + '/' +
-                    contact.getDeviceId());
+            Log.i(TAG, "Already connected to " + contact.getShortStr());
             return true;
         }
         return false;
@@ -118,7 +117,7 @@ class BluetoothService {
         thread.start();
     }
 
-    private class MainAcceptThread extends Thread {
+    private class MainAcceptThread extends BluetoothThread {
         public void run() {
             Log.d(TAG, "BEGIN MainAcceptThread" + this);
             setName("MainAcceptThread");
@@ -127,7 +126,8 @@ class BluetoothService {
             BluetoothSocket socket;
 
             try {
-                server_socket = mAdapter.listenUsingRfcommWithServiceRecord("Main" + mAdapter.getName(), MAIN_ACCEPT_UUID);
+                server_socket = mAdapter.listenUsingRfcommWithServiceRecord(
+                        "Main" + mAdapter.getName(), MAIN_ACCEPT_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "Socket listen() failed", e);
                 return;
@@ -171,9 +171,11 @@ class BluetoothService {
             }
         }
 
+        @Override
+        void write(byte[] buffer) throws IOException { }
     }
 
-    class DedicatedAcceptThread extends Thread {
+    class DedicatedAcceptThread extends BluetoothThread {
         final UUID mmUuid;
         BluetoothSocket mmInitSocket;
         private final InputStream mmInStream;
@@ -268,16 +270,13 @@ class BluetoothService {
         private boolean sendHandshake(UUID uuid){
             MessageBundle newMessage = new MessageBundle(
                     "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, uuid);
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = newMessage.toJson().getBytes();
-            try {
-                write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
-                Log.d(TAG, "Sent HS to device: " + mmContact.getDeviceId());
-            } catch (IOException e){
-                Log.e(TAG, "Can't send HS message", e);
-                return false;
-            }
-            return true;
+            newMessage.setTTL(1);
+            return MainActivity.mDeliveryMan.sendMessage(newMessage, mmContact, this);
+        }
+
+        @Override
+        void write(byte[] buffer) throws IOException {
+            BluetoothService.write(mmOutStream, buffer);
         }
     }
 
@@ -287,7 +286,7 @@ class BluetoothService {
      * with a device. It runs straight through; the connection either
      * succeeds or fails.
      */
-    class ConnectThread extends Thread {
+    class ConnectThread extends BluetoothThread {
         private BluetoothSocket mmInitSocket;
         private final BluetoothDevice mmDevice;
         private final DeviceContact mmContact;
@@ -399,16 +398,8 @@ class BluetoothService {
         private boolean sendHandshake(){
             MessageBundle newMessage = new MessageBundle(
                     "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = newMessage.toJson().getBytes();
-            try {
-                write(mmOutStream, send, myMessageHandler.MESSAGE_OUT);
-                Log.d(TAG, "Sent HS to device: " + mmContact.getDeviceId());
-            } catch (IOException e){
-                Log.e(TAG, "Can't send HS message", e);
-                return false;
-            }
-            return true;
+            newMessage.setTTL(1);
+            return MainActivity.mDeliveryMan.sendMessage(newMessage, mmContact, this);
         }
 
         void setUuid(){
@@ -448,16 +439,21 @@ class BluetoothService {
             mConnectThreads.remove(mmContact);
             mSemaphore.release();
         }
+
+        @Override
+        void write(byte[] buffer) throws IOException {
+            BluetoothService.write(mmOutStream, buffer);
+        }
     }
 
     /**
      * This thread runs during a connection with a remote device.
      * It handles all incoming and outgoing transmissions.
      */
-    public class ConnectedThread extends Thread {
+    public class ConnectedThread extends BluetoothThread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
-        private final OutputStream mmOutStream;
+        public final OutputStream mmOutStream;
         private final DeviceContact mmContact;
 
         ConnectedThread(BluetoothSocket socket, DeviceContact contact) {
@@ -479,8 +475,8 @@ class BluetoothService {
             mmOutStream = tmpOut;
         }
 
-        void write(byte[] buffer, int messageType) throws IOException {
-            BluetoothService.write(mmOutStream, buffer, messageType);
+        void write(byte[] buffer) throws IOException {
+            BluetoothService.write(mmOutStream, buffer);
         }
 
         public void run() {
@@ -519,11 +515,11 @@ class BluetoothService {
         }
     }
 
-    static void write(OutputStream outStream, byte[] buffer, int messageType) throws IOException {
+    static void write(OutputStream outStream, byte[] buffer) throws IOException {
         outStream.write(buffer);
         // Share the sent message back to the UI Activity
         mMessageHandler.obtainMessage(
-                messageType, -1, -1,
+                myMessageHandler.MESSAGE_OUT, -1, -1,
                 buffer).sendToTarget();
     }
 
@@ -534,5 +530,10 @@ class BluetoothService {
             // ignore
         }
     }
+
+    public abstract class BluetoothThread extends Thread {
+        abstract void write(byte[] buffer) throws IOException;
+    }
+
 
 }

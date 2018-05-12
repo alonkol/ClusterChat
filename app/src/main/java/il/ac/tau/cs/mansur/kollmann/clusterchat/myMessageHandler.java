@@ -28,41 +28,26 @@ public class myMessageHandler extends Handler {
         byte[] buffer = (byte[]) msg.obj;
         String readMessage = new String(buffer);
         MessageBundle messageBundle = MessageBundle.fromJson(readMessage);
-        switch (messageBundle.getMessageType()){
-            case TEXT:
-                handleOutgoingTextMessage(messageBundle);
-                break;
-            case HS:
-                handleOutgoingHSMessage();
-                break;
-            case UUID:
-                handleOutgoingUuid();
-                break;
-        }
+        Log.d(TAG, "Handler caught outgoing bundle " + messageBundle);
     }
 
-    private void handleOutgoingTextMessage(MessageBundle messageBundle){
-        DeviceContact deviceContact = messageBundle.getReceiver();
-        Log.i(TAG, "Handler caught outgoing message for device " +
-                deviceContact.getDeviceId() + "\nwith content: " +
-                messageBundle.getMessage());
-        MainActivity.mConversationManager.addMessage(
-                deviceContact, "Me:  " +
-                        messageBundle.getMessage());
-    }
-
-    private void handleOutgoingHSMessage(){
-        Log.i(TAG, "Handler caught outgoing HS message");
-    }
-
-    private void handleOutgoingUuid(){
-        Log.i(TAG, "Handler caught outgoing UUID message");
-    }
 
     private void handleIncomingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
         String readMessage = new String(buffer, 0, msg.arg1);
         MessageBundle messageBundle = MessageBundle.fromJson(readMessage);
+        Log.d(TAG, "Handler caught incoming message: " + messageBundle);
+        // Decrease package TTL and check if still valid
+        messageBundle.decreaseTTL();
+        if (messageBundle.getTTL() == -1){
+            Log.d(TAG, "Dropping " + messageBundle + "since TTL is less than zero");
+            return;
+        }
+        DeviceContact receiverContact = messageBundle.getReceiver();
+        if (receiverContact != MainActivity.myDeviceContact) {
+            Log.i(TAG, "Current device isn't the address for current message, passing along");
+            MainActivity.mDeliveryMan.sendMessage(messageBundle, receiverContact);
+        }
         switch (messageBundle.getMessageType()){
             case TEXT:
                 handleIncomingTextMessage(messageBundle);
@@ -70,20 +55,28 @@ public class myMessageHandler extends Handler {
             case HS:
                 handleIncomingHSMessage(messageBundle);
                 break;
+            case ACK:
+                handleIncomingACKMessage(messageBundle);
+                break;
         }
     }
 
+    private void handleIncomingACKMessage(MessageBundle messageBundle) {
+        // TODO do something with this
+    }
+
     private void handleIncomingTextMessage(MessageBundle messageBundle){
-        DeviceContact deviceContact = messageBundle.getSender();
-        Log.i(TAG, "Handler caught incoming message from device " + deviceContact +
-                "\nwith content: " + messageBundle.getMessage());
+        DeviceContact senderContact = messageBundle.getSender();
+        // Add to chat
         MainActivity.mConversationManager.addMessage(
-                deviceContact, deviceContact.getDeviceName() + ":  " +
+                senderContact, senderContact.getDeviceName() + ":  " +
                         messageBundle.getMessage());
+        // Send Ack message
+        MainActivity.mDeliveryMan.sendMessage(
+                MessageBundle.AckBundle(messageBundle), senderContact);
     }
 
     private void handleIncomingHSMessage(MessageBundle messageBundle){
-        Log.i(TAG, "Handler caught incoming HS message");
         if (MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")) {
             Log.i(TAG, "Initializing myDeviceContact address to " +
                     messageBundle.getReceiver().getDeviceId());

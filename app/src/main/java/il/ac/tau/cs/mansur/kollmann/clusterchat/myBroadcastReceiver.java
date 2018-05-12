@@ -16,7 +16,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     }
 
     void tryConnect(BluetoothDevice device){
-        Log.d(TAG, "Discovery found a device! " + device.getName() + '/' +
+        Log.d(TAG, "Discovery found a device! " + device.getName() + "/" +
                 device.getAddress());
 
         if (device.getName() == null) {

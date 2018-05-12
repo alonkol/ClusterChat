@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     public static ConversationsManager mConversationManager;
     public static RoutingTable mRoutingTable;
     private static myBroadcastReceiver mReceiver;
+    public static DeliveryMan mDeliveryMan;
     public static final String UUID_PREFIX = "ffffffff";
 
     @Override
@@ -38,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mainActivity = this;
         // Request bluetooth permissions
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
+        ActivityCompat.requestPermissions(this,new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
 
         // If BT is not on, request that it be enabled.
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
@@ -83,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
+
+        mDeliveryMan = new DeliveryMan();
 
         mBluetoothService = new BluetoothService(this);
         mReceiver = new myBroadcastReceiver(mBluetoothService);

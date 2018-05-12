@@ -45,4 +45,8 @@ public class DeviceContact {
     public String getDeviceId(){
         return this.deviceId;
     }
+
+    public String getShortStr() {
+        return this.deviceName + "/" + this.deviceId;
+    }
 }

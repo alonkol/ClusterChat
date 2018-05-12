@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -152,9 +153,13 @@ public class RoutingTable {
         logTable(false);
     }
 
-    public Set<DeviceContact> getAllNeighboursConnectedDevices() {
-        // Todo implement when added hop counts
-        return getAllConnectedDevices();
+    public ArrayList<DeviceContact> getAllNeighboursConnectedDevices() {
+        ArrayList<DeviceContact> neighbours = new ArrayList<>();
+        for (Link l: revertedTable.keySet()){
+            if (l.hopCount == 1)
+                neighbours.add(l.deviceContact);
+        }
+        return neighbours;
     }
 
     public class Link{

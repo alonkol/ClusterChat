@@ -111,15 +111,8 @@ public class ChatActivity extends AppCompatActivity {
         // Check that there's actually something to send
         if (message.length() > 0) {
             MessageBundle newMessage = new MessageBundle(
-                    message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact, null);
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = newMessage.toJson().getBytes();
-            try {
-                mThread.write(send, myMessageHandler.MESSAGE_OUT);
-            } catch (IOException e){
-                Log.e(TAG, "Can't send message", e);
-            }
-
+                    message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact);
+            MainActivity.mDeliveryMan.sendMessage(newMessage, mDeviceContact, mThread);
             // Reset out string buffer to zero and clear the edit text field
             mOutStringBuffer.setLength(0);
             mOutEditText.setText(mOutStringBuffer);
