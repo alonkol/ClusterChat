@@ -45,10 +45,10 @@ public class RoutingTable {
             return;
         }
         if (mtable.containsKey(deviceContact)){
-            Log.i(TAG, "device "+ deviceContact.getShortStr() + "already exists in table");
+            Log.i(TAG, "device "+ deviceContact.getShortStr() + " already exists in table");
             if (overrideIfExists){
                 Log.d(TAG, "Override exists flag is on, removing and adding new");
-                removeDeviceFromTable(deviceContact, true);
+                removeDeviceFromTable(deviceContact, false);
             }else{
                 return;
             }
@@ -181,7 +181,7 @@ public class RoutingTable {
             }
             HashSet<DeviceContact> devices = entry.getValue();
             for (DeviceContact dc: devices){
-                deviceInfo = String.format("%s #~# %s #~# %s",
+                deviceInfo = String.format("%s#~#%s#~#%s",
                         dc.getDeviceId(), dc.getDeviceName(), Integer.toString(hopCounts.get(dc)));
                 routingData.append(deviceInfo).append("\n");
             }
@@ -190,6 +190,8 @@ public class RoutingTable {
     }
 
     public void mergeRoutingData(String routingData, DeviceContact senderContact){
+        if (routingData.equals(""))
+            return;
         // prepare a list to make sure all devices related to this link are dealt
         HashSet<DeviceContact> currentLinkedDevices = new HashSet<>(getAllDevicesForLink(senderContact));
         Integer senderHopCount = hopCounts.get(senderContact);
@@ -236,9 +238,9 @@ public class RoutingTable {
     }
 
     public void shareRoutingInfo(){
-        ArrayList<DeviceContact> neigbours =
+        ArrayList<DeviceContact> neighbours =
                 MainActivity.mRoutingTable.getAllNeighboursConnectedDevices();
-        for (DeviceContact dc: neigbours){
+        for (DeviceContact dc: neighbours){
             String data = MainActivity.mRoutingTable.createRoutingData(dc);
             MessageBundle routingBundle = new MessageBundle(data, MessageTypes.ROUTING,
                     MainActivity.myDeviceContact, dc);

@@ -20,6 +20,7 @@ class MessageBundle{
         this.messageType = messageType;
         this.uuid = uuid;
         this.ttl = 5;
+        this.messageID = MainActivity.getMessageID();
     }
 
     MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
@@ -29,8 +30,8 @@ class MessageBundle{
 
 
     public static MessageBundle AckBundle(MessageBundle messageBundle){
-        return new MessageBundle("", MessageTypes.ACK, MainActivity.myDeviceContact,
-                messageBundle.getSender());
+        return new MessageBundle(Integer.toString(messageBundle.messageID), MessageTypes.ACK,
+                MainActivity.myDeviceContact, messageBundle.getSender());
     }
 
     String toJson(){
@@ -69,7 +70,12 @@ class MessageBundle{
     public String toString() {
         return "MessageBundle{" +
                 "message='" + message + '\'' +
-                ", messageType=" + messageType + ", TTL = " + Integer.toString(ttl) +
+                ", messageType=" + messageType +
+                ", sender=" + sender.getShortStr() +
+                ", receiver=" + receiver.getShortStr() +
+                ", ttl=" + ttl +
+                ", uuid=" + (uuid==null ? "null" : uuid.toString()) +
+                ", messageID =" + Integer.toString(messageID) +
                 '}';
     }
 

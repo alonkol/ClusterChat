@@ -44,7 +44,8 @@ public class myMessageHandler extends Handler {
             return;
         }
         DeviceContact receiverContact = messageBundle.getReceiver();
-        if (receiverContact != MainActivity.myDeviceContact) {
+        if (!MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00") &&
+                !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId())){
             Log.i(TAG, "Current device isn't the address for current message, passing along");
             MainActivity.mDeliveryMan.sendMessage(messageBundle, receiverContact);
         }
@@ -100,5 +101,6 @@ public class myMessageHandler extends Handler {
 
     private void handleIncomingACKMessage(MessageBundle messageBundle) {
         // TODO do something with this
+        Log.i(TAG, "Message " + messageBundle.getMessage() + " has been acked");
     }
 }

@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.io.File;
+import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     public static RoutingTable mRoutingTable;
     private static myBroadcastReceiver mReceiver;
     public static DeliveryMan mDeliveryMan;
+    private static Integer runningMessageID;
+    private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
-        connectPairedDevices();
+        // connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
@@ -102,6 +105,15 @@ public class MainActivity extends AppCompatActivity {
         myDeviceContact = new DeviceContact("00-00-00-00-00-00",
                 mBluetoothService.mAdapter.getName());
 
+        Random rand = new Random();
+        runningMessageID = rand.nextInt(MAXIMUM_MESSAGE_ID);
+
+    }
+
+    public static Integer getMessageID(){
+        runningMessageID += 1;
+        runningMessageID %= MAXIMUM_MESSAGE_ID;
+        return runningMessageID;
     }
 
     void connectPairedDevices() {

@@ -8,7 +8,7 @@ public class DeliveryMan {
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
                                BluetoothService.BluetoothThread thread){
-        Log.d(TAG, "Sending message: "+ messageBundle+ " to " + addressContact.getDeviceName());
+        Log.d(TAG, "Sending message: "+ messageBundle+ " to " + addressContact.getShortStr());
         byte[] send = messageBundle.toJson().getBytes();
         try {
             thread.write(send);

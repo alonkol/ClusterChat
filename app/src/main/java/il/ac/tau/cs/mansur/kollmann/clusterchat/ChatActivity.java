@@ -116,6 +116,8 @@ public class ChatActivity extends AppCompatActivity {
             MessageBundle newMessage = new MessageBundle(
                     message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact);
             MainActivity.mDeliveryMan.sendMessage(newMessage, mDeviceContact, mThread);
+            MainActivity.mConversationManager.addMessage(mDeviceContact, "Me:  " +
+                            message);
             // Reset out string buffer to zero and clear the edit text field
             mOutStringBuffer.setLength(0);
             mOutEditText.setText(mOutStringBuffer);
