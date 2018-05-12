@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
-        // connectPairedDevices();
+        connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();

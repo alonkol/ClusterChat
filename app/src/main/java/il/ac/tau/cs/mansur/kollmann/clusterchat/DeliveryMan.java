@@ -21,8 +21,14 @@ public class DeliveryMan {
     }
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact){
+        DeviceContact linkDevice = MainActivity.mRoutingTable.getLink(addressContact);
         BluetoothService.ConnectedThread t =
-                MainActivity.mBluetoothService.getConnectedThread(addressContact);
+                MainActivity.mBluetoothService.getConnectedThread(linkDevice);
+        if (t==null){
+            Log.e(TAG, "No matching thread found for device contact: " + addressContact +
+                    "\nDisposing of message" + messageBundle);
+            return false;
+        }
         return sendMessage(messageBundle, addressContact, t);
     }
 

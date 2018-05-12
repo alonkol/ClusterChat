@@ -194,13 +194,15 @@ public class RoutingTable {
             return;
         // prepare a list to make sure all devices related to this link are dealt
         HashSet<DeviceContact> currentLinkedDevices = new HashSet<>(getAllDevicesForLink(senderContact));
+        currentLinkedDevices.remove(senderContact);
+
         Integer senderHopCount = hopCounts.get(senderContact);
         for (String line: routingData.split("\n")){
             String info[] = line.split("#~#");
             DeviceContact dc = new DeviceContact(info[0], info[1]);
             // mark device as dealt
             currentLinkedDevices.remove(dc);
-            Integer hopCount = Integer.getInteger(info[2]);
+            Integer hopCount = Integer.parseInt(info[2]);
             Integer currentHopCount = hopCounts.get(dc);
             Integer newCount = senderHopCount + hopCount;
             if (currentHopCount==null){
