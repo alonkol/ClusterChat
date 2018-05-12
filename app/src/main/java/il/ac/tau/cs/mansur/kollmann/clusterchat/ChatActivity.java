@@ -40,9 +40,12 @@ public class ChatActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String deviceAddress = intent.getStringExtra("clusterchat.deviceAddress");
         mDeviceContact = MainActivity.findDeviceContact(deviceAddress);
-        Log.d(TAG, String.format("Init chatService for device %s address %s" ,
-                mDeviceContact.getDeviceName(), mDeviceContact.getDeviceId()));
-        DeviceContact link = MainActivity.mRoutingTable.getLink(mDeviceContact).deviceContact;
+        if (mDeviceContact==null){
+            Log.e(TAG, "Device was not found");
+            finish();
+        }
+        Log.d(TAG, String.format("Init chatService for device %s", mDeviceContact.getShortStr()));
+        DeviceContact link = MainActivity.mRoutingTable.getLink(mDeviceContact);
         mThread = MainActivity.mBluetoothService.getConnectedThread(link);
         if (mThread == null){
             Log.e(TAG, "Connection thread not found");
@@ -71,7 +74,7 @@ public class ChatActivity extends AppCompatActivity {
         Log.d(TAG, "setupChat()");
 
         // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
+        mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.message);
 
         mConversationView.setAdapter(mConversationArrayAdapter);
 

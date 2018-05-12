@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     public static RoutingTable mRoutingTable;
     private static myBroadcastReceiver mReceiver;
     public static DeliveryMan mDeliveryMan;
-    public static final String UUID_PREFIX = "ffffffff";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         // the address will update on first handshake
         myDeviceContact = new DeviceContact("00-00-00-00-00-00",
                 mBluetoothService.mAdapter.getName());
+
     }
 
     void connectPairedDevices() {
@@ -131,8 +131,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Adding device to UI
-    public static void addDeviceToUi(BluetoothDevice device) {
-        DeviceContact deviceContact = new DeviceContact(device);
+    public static void addDeviceToUi(DeviceContact deviceContact) {
         if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) == -1) {
             mConnectedDevicesArrayAdapter.add(deviceContact);
         }

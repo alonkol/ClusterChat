@@ -105,7 +105,8 @@ class BluetoothService {
         // Update UI
         mUiConnectHandler.post(new Runnable() {
             public void run() {
-                MainActivity.addDeviceToUi(device);
+                DeviceContact deviceContact = new DeviceContact(device);
+                MainActivity.addDeviceToUi(deviceContact);
             }
         });
 
@@ -479,6 +480,7 @@ class BluetoothService {
             BluetoothService.write(mmOutStream, buffer);
         }
 
+
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
@@ -501,17 +503,9 @@ class BluetoothService {
             }
         }
 
-
         private void connectionLost() {
             MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
             mConnectedThreads.remove(mmContact);
-
-            // Update UI
-            mUiConnectHandler.post(new Runnable() {
-                public void run() {
-                    MainActivity.removeDeviceFromUi(mmContact);
-                }
-            });
         }
     }
 

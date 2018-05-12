@@ -58,11 +58,10 @@ public class myMessageHandler extends Handler {
             case ACK:
                 handleIncomingACKMessage(messageBundle);
                 break;
+            case ROUTING:
+                handleIncomingRoutingMessage(messageBundle);
+                break;
         }
-    }
-
-    private void handleIncomingACKMessage(MessageBundle messageBundle) {
-        // TODO do something with this
     }
 
     private void handleIncomingTextMessage(MessageBundle messageBundle){
@@ -91,5 +90,15 @@ public class myMessageHandler extends Handler {
             }
             thread.mmUuid = messageBundle.getUuid();
         }
+    }
+
+    private void handleIncomingRoutingMessage(MessageBundle messageBundle) {
+        DeviceContact senderContact = messageBundle.getSender();
+        Log.i(TAG, "Merging routing data received from " + senderContact.getShortStr());
+        MainActivity.mRoutingTable.mergeRoutingData(messageBundle.getMessage(), senderContact);
+    }
+
+    private void handleIncomingACKMessage(MessageBundle messageBundle) {
+        // TODO do something with this
     }
 }
