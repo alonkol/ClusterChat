@@ -12,6 +12,7 @@ import java.util.Set;
 
 public class RoutingTable {
     private static final String TAG="RoutingTable";
+    private static final Integer INFINITY = 15;
     private final Handler mUiConnectHandler;
     private HashMap<DeviceContact, DeviceContact> mtable;
     private HashMap<DeviceContact, HashSet<DeviceContact>> revertedTable;
@@ -39,6 +40,10 @@ public class RoutingTable {
     private void addDeviceToTable(DeviceContact deviceContact, DeviceContact linkDevice,
                                   Integer hopCount,
                                   boolean overrideIfExists, boolean finalize){
+        if (hopCount >= INFINITY){
+            Log.d(TAG, "Device " + deviceContact + " will not be added since hop count is inf");
+            return;
+        }
         if (mtable.containsKey(deviceContact)){
             Log.i(TAG, "device "+ deviceContact.getShortStr() + "already exists in table");
             if (overrideIfExists){
