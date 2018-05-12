@@ -42,7 +42,7 @@ public class ChatActivity extends AppCompatActivity {
         mDeviceContact = MainActivity.findDeviceContact(deviceAddress);
         Log.d(TAG, String.format("Init chatService for device %s address %s" ,
                 mDeviceContact.getDeviceName(), mDeviceContact.getDeviceId()));
-        DeviceContact link = MainActivity.mRoutingTable.getLink(mDeviceContact);
+        DeviceContact link = MainActivity.mRoutingTable.getLink(mDeviceContact).deviceContact;
         mThread = MainActivity.mBluetoothService.getConnectedThread(link);
         if (mThread == null){
             Log.e(TAG, "Connection thread not found");

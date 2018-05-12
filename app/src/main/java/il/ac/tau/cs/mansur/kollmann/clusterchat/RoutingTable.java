@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class RoutingTable {
     private static final String TAG="RoutingTable";
-    private HashMap<DeviceContact, DeviceContact> mtable;
-    private HashMap<DeviceContact, HashSet<DeviceContact>> revertedTable;
+    private HashMap<DeviceContact, Link> mtable;
+    private HashMap<Link, HashSet<DeviceContact>> revertedTable;
 
     public RoutingTable(){
         mtable = new HashMap<>();
@@ -19,16 +20,18 @@ public class RoutingTable {
         // TODO Lock???
     }
 
-    public DeviceContact getLink(DeviceContact deviceContact){
+    public Link getLink(DeviceContact deviceContact){
         return mtable.get(deviceContact);
     }
 
-    public HashSet<DeviceContact> getAllDevicesForLink(DeviceContact link){
-        return revertedTable.get(link);
+    public HashSet<DeviceContact> getAllDevicesForLink(DeviceContact dc){
+        return revertedTable.get(new Link(dc));
     }
 
     private void addDeviceToTable(DeviceContact deviceContact, DeviceContact linkDevice,
+                                  Integer hopCount,
                                   boolean overrideIfExists, boolean checkConsistency){
+        Link link = new Link(linkDevice, hopCount);
         if (mtable.containsKey(deviceContact)){
             Log.i(TAG, "device "+ deviceContact.getDeviceName() + "already exists in table");
             if (overrideIfExists){
@@ -38,35 +41,36 @@ public class RoutingTable {
                 return ;
             }
         }
-        mtable.put(deviceContact, linkDevice);
+        mtable.put(deviceContact, link);
         Log.d(TAG, String.format(
                 "Added device name %s and link %s to tables",
                 deviceContact.getDeviceName(), linkDevice.getDeviceName()));
-        if (!revertedTable.containsKey(linkDevice)){
-            revertedTable.put(linkDevice, new HashSet<DeviceContact>());
+        if (!revertedTable.containsKey(link)){
+            revertedTable.put(link, new HashSet<DeviceContact>());
         }
-        revertedTable.get(linkDevice).add(deviceContact);
+        revertedTable.get(link).add(deviceContact);
         if (checkConsistency)
             checkConsistency();
     }
 
     public void addDeviceToTable(DeviceContact deviceContact, DeviceContact linkDevice,
-                                 boolean overrideIfExists){
-        addDeviceToTable(deviceContact, linkDevice,  overrideIfExists, true);
+                                 Integer hopCount, boolean overrideIfExists){
+        addDeviceToTable(deviceContact, linkDevice,  hopCount, overrideIfExists, true);
     }
 
     //TODO needs __hash__ and __equals__ in connectedThread???
 
     public void addDeviceListToTable(ArrayList<DeviceContact> deviceContacts,
-                                     DeviceContact linkDevice, boolean overrideIfExists){
+                                     DeviceContact linkDevice, Integer hopCount,
+                                     boolean overrideIfExists){
         for (DeviceContact deviceContact: deviceContacts){
-            addDeviceToTable(deviceContact, linkDevice, overrideIfExists, false);
+            addDeviceToTable(deviceContact, linkDevice, hopCount, overrideIfExists, false);
         }
         checkConsistency();
     }
 
     public void removeDeviceFromTable(DeviceContact deviceContact){
-        DeviceContact link = mtable.get(deviceContact);
+        Link link = mtable.get(deviceContact);
         mtable.remove(deviceContact);
         revertedTable.get(link).remove(deviceContact);
         if (revertedTable.get(link).size() == 0){
@@ -78,7 +82,8 @@ public class RoutingTable {
         Log.d(TAG, String.format("Removed device %s", deviceContact.getDeviceName()));
     }
 
-    public void removeLinkFromTable(DeviceContact link){
+    public void removeLinkFromTable(DeviceContact dc){
+        Link link = new Link(dc);
         try{
             for (DeviceContact deviceContact: revertedTable.get(link)){
                 Log.d(TAG, String.format(
@@ -109,7 +114,7 @@ public class RoutingTable {
         }
         if (showReversed){
             Log.d(TAG, "Reversed Table");
-            for (DeviceContact link: revertedTable.keySet()){
+            for (Link link: revertedTable.keySet()){
                 Log.d(TAG,
                         String.format(
                                 "Link: %s Devices %s", link.getDeviceName(), Arrays.toString(revertedTable.get(link).toArray())));
@@ -120,7 +125,7 @@ public class RoutingTable {
     private void checkConsistency(){
         int count = 0;
         ArrayList<DeviceContact> allDevices = new ArrayList<>();
-        for(DeviceContact link: revertedTable.keySet()){
+        for(Link link: revertedTable.keySet()){
                 HashSet<DeviceContact> devicesList = revertedTable.get(link);
                 allDevices.addAll(devicesList);
                 for (DeviceContact deviceContact: devicesList){
@@ -150,5 +155,41 @@ public class RoutingTable {
     public Set<DeviceContact> getAllNeighboursConnectedDevices() {
         // Todo implement when added hop counts
         return getAllConnectedDevices();
+    }
+
+    public class Link{
+        public DeviceContact deviceContact;
+        public Integer hopCount;
+
+        public Link(DeviceContact dc, Integer hc){
+            this.deviceContact = dc;
+            this.hopCount = hc;
+        }
+
+        public Link(DeviceContact dc) {
+            this.deviceContact = dc;
+            this.hopCount = 1;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Link link = (Link) o;
+            return Objects.equals(deviceContact, link.deviceContact);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(deviceContact);
+        }
+
+        public String getDeviceName() {
+            return deviceContact.getDeviceName();
+        }
+
+        public String getDeviceId() {
+            return deviceContact.getDeviceId();
+        }
     }
 }

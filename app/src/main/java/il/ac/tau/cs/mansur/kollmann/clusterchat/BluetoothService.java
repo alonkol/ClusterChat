@@ -114,7 +114,7 @@ class BluetoothService {
         final DeviceContact contact = new DeviceContact(device);
         ConnectedThread thread = new ConnectedThread(socket, contact);
         mConnectedThreads.put(contact, thread);
-        MainActivity.mRoutingTable.addDeviceToTable(contact, contact, true);
+        MainActivity.mRoutingTable.addDeviceToTable(contact, contact, 1, true);
         thread.start();
     }
 

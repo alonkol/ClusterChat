@@ -16,7 +16,7 @@ public class MockDevice {
     }
 
     public void connect(MockDevice b) {
-        this.routingTable.addDeviceToTable(b.deviceContact, b.deviceContact, true);
+        this.routingTable.addDeviceToTable(b.deviceContact, b.deviceContact, 1, true);
     }
 
     public void disconnect(MockDevice b) {
@@ -34,7 +34,7 @@ public class MockDevice {
     }
 
     public void sendMessage(MockDevice reciever, MessageBundle msg){
-        DeviceContact nextHop = routingTable.getLink(reciever.deviceContact);
+        RoutingTable.Link nextHop = routingTable.getLink(reciever.deviceContact);
         if (nextHop==null){
             System.out.println("No link was found from device " + this + "to " + reciever);
             return;
