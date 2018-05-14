@@ -117,11 +117,11 @@ public class MainActivity extends AppCompatActivity {
         runningMessageID = rand.nextInt(MAXIMUM_MESSAGE_ID);
 
         packageQueue = new PackageQueue();
-        new PackageBuilder().start();
+        startPackageBuilder();
 
     }
 
-    public static Integer getMessageID(){
+    public static Integer getNewMessageID(){
         runningMessageID += 1;
         runningMessageID %= MAXIMUM_MESSAGE_ID;
         return runningMessageID;
@@ -133,6 +133,16 @@ public class MainActivity extends AppCompatActivity {
             mReceiver.tryConnect(device);
         }
 
+    }
+
+    void startPackageBuilder(){
+        new Timer().schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                new PackageBuilder().start();
+            }
+        }, 1000);
     }
 
     void startPeriodicDiscovery() {

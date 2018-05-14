@@ -19,7 +19,7 @@ class MessageBundle{
         this.receiver = receiver;
         this.messageType = messageType;
         this.ttl = 5;
-        this.messageID = MainActivity.getMessageID();
+        this.messageID = MainActivity.getNewMessageID();
         this.metadata =  new HashMap<>();
     }
 
