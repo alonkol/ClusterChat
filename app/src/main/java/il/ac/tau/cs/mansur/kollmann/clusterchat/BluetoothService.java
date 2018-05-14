@@ -447,13 +447,6 @@ class BluetoothService {
         void finishConnect() {
             mConnectThreads.remove(mmContact);
             mSemaphore.release();
-
-            // play disconnect sound
-            try {
-                mMediaPlayerOnDisconnect.start();
-            } catch (Exception e) {
-                // ignore
-            }
         }
 
         @Override
@@ -521,6 +514,13 @@ class BluetoothService {
         private void connectionLost() {
             MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
             mConnectedThreads.remove(mmContact);
+
+            // play disconnect sound
+            try {
+                mMediaPlayerOnDisconnect.start();
+            } catch (Exception e) {
+                // ignore
+            }
         }
     }
 

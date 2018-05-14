@@ -81,9 +81,8 @@ public class myMessageHandler extends Handler {
     private void handleIncomingTextMessage(MessageBundle messageBundle){
         DeviceContact senderContact = messageBundle.getSender();
         // Add to chat
-        MainActivity.mConversationManager.addMessage(
-                senderContact, senderContact.getDeviceName() + ":  " +
-                        messageBundle.getMessage());
+        MainActivity.mConversationManager.addMessage(senderContact,
+                new BaseMessage(messageBundle.getMessage(), senderContact.getDeviceId()));
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(messageBundle), senderContact);

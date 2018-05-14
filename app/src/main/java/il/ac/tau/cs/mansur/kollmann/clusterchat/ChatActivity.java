@@ -3,6 +3,8 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -25,10 +28,10 @@ public class ChatActivity extends AppCompatActivity {
     private Integer mCurrentIndex;
 
     // Layout Views
-    private ListView mConversationView;
+    private RecyclerView mMessageRecycler;
     private EditText mOutEditText;
     private Button mSendButton;
-    public static ArrayAdapter<String> mConversationArrayAdapter;
+    public static MessageListAdapter mMessagesAdapter;
     private StringBuffer mOutStringBuffer;
     private Observer mObserver;
     private DeviceContact mDeviceContact;
@@ -53,9 +56,16 @@ public class ChatActivity extends AppCompatActivity {
         }
         getSupportActionBar().setTitle(mDeviceContact.getDeviceName());
 
-        mConversationView = (ListView) findViewById(R.id.in);
-        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-        mSendButton = (Button) findViewById(R.id.button_send);
+        mMessageRecycler = (RecyclerView) findViewById(R.id.reyclerview_message_list);
+        mMessagesAdapter = new MessageListAdapter(this, new ArrayList<BaseMessage>());
+        mMessageRecycler.setAdapter(mMessagesAdapter);
+        mMessageRecycler.setLayoutManager(new LinearLayoutManager(this));
+
+        // TODO: remove
+        // mMessageRecycler.setHasFixedSize(true);
+
+        mOutEditText = (EditText) findViewById(R.id.edittext_chatbox);
+        mSendButton = (Button) findViewById(R.id.button_chatbox_send);
         mCurrentIndex = 0;
         mObserver = new Observer() {
             @Override
@@ -73,11 +83,6 @@ public class ChatActivity extends AppCompatActivity {
     private void setupChat() {
         Log.d(TAG, "setupChat()");
 
-        // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.message);
-
-        mConversationView.setAdapter(mConversationArrayAdapter);
-
         // Initialize the compose field with a listener for the return key
         mOutEditText.setOnEditorActionListener(mWriteListener);
 
@@ -90,18 +95,22 @@ public class ChatActivity extends AppCompatActivity {
         });
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
-        addMessagesToUI();
         MainActivity.mConversationManager.initObserver(mDeviceContact, mObserver);
+        addMessagesToUI();
     }
 
     private void addMessagesToUI(){
         Log.i(TAG, "Adding messages to UI starting with index " + mCurrentIndex);
         // Get messages from ConversationManager
-        List<String> conversations = MainActivity.mConversationManager.getMessagesForConversation(
+        List<BaseMessage> conversations = MainActivity.mConversationManager.getMessagesForConversation(
                 mDeviceContact, mCurrentIndex);
-        for(String message: conversations){
-            mConversationArrayAdapter.add(message);
+        for(BaseMessage message: conversations){
+            mMessagesAdapter.add(message);
         }
+
+        // TODO: replace with this?
+        // mMessagesAdapter.notifyItemRangeInserted(mCurrentIndex, conversations.size());
+        mMessagesAdapter.notifyDataSetChanged();
         mCurrentIndex += conversations.size();
     }
 
@@ -116,8 +125,7 @@ public class ChatActivity extends AppCompatActivity {
             MessageBundle newMessage = new MessageBundle(
                     message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact);
             MainActivity.mDeliveryMan.sendMessage(newMessage, mDeviceContact, mThread);
-            MainActivity.mConversationManager.addMessage(mDeviceContact, "Me:  " +
-                            message);
+            MainActivity.mConversationManager.addMessage(mDeviceContact, new BaseMessage(message));
             // Reset out string buffer to zero and clear the edit text field
             mOutStringBuffer.setLength(0);
             mOutEditText.setText(mOutStringBuffer);
