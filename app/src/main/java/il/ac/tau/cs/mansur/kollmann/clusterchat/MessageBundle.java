@@ -91,8 +91,8 @@ class MessageBundle{
         return "MessageBundle{" +
                 "message='" + message + '\'' +
                 ", messageType=" + messageType +
-                ", sender=" + sender +
-                ", receiver=" + receiver +
+                ", sender=" + sender.getShortStr() +
+                ", receiver=" + receiver.getShortStr() +
                 ", ttl=" + ttl +
                 ", messageID=" + messageID +
                 ", metadata=" + metadata +
