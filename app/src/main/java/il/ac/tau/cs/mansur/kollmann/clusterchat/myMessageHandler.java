@@ -69,7 +69,10 @@ public class myMessageHandler extends Handler {
                 handleIncomingACKMessage(messageBundle);
                 break;
             case ROUTING:
-                handleIncomingRoutingMessage(messageBundle);
+                handleIncomingRoutingMessage(messageBundle, false);
+                break;
+            case ROUTINGREPLY:
+                handleIncomingRoutingMessage(messageBundle, true);
                 break;
         }
     }
@@ -113,14 +116,14 @@ public class myMessageHandler extends Handler {
         }
     }
 
-    private void handleIncomingRoutingMessage(MessageBundle messageBundle) {
+    private void handleIncomingRoutingMessage(MessageBundle messageBundle, boolean reply) {
         DeviceContact senderContact = messageBundle.getSender();
         Log.i(TAG, "Merging routing data received from " + senderContact.getShortStr());
         boolean changeHappened =
                 MainActivity.mRoutingTable.mergeRoutingData(messageBundle.getMessage(), senderContact);
         // If change happened we are already sharing the table to the sender,
         // but if not we will share our routing info with the sender
-        if (!changeHappened){
+        if (!changeHappened && !reply){
             MainActivity.mDeliveryMan.replyRoutingData(senderContact);
         }
     }

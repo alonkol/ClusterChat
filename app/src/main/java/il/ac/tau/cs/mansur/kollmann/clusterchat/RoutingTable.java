@@ -252,7 +252,7 @@ public class RoutingTable {
         ArrayList<DeviceContact> neighbours =
                 MainActivity.mRoutingTable.getAllNeighboursConnectedDevices();
         for (DeviceContact dc: neighbours){
-            MainActivity.mDeliveryMan.sendRoutingData(dc, createRoutingData(dc));
+            MainActivity.mDeliveryMan.sendRoutingData(dc, createRoutingData(dc), false);
         }
     }
 

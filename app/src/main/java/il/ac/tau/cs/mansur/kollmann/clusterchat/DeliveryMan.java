@@ -44,15 +44,16 @@ public class DeliveryMan {
     }
 
 
-    public void sendRoutingData(DeviceContact deviceContact, String data) {
-        MessageBundle routingBundle = new MessageBundle(data, MessageTypes.ROUTING,
+    public void sendRoutingData(DeviceContact deviceContact, String data, boolean reply) {
+        MessageTypes type = reply ? MessageTypes.ROUTINGREPLY : MessageTypes.ROUTING;
+        MessageBundle routingBundle = new MessageBundle(data, type,
                 MainActivity.myDeviceContact, deviceContact);
         sendMessage(routingBundle, deviceContact);
     }
 
     public void replyRoutingData(DeviceContact deviceContact) {
         String data = MainActivity.mRoutingTable.createRoutingData(deviceContact);
-        sendRoutingData(deviceContact, data);
+        sendRoutingData(deviceContact, data, true);
     }
 
     public void sendFile(String filePath, DeviceContact addressContact){
