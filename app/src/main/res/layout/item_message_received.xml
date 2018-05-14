@@ -6,31 +6,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="8dp">
+    android:paddingTop="8dp" >
 
     <TextView
         android:id="@+id/rec_text_message_body"
-        android:text="hi man, how are you?"
         android:background="@drawable/rounded_rectangle_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:maxWidth="240dp"
         android:padding="10dp"
         android:textColor="#ffffff"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="8dp" />
-
-    <!--app:layout_constraintLeft_toTopOf="parent"-->
-    <!--app:layout_constraintLeft_toLeftOf="parent"-->
+        android:layout_marginTop="4dp" />
 
     <TextView
         android:id="@+id/rec_text_message_time"
-        android:text="11:40"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="10sp"
         app:layout_constraintLeft_toRightOf="@+id/rec_text_message_body"
-        android:layout_marginLeft="4dp"
+        android:layout_marginStart="4dp"
         app:layout_constraintBottom_toBottomOf="@+id/rec_text_message_body" />
 
 </android.support.constraint.ConstraintLayout>

@@ -59,7 +59,8 @@ public class ChatActivity extends AppCompatActivity {
         mMessageRecycler = (RecyclerView) findViewById(R.id.reyclerview_message_list);
         mMessagesAdapter = new MessageListAdapter(this, new ArrayList<BaseMessage>());
         mMessageRecycler.setAdapter(mMessagesAdapter);
-        mMessageRecycler.setLayoutManager(new LinearLayoutManager(this));
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        mMessageRecycler.setLayoutManager(layoutManager);
 
         // TODO: remove
         // mMessageRecycler.setHasFixedSize(true);
@@ -108,9 +109,8 @@ public class ChatActivity extends AppCompatActivity {
             mMessagesAdapter.add(message);
         }
 
-        // TODO: replace with this?
-        // mMessagesAdapter.notifyItemRangeInserted(mCurrentIndex, conversations.size());
-        mMessagesAdapter.notifyDataSetChanged();
+        mMessagesAdapter.notifyItemRangeInserted(mCurrentIndex, conversations.size());
+        mMessageRecycler.scrollToPosition(mMessagesAdapter.getItemCount() - 1);
         mCurrentIndex += conversations.size();
     }
 

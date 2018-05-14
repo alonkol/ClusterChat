@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class PackageQueue {
     public final String TAG = "PackageQueue";
-    private Queue<MessageBundle> processingQueue= new LinkedBlockingQueue<>();;
+    private Queue<MessageBundle> processingQueue = new LinkedBlockingQueue<>();;
 
     public void addPackage(MessageBundle mb) {
         Log.d(TAG, "Adding package to processing queue: " + mb);

@@ -8,6 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 class BaseMessage {
@@ -20,13 +23,14 @@ class BaseMessage {
         mMessage = message;
         mSender = sender;
         incoming = true;
-        createdAt = System.currentTimeMillis();
+        createdAt = Calendar.getInstance().getTime().getTime();
     }
 
     BaseMessage(String message) {
         mMessage = message;
         mSender = "Me";
         incoming = false;
+        createdAt = Calendar.getInstance().getTime().getTime();
     }
 }
 
@@ -113,7 +117,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
             // Format the stored timestamp into a readable String using method.
             timeText.setText(DateUtils.formatDateTime(mContext, message.createdAt,
-                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_ALL));
+                    DateUtils.FORMAT_SHOW_TIME));
         }
     }
 
@@ -132,7 +136,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
             // Format the stored timestamp into a readable String using method.
             timeText.setText(DateUtils.formatDateTime(mContext, message.createdAt,
-                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_ALL));
+                    DateUtils.FORMAT_SHOW_TIME));
 
         }
     }
