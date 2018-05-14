@@ -12,20 +12,20 @@ import java.util.List;
 
 class BaseMessage {
     String mMessage;
-    String sender;
+    String mSender;
     long createdAt;
     boolean incoming;
 
     BaseMessage(String message, String sender) {
         mMessage = message;
-        sender = sender;
+        mSender = sender;
         incoming = true;
         createdAt = System.currentTimeMillis();
     }
 
     BaseMessage(String message) {
         mMessage = message;
-        sender = "Me";
+        mSender = "Me";
         incoming = false;
     }
 }
