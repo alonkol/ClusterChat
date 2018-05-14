@@ -4,4 +4,5 @@
     <string name="connect">Connect</string>
     <string name="back">Back</string>
     <string name="none_found">None Found</string>
+    <string name="looking_for_devices">Looking for devices...</string>
 </resources>

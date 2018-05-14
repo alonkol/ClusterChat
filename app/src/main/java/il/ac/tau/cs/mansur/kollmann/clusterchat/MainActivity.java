@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     public static DeliveryMan mDeliveryMan;
     private static Integer runningMessageID;
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
+    private static final int REQUEST_ENABLE_BT = 3;
 
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/tryConnect
@@ -53,9 +54,6 @@ public class MainActivity extends AppCompatActivity {
         // If BT is not on, request that it be enabled.
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-
-            // TODO: static member?
-            final int REQUEST_ENABLE_BT = 3;
 
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         } else {
@@ -85,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         mConnectedDevicesArrayAdapter = new ArrayAdapter<>(
                 this, R.layout.device_name);
         ListView newDevicesListView = findViewById(R.id.conversations);
+        View emptyText = findViewById(R.id.empty);
+        newDevicesListView.setEmptyView(emptyText);
         newDevicesListView.setAdapter(mConnectedDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
@@ -95,12 +95,12 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothDevice.ACTION_UUID);
 
         mDeliveryMan = new DeliveryMan();
-
         mBluetoothService = new BluetoothService(this);
         mReceiver = new myBroadcastReceiver(mBluetoothService);
         this.registerReceiver(mReceiver, filter);
 
-        //connectPairedDevices();
+        // TODO: remove?
+        // connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
