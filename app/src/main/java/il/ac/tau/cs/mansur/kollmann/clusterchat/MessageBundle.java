@@ -31,6 +31,18 @@ class MessageBundle{
         return this.metadata.get(key);
     }
 
+    public Integer getMessageID(){
+        return this.messageID;
+    }
+
+    public static MessageBundle ConstructedBundle(
+            String fullMessage, MessageBundle relevantMessageBundle){
+        MessageBundle mb =
+                new MessageBundle(fullMessage, relevantMessageBundle.getMessageType(),
+                relevantMessageBundle.getSender(), relevantMessageBundle.getReceiver());
+        mb.messageID = relevantMessageBundle.messageID;
+        return mb;
+    }
 
     public static MessageBundle AckBundle(MessageBundle messageBundle){
         MessageBundle ackBundle = new MessageBundle("", MessageTypes.ACK,

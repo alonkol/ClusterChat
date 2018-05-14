@@ -59,6 +59,9 @@ public class myMessageHandler extends Handler {
             case TEXT:
                 handleIncomingTextMessage(messageBundle);
                 break;
+            case FILE:
+                handleIncomingFileMessage(messageBundle);
+                break;
             case HS:
                 handleIncomingHSMessage(messageBundle);
                 break;
@@ -69,6 +72,10 @@ public class myMessageHandler extends Handler {
                 handleIncomingRoutingMessage(messageBundle);
                 break;
         }
+    }
+
+    private void handleIncomingFileMessage(MessageBundle messageBundle) {
+        MainActivity.packageQueue.addPackage(messageBundle);
     }
 
     private void handleIncomingTextMessage(MessageBundle messageBundle){

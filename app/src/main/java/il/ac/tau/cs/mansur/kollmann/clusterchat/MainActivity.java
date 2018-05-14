@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
             discoveryPermissionPeriodSeconds * 1000;
     public static DeviceContact myDeviceContact;
     private MainActivity mainActivity;
+    public static PackageQueue packageQueue;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
@@ -114,6 +115,9 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("ClusterChat - " + myDeviceContact.getDeviceName());
         Random rand = new Random();
         runningMessageID = rand.nextInt(MAXIMUM_MESSAGE_ID);
+
+        packageQueue = new PackageQueue();
+        new PackageBuilder().start();
 
     }
 
