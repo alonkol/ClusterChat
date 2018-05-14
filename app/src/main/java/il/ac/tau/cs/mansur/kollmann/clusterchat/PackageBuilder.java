@@ -71,8 +71,8 @@ public class PackageBuilder extends Thread{
         DeviceContact senderContact = constructedBundle.getSender();
         // Add to chat
         MainActivity.mConversationManager.addMessage(
-                senderContact, senderContact.getDeviceName() + ":  " +
-                        constructedBundle.getMessage());
+                senderContact, new BaseMessage(senderContact.getDeviceName() + ":  " +
+                        constructedBundle.getMessage(), senderContact.getDeviceId()));
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(constructedBundle), senderContact);
