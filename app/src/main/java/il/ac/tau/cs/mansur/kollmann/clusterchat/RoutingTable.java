@@ -177,7 +177,7 @@ public class RoutingTable {
         String deviceInfo;
         for (Map.Entry<DeviceContact, HashSet<DeviceContact>> entry: revertedTable.entrySet()){
             DeviceContact l = entry.getKey();
-            if (l == recieverContact){
+            if (l.equals(recieverContact)){
                 continue;
             }
             HashSet<DeviceContact> devices = entry.getValue();
