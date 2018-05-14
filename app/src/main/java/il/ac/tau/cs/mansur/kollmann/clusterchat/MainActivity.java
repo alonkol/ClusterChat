@@ -23,7 +23,8 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
     private static final int discoveryPermissionPeriodSeconds = 5 * 60;
-    private static final int discoveryPermissionPeriodMillis = discoveryPermissionPeriodSeconds * 1000;
+    private static final int discoveryPermissionPeriodMillis =
+            discoveryPermissionPeriodSeconds * 1000;
     public static DeviceContact myDeviceContact;
     private MainActivity mainActivity;
     private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
@@ -35,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
     private static Integer runningMessageID;
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
 
+    // This flag is used to create complex network
+    // Full explanation is found under myBroadcastReceiver/tryConnect
+    public static final boolean LEVEL_ROUTING_FLAG = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +47,8 @@ public class MainActivity extends AppCompatActivity {
         mainActivity = this;
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{
-                Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
 
         // If BT is not on, request that it be enabled.
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
@@ -186,7 +192,8 @@ public class MainActivity extends AppCompatActivity {
         if (BluetoothAdapter.getDefaultAdapter().getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPermissionPeriodSeconds);
+            discoverableIntent.putExtra(
+                    BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, discoveryPermissionPeriodSeconds);
             startActivity(discoverableIntent);
         }
     }

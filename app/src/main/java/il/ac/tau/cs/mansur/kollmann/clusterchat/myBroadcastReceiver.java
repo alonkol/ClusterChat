@@ -22,6 +22,17 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         if (device.getName() == null) {
             return;
         }
+        if (MainActivity.LEVEL_ROUTING_FLAG){
+            // In order to debug complex networks, the devices will be named A1, B1, B2, C3 etc.
+            // A device will only initiate connections to devices from the next level
+            // (the level is the leading letter in the device name)
+            // meaning a device called B1 will initiate connections only to devices whose names start with C
+            char firstLetter = MainActivity.myDeviceContact.getDeviceName().charAt(0);
+            firstLetter += 1;
+            if (!device.getName().startsWith(Character.toString(firstLetter))){
+                return;
+            }
+        }
 
         if (!mBluetoothService.checkIfDeviceConnected(device)){
             mBluetoothService.connect(device);
