@@ -58,6 +58,8 @@ public class PackageBuilder extends Thread{
         for (int i=0; i<totalPackages; i++){
             fullMessage.append(packagesArr[i].getMessage());
         }
+        fullMessage.delete(Integer.parseInt(mb.getMetadata("totalFileSize")),
+                fullMessage.length());
 
         Log.d(TAG, "Package is constructed and passed");
         MessageBundle constructedBundle = MessageBundle.ConstructedBundle(

@@ -1,10 +1,13 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import android.util.Log;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DeliveryMan {
 
     private static final String TAG="DeliveryMan";
+    private static final int MAX_BYTES_MESSAGE = 5;
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
                                BluetoothService.BluetoothThread thread){
@@ -50,5 +53,36 @@ public class DeliveryMan {
     public void replyRoutingData(DeviceContact deviceContact) {
         String data = MainActivity.mRoutingTable.createRoutingData(deviceContact);
         sendRoutingData(deviceContact, data);
+    }
+
+    public void sendFile(String filePath, DeviceContact addressContact){
+        String test = "test1test2test3test4test";
+        byte[] testBytes = test.getBytes();
+        List<byte[]> chunks = splitEqually(testBytes, MAX_BYTES_MESSAGE, testBytes.length);
+        int messageID = MainActivity.getNewMessageID();
+        for (int i=0; i<chunks.size(); i++){
+            MessageBundle mb = new MessageBundle(
+                    new String(chunks.get(i)), MessageTypes.FILE, MainActivity.myDeviceContact,
+                    addressContact, messageID);
+            mb.addMetadata("totalPackages", Integer.toString(chunks.size()));
+            mb.addMetadata("totalFileSize", Integer.toString(testBytes.length));
+            mb.addMetadata("packageIndex", Integer.toString(i));
+            sendMessage(mb, addressContact);
+        }
+    }
+
+    private List<byte[]> splitEqually(byte[] testBytes, int pieceSize, int totalSize) {
+        int current = 0;
+        byte[] chunk;
+        List <byte[]> chunks = new ArrayList<>();
+        while (current<totalSize){
+            chunk = new byte[pieceSize];
+            for (int i=current; i<current+pieceSize && i<totalSize; i++){
+                chunk[i % pieceSize] = testBytes[i];
+            }
+            chunks.add(chunk);
+            current+=pieceSize;
+        }
+        return chunks;
     }
 }

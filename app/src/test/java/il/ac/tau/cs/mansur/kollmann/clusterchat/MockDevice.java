@@ -34,7 +34,7 @@ public class MockDevice {
     }
 
     public void sendMessage(MockDevice reciever, MessageBundle msg){
-        RoutingTable.Link nextHop = routingTable.getLink(reciever.deviceContact);
+        DeviceContact nextHop = routingTable.getLink(reciever.deviceContact);
         if (nextHop==null){
             System.out.println("No link was found from device " + this + "to " + reciever);
             return;

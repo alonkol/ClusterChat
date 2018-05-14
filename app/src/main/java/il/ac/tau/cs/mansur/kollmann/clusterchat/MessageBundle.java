@@ -13,15 +13,22 @@ class MessageBundle{
     private HashMap<String, String> metadata;
 
     MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
-                         DeviceContact receiver){
+                  DeviceContact receiver, int messageID){
         this.message = message;
         this.sender = sender;
         this.receiver = receiver;
         this.messageType = messageType;
         this.ttl = 5;
-        this.messageID = MainActivity.getNewMessageID();
+        this.messageID = messageID;
         this.metadata =  new HashMap<>();
     }
+
+    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
+                         DeviceContact receiver){
+        this(message, messageType, sender, receiver, 0);
+        this.messageID = MainActivity.getNewMessageID();
+    }
+
 
     public void addMetadata(String key, String value){
         this.metadata.put(key, value);
@@ -37,11 +44,9 @@ class MessageBundle{
 
     public static MessageBundle ConstructedBundle(
             String fullMessage, MessageBundle relevantMessageBundle){
-        MessageBundle mb =
-                new MessageBundle(fullMessage, relevantMessageBundle.getMessageType(),
-                relevantMessageBundle.getSender(), relevantMessageBundle.getReceiver());
-        mb.messageID = relevantMessageBundle.messageID;
-        return mb;
+        return new MessageBundle(fullMessage, relevantMessageBundle.getMessageType(),
+                relevantMessageBundle.getSender(), relevantMessageBundle.getReceiver(),
+                relevantMessageBundle.messageID);
     }
 
     public static MessageBundle AckBundle(MessageBundle messageBundle){
