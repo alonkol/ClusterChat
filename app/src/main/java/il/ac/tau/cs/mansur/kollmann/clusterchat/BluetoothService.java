@@ -31,21 +31,24 @@ class BluetoothService {
     static final int MAX_CONNECTED_THREADS = 7;
     Semaphore mSemaphore = new Semaphore(MAX_CONNECTED_THREADS);
     private final Handler mUiConnectHandler;
-    private static final myMessageHandler mMessageHandler = new myMessageHandler();
+    private static myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     static ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
-    private final MediaPlayer mMediaPlayer;
+    private final MediaPlayer mMediaPlayerOnConnect;
+    private final MediaPlayer mMediaPlayerOnDisconnect;
 
     /**
          * Constructor. Prepares a new BluetoothChat session.
          */
     BluetoothService(Context context) {
         mContext = context;
+        mMessageHandler = new myMessageHandler(context);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
         mUiConnectHandler = new Handler();
         mConnectedThreads = new HashMap<>();
-        mMediaPlayer = MediaPlayer.create(mContext, R.raw.light);
+        mMediaPlayerOnConnect = MediaPlayer.create(mContext, R.raw.light);
+        mMediaPlayerOnDisconnect = MediaPlayer.create(mContext, R.raw.case_closed);
 
         start();
     }
@@ -100,7 +103,11 @@ class BluetoothService {
         Log.d(TAG, "connected");
 
         // Play sound
-        PlaySound();
+        try {
+            mMediaPlayerOnConnect.start();
+        } catch (Exception e) {
+            // ignore
+        }
 
         // Update UI
         mUiConnectHandler.post(new Runnable() {
@@ -439,6 +446,13 @@ class BluetoothService {
         void finishConnect() {
             mConnectThreads.remove(mmContact);
             mSemaphore.release();
+
+            // play disconnect sound
+            try {
+                mMediaPlayerOnDisconnect.start();
+            } catch (Exception e) {
+                // ignore
+            }
         }
 
         @Override
@@ -517,15 +531,7 @@ class BluetoothService {
                 buffer).sendToTarget();
     }
 
-    private void PlaySound(){
-        try {
-            mMediaPlayer.start();
-        } catch (Exception e) {
-            // ignore
-        }
-    }
-
-    public abstract class BluetoothThread extends Thread {
+    abstract class BluetoothThread extends Thread {
         abstract void write(byte[] buffer) throws IOException;
     }
 

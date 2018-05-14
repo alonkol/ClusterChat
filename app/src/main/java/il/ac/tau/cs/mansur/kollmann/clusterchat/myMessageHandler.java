@@ -1,5 +1,7 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import android.content.Context;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -10,7 +12,11 @@ public class myMessageHandler extends Handler {
     private final String TAG = "MessageHandler";
     static final int MESSAGE_IN = 0;
     static final int MESSAGE_OUT = 1;
+    private final MediaPlayer mMediaPlayerOnNewMessage;
 
+    myMessageHandler(Context context) {
+        mMediaPlayerOnNewMessage = MediaPlayer.create(context, R.raw.open_ended);
+    }
 
     @Override
     public void handleMessage(Message msg) {
@@ -74,6 +80,13 @@ public class myMessageHandler extends Handler {
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(messageBundle), senderContact);
+
+        // Play sound
+        try {
+            mMediaPlayerOnNewMessage.start();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     private void handleIncomingHSMessage(MessageBundle messageBundle){
@@ -100,7 +113,8 @@ public class myMessageHandler extends Handler {
     }
 
     private void handleIncomingACKMessage(MessageBundle messageBundle) {
-        // TODO do something with this
         Log.i(TAG, "Message " + messageBundle.getMessage() + " has been acked");
+
+        // TODO: Single tick on ACK?
     }
 }
