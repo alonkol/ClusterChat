@@ -95,14 +95,15 @@ public class myMessageHandler extends Handler {
                     messageBundle.getReceiver().getDeviceId());
             MainActivity.myDeviceContact = messageBundle.getReceiver();
         }
-        if (messageBundle.getUuid()!=null) {
+        String uuid = messageBundle.getMetadata("UUID");
+        if (uuid != null) {
             DeviceContact device = messageBundle.getSender();
             BluetoothService.ConnectThread thread = BluetoothService.mConnectThreads.get(device);
             if (thread == null) {
                 Log.e(TAG, "Incoming UUID - requesting thread not found.");
                 return;
             }
-            thread.mmUuid = messageBundle.getUuid();
+            thread.mmUuid = UUID.fromString(uuid);
         }
     }
 
@@ -113,7 +114,8 @@ public class myMessageHandler extends Handler {
     }
 
     private void handleIncomingACKMessage(MessageBundle messageBundle) {
-        Log.i(TAG, "Message " + messageBundle.getMessage() + " has been acked");
+        Log.i(TAG, "Message " + messageBundle.getMetadata("AckID") +
+                " has been acked");
 
         // TODO: Single tick on ACK?
     }

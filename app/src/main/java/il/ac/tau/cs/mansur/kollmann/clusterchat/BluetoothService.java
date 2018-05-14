@@ -277,8 +277,9 @@ class BluetoothService {
 
         private boolean sendHandshake(UUID uuid){
             MessageBundle newMessage = new MessageBundle(
-                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact, uuid);
+                    "", MessageTypes.HS, MainActivity.myDeviceContact, mmContact);
             newMessage.setTTL(1);
+            newMessage.addMetadata("UUID", uuid.toString());
             return MainActivity.mDeliveryMan.sendMessage(newMessage, mmContact, this);
         }
 

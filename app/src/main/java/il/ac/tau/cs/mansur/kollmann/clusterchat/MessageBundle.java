@@ -1,37 +1,42 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import com.google.gson.Gson;
 
-import java.util.UUID;
+import java.util.HashMap;
 
 class MessageBundle{
     private String message;
     private MessageTypes messageType;
     private DeviceContact sender;
     private DeviceContact receiver;
-    private UUID uuid;
     private Integer ttl;
     private Integer messageID;
+    private HashMap<String, String> metadata;
 
     MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
-                         DeviceContact receiver, UUID uuid){
+                         DeviceContact receiver){
         this.message = message;
         this.sender = sender;
         this.receiver = receiver;
         this.messageType = messageType;
-        this.uuid = uuid;
         this.ttl = 5;
         this.messageID = MainActivity.getMessageID();
+        this.metadata =  new HashMap<>();
     }
 
-    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
-                  DeviceContact receiver){
-        this(message, messageType, sender, receiver, null);
+    public void addMetadata(String key, String value){
+        this.metadata.put(key, value);
+    }
+
+    public String getMetadata(String key){
+        return this.metadata.get(key);
     }
 
 
     public static MessageBundle AckBundle(MessageBundle messageBundle){
-        return new MessageBundle(Integer.toString(messageBundle.messageID), MessageTypes.ACK,
+        MessageBundle ackBundle = new MessageBundle("", MessageTypes.ACK,
                 MainActivity.myDeviceContact, messageBundle.getSender());
+        ackBundle.addMetadata("AckID", Integer.toString(messageBundle.messageID));
+        return ackBundle;
     }
 
     String toJson(){
@@ -41,7 +46,10 @@ class MessageBundle{
 
     static MessageBundle fromJson(String messageJson){
         Gson gson = new Gson();
-        return gson.fromJson(messageJson, MessageBundle.class);
+        MessageBundle mb =  gson.fromJson(messageJson, MessageBundle.class);
+        if (mb.metadata == null)
+            mb.metadata = new HashMap<>();
+        return mb;
     }
 
     String getMessage() {
@@ -71,16 +79,11 @@ class MessageBundle{
         return "MessageBundle{" +
                 "message='" + message + '\'' +
                 ", messageType=" + messageType +
-                ", sender=" + sender.getShortStr() +
-                ", receiver=" + receiver.getShortStr() +
+                ", sender=" + sender +
+                ", receiver=" + receiver +
                 ", ttl=" + ttl +
-                ", uuid=" + (uuid==null ? "null" : uuid.toString()) +
-                ", messageID =" + Integer.toString(messageID) +
+                ", messageID=" + messageID +
+                ", metadata=" + metadata +
                 '}';
     }
-
-    UUID getUuid() {
-        return uuid;
-    }
-
 }

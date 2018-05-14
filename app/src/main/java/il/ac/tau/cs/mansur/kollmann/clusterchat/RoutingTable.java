@@ -184,9 +184,11 @@ public class RoutingTable {
             for (DeviceContact dc: devices){
                 deviceInfo = String.format("%s#~#%s#~#%s",
                         dc.getDeviceId(), dc.getDeviceName(), Integer.toString(hopCounts.get(dc)));
-                routingData.append(deviceInfo).append("\n");
+                routingData.append(deviceInfo).append(",");
             }
         }
+        if (routingData.length() > 0)
+            routingData.deleteCharAt(routingData.length() - 1);
         return routingData.toString();
     }
 
@@ -198,7 +200,7 @@ public class RoutingTable {
 
         Integer senderHopCount = hopCounts.get(senderContact);
         if (!routingData.equals("")) {
-            for (String line : routingData.split("\n")) {
+            for (String line : routingData.split(",")) {
                 String info[] = line.split("#~#");
                 DeviceContact dc = new DeviceContact(info[0], info[1]);
                 // mark device as dealt
