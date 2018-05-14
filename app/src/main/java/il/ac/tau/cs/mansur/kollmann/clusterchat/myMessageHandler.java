@@ -116,7 +116,13 @@ public class myMessageHandler extends Handler {
     private void handleIncomingRoutingMessage(MessageBundle messageBundle) {
         DeviceContact senderContact = messageBundle.getSender();
         Log.i(TAG, "Merging routing data received from " + senderContact.getShortStr());
-        MainActivity.mRoutingTable.mergeRoutingData(messageBundle.getMessage(), senderContact);
+        boolean changeHappened =
+                MainActivity.mRoutingTable.mergeRoutingData(messageBundle.getMessage(), senderContact);
+        // If change happened we are already sharing the table to the sender,
+        // but if not we will share our routing info with the sender
+        if (!changeHappened){
+            MainActivity.mDeliveryMan.replyRoutingData(senderContact);
+        }
     }
 
     private void handleIncomingACKMessage(MessageBundle messageBundle) {

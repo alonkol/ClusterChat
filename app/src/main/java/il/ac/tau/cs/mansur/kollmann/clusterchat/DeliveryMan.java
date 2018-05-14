@@ -41,4 +41,14 @@ public class DeliveryMan {
     }
 
 
+    public void sendRoutingData(DeviceContact deviceContact, String data) {
+        MessageBundle routingBundle = new MessageBundle(data, MessageTypes.ROUTING,
+                MainActivity.myDeviceContact, deviceContact);
+        sendMessage(routingBundle, deviceContact);
+    }
+
+    public void replyRoutingData(DeviceContact deviceContact) {
+        String data = MainActivity.mRoutingTable.createRoutingData(deviceContact);
+        sendRoutingData(deviceContact, data);
+    }
 }

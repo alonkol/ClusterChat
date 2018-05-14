@@ -192,7 +192,8 @@ public class RoutingTable {
         return routingData.toString();
     }
 
-    public void mergeRoutingData(String routingData, DeviceContact senderContact){
+    public boolean mergeRoutingData(String routingData, DeviceContact senderContact){
+        boolean changeHappened = false;
         // prepare a list to make sure all devices related to this link are dealt
         HashSet<DeviceContact> currentLinkedDevices =
                 new HashSet<>(getAllDevicesForLink(senderContact));
@@ -212,9 +213,11 @@ public class RoutingTable {
                     // If not known of device yet add it to table and UI
                     addDeviceToTable(dc, senderContact, newCount, true);
                     addDeviceToUI(dc);
+                    changeHappened = true;
                 } else if (newCount < currentHopCount) {
                     // If better reach update link and hop count
                     addDeviceToTable(dc, senderContact, newCount, true);
+                    changeHappened = true;
                 }
             }
         }
@@ -222,7 +225,9 @@ public class RoutingTable {
         // disconnected so we remove it
         for (DeviceContact dc: currentLinkedDevices){
             removeDeviceFromTable(dc);
+            changeHappened = true;
         }
+        return changeHappened;
     }
 
     public void removeDeviceFromUI(final DeviceContact deviceContact){
@@ -247,10 +252,7 @@ public class RoutingTable {
         ArrayList<DeviceContact> neighbours =
                 MainActivity.mRoutingTable.getAllNeighboursConnectedDevices();
         for (DeviceContact dc: neighbours){
-            String data = MainActivity.mRoutingTable.createRoutingData(dc);
-            MessageBundle routingBundle = new MessageBundle(data, MessageTypes.ROUTING,
-                    MainActivity.myDeviceContact, dc);
-            MainActivity.mDeliveryMan.sendMessage(routingBundle, dc);
+            MainActivity.mDeliveryMan.sendRoutingData(dc, createRoutingData(dc));
         }
     }
 
