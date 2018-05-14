@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
 
 import java.util.UUID;
 
@@ -94,6 +95,10 @@ public class myMessageHandler extends Handler {
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(messageBundle), senderContact);
+
+        // Update unread messages count
+        MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
+
 
         // Play sound
         try {

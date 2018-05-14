@@ -11,9 +11,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import java.io.File;
 import java.util.Random;
 import java.util.Set;
@@ -28,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     public static DeviceContact myDeviceContact;
     private MainActivity mainActivity;
     public static PackageQueue packageQueue;
-    private static ArrayAdapter<DeviceContact> mConnectedDevicesArrayAdapter;
+    static UsersAdapter mConnectedDevicesArrayAdapter;
     public static BluetoothService mBluetoothService;
     public static ConversationsManager mConversationManager;
     public static RoutingTable mRoutingTable;
@@ -81,8 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }, 0, discoveryPermissionPeriodMillis);
 
         // Find and set up the ListView for newly discovered devices
-        mConnectedDevicesArrayAdapter = new ArrayAdapter<>(
-                this, R.layout.device_name);
+        mConnectedDevicesArrayAdapter = new UsersAdapter(this);
         ListView newDevicesListView = findViewById(R.id.conversations);
         View emptyText = findViewById(R.id.empty);
         newDevicesListView.setEmptyView(emptyText);
@@ -220,13 +217,20 @@ public class MainActivity extends AppCompatActivity {
      * The on-click listener for all devices in the ListViews
      */
     private AdapterView.OnItemClickListener mDeviceClickListener  = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
-            // Get the device MAC address, which is the last 17 chars in the View
-            String info = ((TextView) v).getText().toString();
-            String address = info.substring(info.length() - 17);
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            // Access user from within the tag
+            DeviceContact user = (DeviceContact) view.getTag();
             Intent intent = new Intent(mainActivity, ChatActivity.class);
-            intent.putExtra("clusterchat.deviceAddress", address);
+            intent.putExtra("clusterchat.deviceAddress", user.getDeviceId());
             startActivity(intent);
+            view.findViewById(R.id.new_messages).setVisibility(View.INVISIBLE);
+            user.clearUnread();
+
+            // TODO: uncomment and remove line below?
+            // mConnectedDevicesArrayAdapter.remove(user);
+            // mConnectedDevicesArrayAdapter.add(user);
+            view.setTag(user);
         }
     };
 

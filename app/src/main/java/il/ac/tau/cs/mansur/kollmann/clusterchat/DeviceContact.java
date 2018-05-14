@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 public class DeviceContact {
     private String deviceId;
     private String deviceName;
+    private int unreadMessages = 0;
 
     DeviceContact(BluetoothDevice device) {
         this(device.getAddress(), device.getName());
@@ -17,6 +18,15 @@ public class DeviceContact {
     DeviceContact(String deviceId, String deviceName){
         this.deviceId = deviceId;
         this.deviceName = deviceName == null ? "Unknown" : deviceName;
+    }
+
+    void clearUnread() {
+        unreadMessages = 0;
+    }
+
+    int IncrementAndGetUnread() {
+        unreadMessages += 1;
+        return  unreadMessages;
     }
 
     public String toString(){
@@ -49,4 +59,6 @@ public class DeviceContact {
     public String getShortStr() {
         return this.deviceName + "/" + this.deviceId;
     }
+
+    int getUnreadMessages() { return this.unreadMessages; }
 }
