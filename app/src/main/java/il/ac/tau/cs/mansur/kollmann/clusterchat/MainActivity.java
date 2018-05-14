@@ -112,12 +112,15 @@ public class MainActivity extends AppCompatActivity {
         myDeviceContact = new DeviceContact("00-00-00-00-00-00",
                 mBluetoothService.mAdapter.getName());
 
-        getSupportActionBar().setTitle("ClusterChat - " + myDeviceContact.getDeviceName());
         Random rand = new Random();
         runningMessageID = rand.nextInt(MAXIMUM_MESSAGE_ID);
 
         packageQueue = new PackageQueue();
         startPackageBuilder();
+
+        if (LEVEL_ROUTING_FLAG){
+            getSupportActionBar().setTitle("ClusterChat - " + myDeviceContact.getDeviceName());
+        }
 
     }
 
