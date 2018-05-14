@@ -141,7 +141,7 @@ public class RoutingTable {
                 allDevices.addAll(devicesList);
                 for (DeviceContact deviceContact: devicesList){
                     count ++;
-                    if (mtable.get(deviceContact) != link){
+                    if (!mtable.get(deviceContact).equals(link)){
                         Log.e(TAG,
                                 String.format("Mismatch in tables for link %s and device %s",
                                         link.getDeviceName(), deviceContact.getDeviceName()));

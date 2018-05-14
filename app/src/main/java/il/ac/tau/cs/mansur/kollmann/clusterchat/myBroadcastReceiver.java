@@ -30,6 +30,8 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             char firstLetter = MainActivity.myDeviceContact.getDeviceName().charAt(0);
             firstLetter += 1;
             if (!device.getName().startsWith(Character.toString(firstLetter))){
+                Log.d(TAG, "device " + device.getName()+ " is not in matching level (" +
+                        (Character.toString(firstLetter)) + ") so not connecting");
                 return;
             }
         }
