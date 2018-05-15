@@ -218,12 +218,17 @@ class BluetoothService {
             byte[] buffer = new byte[1024];
             byte[] sizeBuffer = new byte[4];
             int bytes;
-            int len;
+            int tmpBytes;
+            int packetSize;
 
             try {
                 mmInStream.read(sizeBuffer, 0, 4);
-                len = ByteBuffer.wrap(sizeBuffer).getInt();
-                bytes = mmInStream.read(buffer, 0, len);
+                packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
+                bytes = 0;
+                while (bytes!=packetSize){
+                    tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
+                    bytes += tmpBytes;
+                }
                 mMessageHandler.obtainMessage(
                         myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
@@ -389,12 +394,17 @@ class BluetoothService {
             byte[] buffer = new byte[1024];
             byte[] sizeBuffer = new byte[4];
             int bytes;
-
+            int tmpBytes;
+            int packetSize;
             try {
                 // Read UUID from inputStream
                 mmInStream.read(sizeBuffer, 0, 4);
-                int len = ByteBuffer.wrap(sizeBuffer).getInt();
-                bytes = mmInStream.read(buffer, 0, len);
+                packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
+                bytes = 0;
+                while (bytes!=packetSize){
+                    tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
+                    bytes += tmpBytes;
+                }
                 mMessageHandler.obtainMessage(
                         myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
@@ -502,6 +512,8 @@ class BluetoothService {
             byte[] buffer = new byte[1024];
             byte[] sizeBuffer = new byte[4];
             int bytes;
+            int tmpBytes;
+            int packetSize;
 //            if (mmContact.getDeviceName().equals("G4"))
 //                MainActivity.mDeliveryMan.sendFile("a", mmContact);
             // Keep listening to the InputStream while connected
@@ -509,8 +521,12 @@ class BluetoothService {
                 try {
                     // Read from the InputStream
                     mmInStream.read(sizeBuffer, 0, 4);
-                    int len = ByteBuffer.wrap(sizeBuffer).getInt();
-                    bytes = mmInStream.read(buffer, 0, len);
+                    packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
+                    bytes = 0;
+                    while (bytes!=packetSize){
+                        tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
+                        bytes += tmpBytes;
+                    }
                     mMessageHandler.obtainMessage(
                             myMessageHandler.MESSAGE_IN, bytes, -1,
                             buffer).sendToTarget();
