@@ -14,9 +14,11 @@ public class myMessageHandler extends Handler {
     static final int MESSAGE_IN = 0;
     static final int MESSAGE_OUT = 1;
     private final MediaPlayer mMediaPlayerOnNewMessage;
+    private MainActivity mMainActivity;
 
-    myMessageHandler(Context context) {
-        mMediaPlayerOnNewMessage = MediaPlayer.create(context, R.raw.open_ended);
+    myMessageHandler(MainActivity mainActivity) {
+        mMediaPlayerOnNewMessage = MediaPlayer.create(mainActivity, R.raw.open_ended);
+        mMainActivity = mainActivity;
     }
 
     @Override
@@ -96,6 +98,9 @@ public class myMessageHandler extends Handler {
 
         // Update unread messages count
         MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
+
+        // Send notification
+        mMainActivity.newMessageNotification(senderContact, messageBundle.getMessage());
 
         // Add to chat
         MainActivity.mConversationManager.addMessage(senderContact,

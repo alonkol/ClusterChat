@@ -1,12 +1,18 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -174,6 +180,32 @@ public class MainActivity extends AppCompatActivity {
                 // ignore
             }
         }
+    }
+
+    public void newMessageNotification(DeviceContact contact, String message) {
+        // TODO: not if already active?
+        // Add notification
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("clusterchat.deviceAddress", contact.getDeviceId());
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this);
+
+        b.setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setTicker("Hearty365")
+                .setContentTitle("New message from " + contact.getDeviceName())
+                .setContentText(message)
+                .setDefaults(Notification.DEFAULT_LIGHTS| Notification.DEFAULT_SOUND)
+                .setContentIntent(contentIntent)
+                .setContentInfo("Info");
+
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, b.build());
     }
 
     // Removing device from UI

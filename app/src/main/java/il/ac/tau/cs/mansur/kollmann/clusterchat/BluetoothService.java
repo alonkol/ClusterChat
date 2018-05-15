@@ -35,8 +35,8 @@ class BluetoothService {
     /**
          * Constructor. Prepares a new BluetoothChat session.
          */
-    BluetoothService(Context context) {
-        mMessageHandler = new myMessageHandler(context);
+    BluetoothService(MainActivity mainActivity) {
+        mMessageHandler = new myMessageHandler(mainActivity);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mConnectedThreads = new HashMap<>();
 
