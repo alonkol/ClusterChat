@@ -501,8 +501,7 @@ class BluetoothService {
             int bytes;
             int tmpBytes;
             int packetSize;
-//            if (mmContact.getDeviceName().equals("G4"))
-//                MainActivity.mDeliveryMan.sendFile("a", mmContact);
+
             // Keep listening to the InputStream while connected
             while (true) {
                 try {

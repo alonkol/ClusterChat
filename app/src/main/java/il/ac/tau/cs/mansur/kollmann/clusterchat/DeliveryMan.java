@@ -24,15 +24,6 @@ public class DeliveryMan {
 
     }
 
-    private byte[] addPackageSize(byte[] data){
-        int len = data.length;
-        byte[] size = ByteBuffer.allocate(4).putInt(len).array();
-        byte[] result = new byte[4 + data.length];
-        System.arraycopy(size, 0, result, 0, size.length);
-        System.arraycopy(data, 0, result, size.length, data.length);
-        return result;
-    }
-
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact){
         DeviceContact linkDevice = MainActivity.mRoutingTable.getLink(addressContact);
         BluetoothService.ConnectedThread t =
@@ -80,6 +71,15 @@ public class DeliveryMan {
             mb.addMetadata("packageIndex", Integer.toString(i));
             sendMessage(mb, addressContact);
         }
+    }
+
+    private byte[] addPackageSize(byte[] data){
+        int len = data.length;
+        byte[] size = ByteBuffer.allocate(4).putInt(len).array();
+        byte[] result = new byte[4 + data.length];
+        System.arraycopy(size, 0, result, 0, size.length);
+        System.arraycopy(data, 0, result, size.length, data.length);
+        return result;
     }
 
     private List<byte[]> splitEqually(byte[] testBytes, int pieceSize, int totalSize) {
