@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.os.Handler;
 import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,8 +31,6 @@ class BluetoothService {
     private static myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     static ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
-    private final MediaPlayer mMediaPlayerOnConnect;
-    private final MediaPlayer mMediaPlayerOnDisconnect;
 
     /**
          * Constructor. Prepares a new BluetoothChat session.
@@ -42,8 +39,6 @@ class BluetoothService {
         mMessageHandler = new myMessageHandler(context);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mConnectedThreads = new HashMap<>();
-        mMediaPlayerOnConnect = MediaPlayer.create(context, R.raw.light);
-        mMediaPlayerOnDisconnect = MediaPlayer.create(context, R.raw.case_closed);
 
         start();
     }
@@ -96,13 +91,6 @@ class BluetoothService {
     private synchronized void connected(BluetoothSocket socket, final BluetoothDevice
             device) {
         Log.d(TAG, "connected");
-
-        // Play sound
-        try {
-            mMediaPlayerOnConnect.start();
-        } catch (Exception e) {
-            // ignore
-        }
 
         // Start the thread to manage the connection and perform transmissions
         final DeviceContact contact = new DeviceContact(device);
@@ -540,13 +528,6 @@ class BluetoothService {
         private void connectionLost() {
             MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
             mConnectedThreads.remove(mmContact);
-
-            // play disconnect sound
-            try {
-                mMediaPlayerOnDisconnect.start();
-            } catch (Exception e) {
-                // ignore
-            }
 
             // close socket
             try {

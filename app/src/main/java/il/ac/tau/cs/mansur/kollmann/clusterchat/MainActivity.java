@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.MediaPlayer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -35,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private static Integer runningMessageID;
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
     static final int REQUEST_ENABLE_BT = 3;
+    private final MediaPlayer mMediaPlayerOnConnect = MediaPlayer.create(this, R.raw.light);
+    private final MediaPlayer mMediaPlayerOnDisconnect = MediaPlayer.create(this, R.raw.case_closed);
+
 
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/tryConnect
@@ -45,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mainActivity = this;
+
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -97,12 +102,11 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService, this);
         this.registerReceiver(mReceiver, filter);
 
-        // TODO: remove?
         connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
-        mRoutingTable = new RoutingTable();
+        mRoutingTable = new RoutingTable(this);
 
         getMessagesFromHistory();
         // the address will update on first handshake
@@ -164,16 +168,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Adding device to UI
-    public static void addDeviceToUi(DeviceContact deviceContact) {
+    public void addDeviceToUi(DeviceContact deviceContact) {
         if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) == -1) {
             mConnectedDevicesArrayAdapter.add(deviceContact);
+
+            // Play sound
+            try {
+                mMediaPlayerOnConnect.start();
+            } catch (Exception e) {
+                // ignore
+            }
         }
     }
 
     // Removing device from UI
-    public static void removeDeviceFromUi(DeviceContact deviceContact) {
+    public void removeDeviceFromUi(DeviceContact deviceContact) {
         if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) != -1) {
             mConnectedDevicesArrayAdapter.remove(deviceContact);
+
+            // Play disconnection sound
+            try {
+                mMediaPlayerOnDisconnect.start();
+            } catch (Exception e) {
+                // ignore
+            }
         }
 
     }

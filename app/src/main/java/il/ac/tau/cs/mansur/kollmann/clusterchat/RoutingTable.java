@@ -17,12 +17,14 @@ public class RoutingTable {
     private HashMap<DeviceContact, DeviceContact> mtable;
     private HashMap<DeviceContact, HashSet<DeviceContact>> revertedTable;
     private HashMap<DeviceContact, Integer> hopCounts;
+    private MainActivity mMainActivity;
 
-    public RoutingTable(){
+    RoutingTable(MainActivity mainActivity){
         mtable = new HashMap<>();
         revertedTable = new HashMap<>();
         mUiConnectHandler = new Handler();
         hopCounts = new HashMap<>();
+        mMainActivity = mainActivity;
     }
 
     public DeviceContact getLink(DeviceContact deviceContact){
@@ -239,7 +241,7 @@ public class RoutingTable {
         // Update UI
         mUiConnectHandler.post(new Runnable() {
             public void run() {
-                MainActivity.removeDeviceFromUi(deviceContact);
+                mMainActivity.removeDeviceFromUi(deviceContact);
             }
         });
     }
@@ -248,7 +250,7 @@ public class RoutingTable {
         // Update UI
         mUiConnectHandler.post(new Runnable() {
             public void run() {
-                MainActivity.addDeviceToUi(deviceContact);
+                mMainActivity.addDeviceToUi(deviceContact);
             }
         });
     }
