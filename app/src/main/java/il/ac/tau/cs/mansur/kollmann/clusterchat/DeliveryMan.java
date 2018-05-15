@@ -1,6 +1,7 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import android.util.Log;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,13 +15,22 @@ public class DeliveryMan {
         Log.d(TAG, "Sending message: "+ messageBundle+ " to " + addressContact.getShortStr());
         byte[] send = messageBundle.toJson().getBytes();
         try {
-            thread.write(send);
+            thread.write(addPackageSize(send));
         } catch (IOException e){
             Log.e(TAG, "Can't send message", e);
             return false;
         }
         return true;
 
+    }
+
+    private byte[] addPackageSize(byte[] data){
+        int len = data.length;
+        byte[] size = ByteBuffer.allocate(4).putInt(len).array();
+        byte[] result = new byte[4 + data.length];
+        System.arraycopy(size, 0, result, 0, size.length);
+        System.arraycopy(data, 0, result, size.length, data.length);
+        return result;
     }
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact){

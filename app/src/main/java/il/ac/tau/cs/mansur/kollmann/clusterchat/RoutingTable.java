@@ -211,12 +211,12 @@ public class RoutingTable {
                 Integer newCount = senderHopCount + hopCount;
                 if (currentHopCount == null) {
                     // If not known of device yet add it to table and UI
-                    addDeviceToTable(dc, senderContact, newCount, true);
+                    addDeviceToTable(dc, senderContact, newCount, false);
                     addDeviceToUI(dc);
                     changeHappened = true;
                 } else if (newCount < currentHopCount) {
                     // If better reach update link and hop count
-                    addDeviceToTable(dc, senderContact, newCount, true);
+                    addDeviceToTable(dc, senderContact, newCount, false);
                     changeHappened = true;
                 }
             }
@@ -224,8 +224,12 @@ public class RoutingTable {
         // If any device related to current link was not dealt meaning it must have been
         // disconnected so we remove it
         for (DeviceContact dc: currentLinkedDevices){
-            removeDeviceFromTable(dc);
+            removeDeviceFromTable(dc, false);
             changeHappened = true;
+        }
+        if (changeHappened){
+            checkConsistency();
+            shareRoutingInfo();
         }
         return changeHappened;
     }

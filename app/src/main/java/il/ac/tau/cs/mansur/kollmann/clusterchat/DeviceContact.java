@@ -26,7 +26,7 @@ public class DeviceContact {
 
     int IncrementAndGetUnread() {
         unreadMessages += 1;
-        return  unreadMessages;
+        return unreadMessages;
     }
 
     public String toString(){

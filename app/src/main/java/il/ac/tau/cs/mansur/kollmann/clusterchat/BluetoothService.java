@@ -11,6 +11,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -215,10 +216,14 @@ class BluetoothService {
             // Wait for handshake
             Log.d(TAG, "Reading Handshake");
             byte[] buffer = new byte[1024];
+            byte[] sizeBuffer = new byte[4];
             int bytes;
+            int len;
 
             try {
-                bytes = mmInStream.read(buffer);
+                mmInStream.read(sizeBuffer, 0, 4);
+                len = ByteBuffer.wrap(sizeBuffer).getInt();
+                bytes = mmInStream.read(buffer, 0, len);
                 mMessageHandler.obtainMessage(
                         myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
@@ -382,11 +387,14 @@ class BluetoothService {
             }
 
             byte[] buffer = new byte[1024];
+            byte[] sizeBuffer = new byte[4];
             int bytes;
 
             try {
                 // Read UUID from inputStream
-                bytes = mmInStream.read(buffer);
+                mmInStream.read(sizeBuffer, 0, 4);
+                int len = ByteBuffer.wrap(sizeBuffer).getInt();
+                bytes = mmInStream.read(buffer, 0, len);
                 mMessageHandler.obtainMessage(
                         myMessageHandler.MESSAGE_IN, bytes, -1,
                         buffer).sendToTarget();
@@ -492,6 +500,7 @@ class BluetoothService {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
             byte[] buffer = new byte[1024];
+            byte[] sizeBuffer = new byte[4];
             int bytes;
 //            if (mmContact.getDeviceName().equals("G4"))
 //                MainActivity.mDeliveryMan.sendFile("a", mmContact);
@@ -499,7 +508,9 @@ class BluetoothService {
             while (true) {
                 try {
                     // Read from the InputStream
-                    bytes = mmInStream.read(buffer);
+                    mmInStream.read(sizeBuffer, 0, 4);
+                    int len = ByteBuffer.wrap(sizeBuffer).getInt();
+                    bytes = mmInStream.read(buffer, 0, len);
                     mMessageHandler.obtainMessage(
                             myMessageHandler.MESSAGE_IN, bytes, -1,
                             buffer).sendToTarget();

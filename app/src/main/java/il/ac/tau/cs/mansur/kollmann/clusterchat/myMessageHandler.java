@@ -33,7 +33,9 @@ public class myMessageHandler extends Handler {
 
     private void handleOutgoingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
-        String readMessage = new String(buffer);
+        byte[] relevant = new byte[buffer.length - 4];
+        System.arraycopy(buffer, 4, relevant, 0, relevant.length);
+        String readMessage = new String(relevant);
         MessageBundle messageBundle = MessageBundle.fromJson(readMessage);
         Log.d(TAG, "Handler caught outgoing bundle " + messageBundle);
     }
