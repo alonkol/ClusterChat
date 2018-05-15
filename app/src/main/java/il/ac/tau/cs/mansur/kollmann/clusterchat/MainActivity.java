@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/tryConnect
-    public static final boolean LEVEL_ROUTING_FLAG = false;
+    public static final boolean LEVEL_ROUTING_FLAG = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

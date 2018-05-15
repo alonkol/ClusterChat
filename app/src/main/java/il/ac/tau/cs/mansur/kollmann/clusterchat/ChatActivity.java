@@ -20,7 +20,6 @@ import java.util.Observer;
 public class ChatActivity extends AppCompatActivity {
 
     private static final String TAG = "ChatActivity";
-    private BluetoothService.ConnectedThread mThread;
     private Integer mCurrentIndex;
 
     // Layout Views
@@ -44,12 +43,6 @@ public class ChatActivity extends AppCompatActivity {
             finish();
         }
         Log.d(TAG, String.format("Init chatService for device %s", mDeviceContact.getShortStr()));
-        DeviceContact link = MainActivity.mRoutingTable.getLink(mDeviceContact);
-        mThread = MainActivity.mBluetoothService.getConnectedThread(link);
-        if (mThread == null){
-            Log.e(TAG, "Connection thread not found");
-            finish();
-        }
         getSupportActionBar().setTitle(mDeviceContact.getDeviceName());
 
         mMessageRecycler = (RecyclerView) findViewById(R.id.reyclerview_message_list);
@@ -118,7 +111,7 @@ public class ChatActivity extends AppCompatActivity {
         if (message.length() > 0) {
             MessageBundle newMessage = new MessageBundle(
                     message, MessageTypes.TEXT, MainActivity.myDeviceContact, mDeviceContact);
-            MainActivity.mDeliveryMan.sendMessage(newMessage, mDeviceContact, mThread);
+            MainActivity.mDeliveryMan.sendMessage(newMessage, mDeviceContact);
             MainActivity.mConversationManager.addMessage(mDeviceContact, new BaseMessage(message));
             // Reset out string buffer to zero and clear the edit text field
             mOutStringBuffer.setLength(0);
