@@ -37,6 +37,8 @@ public class UsersAdapter extends ArrayAdapter<DeviceContact> {
         new_messages.setText(String.valueOf(user.getUnreadMessages()));
         if (user.getUnreadMessages() > 0) {
             new_messages.setVisibility(View.VISIBLE);
+        } else {
+            new_messages.setVisibility(View.INVISIBLE);
         }
 
         convertView.setTag(user);
