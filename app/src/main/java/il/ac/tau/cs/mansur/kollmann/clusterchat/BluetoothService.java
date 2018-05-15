@@ -96,6 +96,7 @@ class BluetoothService {
         final DeviceContact contact = new DeviceContact(device);
         ConnectedThread thread = new ConnectedThread(socket, contact);
         mConnectedThreads.put(contact, thread);
+        MainActivity.mRoutingTable.addDeviceToTable(contact, contact, 1, false);
         thread.start();
     }
 
@@ -444,12 +445,12 @@ class BluetoothService {
             mConnectThreads.remove(mmContact);
             mSemaphore.release();
 
-            // Close the init socket
-            try {
-                mmInitSocket.close();
-            } catch (IOException e2) {
-                Log.e(TAG, "unable to close() socket during connection failure", e2);
-            }
+//            // Close the init socket
+//            try {
+//                mmInitSocket.close();
+//            } catch (IOException e2) {
+//                Log.e(TAG, "unable to close() socket during connection failure", e2);
+//            }
         }
 
         @Override
@@ -495,7 +496,7 @@ class BluetoothService {
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
-            MainActivity.mRoutingTable.addDeviceToTable(mmContact, mmContact, 1, true);
+            MainActivity.mRoutingTable.shareRoutingInfo();
             byte[] buffer = new byte[1024];
             byte[] sizeBuffer = new byte[4];
             int bytes;

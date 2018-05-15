@@ -30,9 +30,9 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             // (the level is the leading letter in the device name)
             // meaning a device called B1 will initiate connections only to devices whose names start with C
             char firstLetter = MainActivity.myDeviceContact.getDeviceName().charAt(0);
-            firstLetter += 1;
-            if (!device.getName().startsWith(Character.toString(firstLetter))){
-                Log.d(TAG, "device " + device.getName()+ " is not in matching level (" +
+            if ((!device.getName().startsWith(Character.toString((char) (firstLetter - 1)))) &&
+                    (!device.getName().startsWith(Character.toString((char) (firstLetter + 1))))){
+                Log.d(TAG, "device " + device.getName()+ " is not in matching levels (" +
                         (Character.toString(firstLetter)) + ") so not connecting");
                 return;
             }

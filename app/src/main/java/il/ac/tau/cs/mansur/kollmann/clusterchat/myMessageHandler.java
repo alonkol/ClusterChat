@@ -104,7 +104,7 @@ public class myMessageHandler extends Handler {
                 new BaseMessage(messageBundle.getMessage(), senderContact.getDeviceId()));
 
         // Send notification
-        mMainActivity.newMessageNotification(senderContact, messageBundle.getMessage());
+        //mMainActivity.newMessageNotification(senderContact, messageBundle.getMessage());
 
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
