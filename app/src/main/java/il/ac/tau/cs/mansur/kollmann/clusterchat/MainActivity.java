@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
+        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
 
         mDeliveryMan = new DeliveryMan();
         mBluetoothService = new BluetoothService(this);
