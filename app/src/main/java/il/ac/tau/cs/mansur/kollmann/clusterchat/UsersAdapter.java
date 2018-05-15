@@ -2,6 +2,8 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,14 +49,15 @@ public class UsersAdapter extends ArrayAdapter<DeviceContact> {
         DeviceContact stored_contact = getItem(getPosition(sender));
         stored_contact.IncrementAndGetUnread();
         remove(stored_contact);
-        add(stored_contact);
+        insert(stored_contact, 0);
         notifyDataSetChanged();
     }
 
     void clearUnread(DeviceContact contact) {
         contact.clearUnread();
+        int position = getPosition(contact);
         remove(contact);
-        add(contact);
+        insert(contact, position);
         notifyDataSetChanged();
     }
 

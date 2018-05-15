@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         this.registerReceiver(mReceiver, filter);
 
         // TODO: remove?
-        // connectPairedDevices();
+        connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
