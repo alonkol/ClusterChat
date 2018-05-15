@@ -494,7 +494,8 @@ class BluetoothService {
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
             byte[] buffer = new byte[1024];
             int bytes;
-
+//            if (mmContact.getDeviceName().equals("G4"))
+//                MainActivity.mDeliveryMan.sendFile("a", mmContact);
             // Keep listening to the InputStream while connected
             while (true) {
                 try {

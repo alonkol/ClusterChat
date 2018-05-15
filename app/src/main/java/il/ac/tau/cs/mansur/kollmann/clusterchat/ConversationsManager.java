@@ -60,7 +60,7 @@ class ConversationsManager {
         mConversations.get(deviceContact).add(message);
         mAddedMessagesFlags.get(deviceContact).addedMessage();
         Log.i(TAG, "Added message with device " + deviceContact.getDeviceName() +
-                "\nwith content: " + message);
+                " with content: " + message.mMessage);
     }
 
     void addMessagesFromHistory(File contact){
