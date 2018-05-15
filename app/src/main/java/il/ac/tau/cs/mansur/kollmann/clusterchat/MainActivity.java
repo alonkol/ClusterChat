@@ -183,8 +183,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void newMessageNotification(DeviceContact contact, String message) {
-        // TODO: not if already active?
-        // Add notification
+        // TODO: not if already active chat?
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra("clusterchat.deviceAddress", contact.getDeviceId());
 
@@ -196,13 +195,10 @@ public class MainActivity extends AppCompatActivity {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setTicker("Hearty365")
                 .setContentTitle("New message from " + contact.getDeviceName())
                 .setContentText(message)
-                .setDefaults(Notification.DEFAULT_LIGHTS| Notification.DEFAULT_SOUND)
-                .setContentIntent(contentIntent)
-                .setContentInfo("Info");
-
+                .setDefaults(Notification.DEFAULT_LIGHTS| Notification.DEFAULT_SOUND | Notification.PRIORITY_HIGH)
+                .setContentIntent(contentIntent);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, b.build());
