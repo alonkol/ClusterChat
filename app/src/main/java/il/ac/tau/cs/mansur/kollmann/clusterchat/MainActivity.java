@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     public static DeliveryMan mDeliveryMan;
     private static Integer runningMessageID;
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
-    private static final int REQUEST_ENABLE_BT = 3;
+    static final int REQUEST_ENABLE_BT = 3;
 
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/tryConnect
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
         mDeliveryMan = new DeliveryMan();
         mBluetoothService = new BluetoothService(this);
-        mReceiver = new myBroadcastReceiver(mBluetoothService);
+        mReceiver = new myBroadcastReceiver(mBluetoothService, this);
         this.registerReceiver(mReceiver, filter);
 
         // TODO: remove?
@@ -226,10 +226,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             view.findViewById(R.id.new_messages).setVisibility(View.INVISIBLE);
             user.clearUnread();
-
-            // TODO: uncomment and remove line below?
-            // mConnectedDevicesArrayAdapter.remove(user);
-            // mConnectedDevicesArrayAdapter.add(user);
             view.setTag(user);
         }
     };

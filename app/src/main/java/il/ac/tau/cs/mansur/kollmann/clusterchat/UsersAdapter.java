@@ -45,9 +45,17 @@ public class UsersAdapter extends ArrayAdapter<DeviceContact> {
 
     void newMessage(DeviceContact sender) {
         DeviceContact stored_contact = getItem(getPosition(sender));
-        int new_amount = stored_contact.IncrementAndGetUnread();
+        stored_contact.IncrementAndGetUnread();
         remove(stored_contact);
         add(stored_contact);
         notifyDataSetChanged();
     }
+
+    void clearUnread(DeviceContact contact) {
+        contact.clearUnread();
+        remove(contact);
+        add(contact);
+        notifyDataSetChanged();
+    }
+
 }

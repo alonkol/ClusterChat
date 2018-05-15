@@ -91,16 +91,17 @@ public class myMessageHandler extends Handler {
 
     private void handleIncomingTextMessage(MessageBundle messageBundle){
         DeviceContact senderContact = messageBundle.getSender();
-        // Add to chat
-        MainActivity.mConversationManager.addMessage(senderContact,
-                new BaseMessage(messageBundle.getMessage(), senderContact.getDeviceId()));
-        // Send Ack message
-        MainActivity.mDeliveryMan.sendMessage(
-                MessageBundle.AckBundle(messageBundle), senderContact);
 
         // Update unread messages count
         MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
 
+        // Add to chat
+        MainActivity.mConversationManager.addMessage(senderContact,
+                new BaseMessage(messageBundle.getMessage(), senderContact.getDeviceId()));
+
+        // Send Ack message
+        MainActivity.mDeliveryMan.sendMessage(
+                MessageBundle.AckBundle(messageBundle), senderContact);
 
         // Play sound
         try {

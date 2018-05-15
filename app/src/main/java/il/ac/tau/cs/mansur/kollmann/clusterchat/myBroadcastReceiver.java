@@ -10,9 +10,11 @@ import android.util.Log;
 public class myBroadcastReceiver extends BroadcastReceiver {
     private final static String TAG = "Broadcast Reciever";
     private BluetoothService mBluetoothService;
+    private MainActivity mMainActivity;
 
-    public myBroadcastReceiver(BluetoothService bluetoothService){
+    public myBroadcastReceiver(BluetoothService bluetoothService, MainActivity mainActivity){
         mBluetoothService = bluetoothService;
+        mMainActivity = mainActivity;
     }
 
     void tryConnect(BluetoothDevice device){
@@ -60,8 +62,8 @@ public class myBroadcastReceiver extends BroadcastReceiver {
                 tryConnect(device);
                 break;
             case BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED:
-                // TODO: register ACTION_STATE_CHANGED.
-                // TODO: bluetooth disabled during usage.
+                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                mMainActivity.startActivityForResult(enableIntent, MainActivity.REQUEST_ENABLE_BT);
                 break;
             default:
                 break;

@@ -44,7 +44,6 @@ class BluetoothService {
         mContext = context;
         mMessageHandler = new myMessageHandler(context);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        // TODO: check (mBluetoothAdapter == null) - Bluetooth not available
         mUiConnectHandler = new Handler();
         mConnectedThreads = new HashMap<>();
         mMediaPlayerOnConnect = MediaPlayer.create(mContext, R.raw.light);

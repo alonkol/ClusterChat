@@ -9,13 +9,9 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -61,9 +57,6 @@ public class ChatActivity extends AppCompatActivity {
         mMessageRecycler.setAdapter(mMessagesAdapter);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mMessageRecycler.setLayoutManager(layoutManager);
-
-        // TODO: remove
-        // mMessageRecycler.setHasFixedSize(true);
 
         mOutEditText = (EditText) findViewById(R.id.edittext_chatbox);
         mSendButton = (Button) findViewById(R.id.button_chatbox_send);
@@ -112,6 +105,7 @@ public class ChatActivity extends AppCompatActivity {
         mMessagesAdapter.notifyItemRangeInserted(mCurrentIndex, conversations.size());
         mMessageRecycler.scrollToPosition(mMessagesAdapter.getItemCount() - 1);
         mCurrentIndex += conversations.size();
+        MainActivity.mConnectedDevicesArrayAdapter.clearUnread(mDeviceContact);
     }
 
     /**
