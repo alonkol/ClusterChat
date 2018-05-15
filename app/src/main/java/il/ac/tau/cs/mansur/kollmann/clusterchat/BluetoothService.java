@@ -24,8 +24,6 @@ class BluetoothService {
     // Debugging
     private static final String TAG = "BluetoothService";
 
-    private Context mContext;
-
     // Member fields
     final BluetoothAdapter mAdapter;
 
@@ -41,12 +39,11 @@ class BluetoothService {
          * Constructor. Prepares a new BluetoothChat session.
          */
     BluetoothService(Context context) {
-        mContext = context;
         mMessageHandler = new myMessageHandler(context);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mConnectedThreads = new HashMap<>();
-        mMediaPlayerOnConnect = MediaPlayer.create(mContext, R.raw.light);
-        mMediaPlayerOnDisconnect = MediaPlayer.create(mContext, R.raw.case_closed);
+        mMediaPlayerOnConnect = MediaPlayer.create(context, R.raw.light);
+        mMediaPlayerOnDisconnect = MediaPlayer.create(context, R.raw.case_closed);
 
         start();
     }
@@ -67,7 +64,7 @@ class BluetoothService {
         return checkIfContactConnected(contact);
     }
 
-    boolean checkIfContactConnected(DeviceContact contact){
+    private boolean checkIfContactConnected(DeviceContact contact){
         if (mConnectedThreads.containsKey(contact)) {
             Log.i(TAG, "Already connected to " + contact.getShortStr());
             return true;
@@ -75,7 +72,7 @@ class BluetoothService {
         return false;
     }
 
-    public ConnectedThread getConnectedThread(DeviceContact dc){
+    ConnectedThread getConnectedThread(DeviceContact dc){
         return mConnectedThreads.get(dc);
     }
 
@@ -356,14 +353,6 @@ class BluetoothService {
                 mmInitSocket.connect();
             } catch (IOException e) {
                 Log.e(TAG, "Failed to connect init thread to " + mmDevice.getName(), e);
-
-                // Close the socket
-                try {
-                    mmInitSocket.close();
-                } catch (IOException e2) {
-                    Log.e(TAG, "unable to close() socket during connection failure", e2);
-                }
-
                 finishConnect();
                 return;
             }
@@ -467,6 +456,13 @@ class BluetoothService {
         void finishConnect() {
             mConnectThreads.remove(mmContact);
             mSemaphore.release();
+
+            // Close the init socket
+            try {
+                mmInitSocket.close();
+            } catch (IOException e2) {
+                Log.e(TAG, "unable to close() socket during connection failure", e2);
+            }
         }
 
         @Override
@@ -551,10 +547,17 @@ class BluetoothService {
             } catch (Exception e) {
                 // ignore
             }
+
+            // close socket
+            try {
+                mmSocket.close();
+            } catch (Exception e) {
+                // ignore
+            }
         }
     }
 
-    static void write(OutputStream outStream, byte[] buffer) throws IOException {
+    private static void write(OutputStream outStream, byte[] buffer) throws IOException {
         outStream.write(buffer);
         // Share the sent message back to the UI Activity
         mMessageHandler.obtainMessage(
@@ -565,6 +568,5 @@ class BluetoothService {
     abstract class BluetoothThread extends Thread {
         abstract void write(byte[] buffer) throws IOException;
     }
-
 
 }
