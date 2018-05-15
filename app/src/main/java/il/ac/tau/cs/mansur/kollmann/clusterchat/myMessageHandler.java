@@ -57,6 +57,7 @@ public class myMessageHandler extends Handler {
                     !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId())){
                 Log.i(TAG, "Current device isn't the address for current message, passing along");
                 MainActivity.mDeliveryMan.sendMessage(messageBundle, receiverContact);
+                return;
             }
             switch (messageBundle.getMessageType()){
                 case TEXT:
