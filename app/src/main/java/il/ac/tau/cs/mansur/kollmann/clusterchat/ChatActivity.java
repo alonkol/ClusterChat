@@ -27,7 +27,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView mMessageRecycler;
     private EditText mOutEditText;
     private Button mSendButton;
-    public static MessageListAdapter mMessagesAdapter;
+    public MessageListAdapter mMessagesAdapter;
     private StringBuffer mOutStringBuffer;
     private Observer mObserver;
     private DeviceContact mDeviceContact;

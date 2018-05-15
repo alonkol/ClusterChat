@@ -235,6 +235,7 @@ class BluetoothService {
 
             } catch (IOException e) {
                 Log.e(TAG, "AcceptThread - failed to read handshake, disconnected", e);
+                finishDedicatedAccept();
                 return;
             }
 
@@ -243,7 +244,6 @@ class BluetoothService {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    return;
                 }
             }
 
@@ -251,6 +251,7 @@ class BluetoothService {
             boolean sendHS = sendHandshake(mmUuid);
             if (!sendHS) {
                 Log.e(TAG, "Failed to send handshake");
+                finishDedicatedAccept();
                 return;
             }
 
@@ -265,6 +266,7 @@ class BluetoothService {
                 socket = server_socket.accept();
             } catch (Exception e) {
                 Log.e(TAG, "Dedicated socket creation failed", e);
+                finishDedicatedAccept();
                 return;
             }
 
@@ -280,8 +282,10 @@ class BluetoothService {
                 Log.d(TAG, "Connected, closing Server Socket");
                 server_socket.close();
             } catch (IOException e) {
-                Log.e(TAG, "Could not close server socket", e);
+                Log.e(TAG, "Could not close a server socket", e);
             }
+
+            finishDedicatedAccept();
         }
 
         private boolean sendHandshake(UUID uuid){
@@ -295,6 +299,15 @@ class BluetoothService {
         @Override
         void write(byte[] buffer) throws IOException {
             BluetoothService.write(mmOutStream, buffer);
+        }
+
+        void finishDedicatedAccept() {
+            try {
+                Log.d(TAG, "Closing the init Socket");
+                mmInitSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Could not close the init socket", e);
+            }
         }
     }
 
