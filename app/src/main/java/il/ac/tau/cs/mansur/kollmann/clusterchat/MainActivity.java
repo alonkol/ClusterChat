@@ -36,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private static Integer runningMessageID;
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
     static final int REQUEST_ENABLE_BT = 3;
-    private final MediaPlayer mMediaPlayerOnConnect = MediaPlayer.create(this, R.raw.light);
-    private final MediaPlayer mMediaPlayerOnDisconnect = MediaPlayer.create(this, R.raw.case_closed);
+    private MediaPlayer mMediaPlayerOnConnect;
+    private MediaPlayer mMediaPlayerOnDisconnect;
 
 
     // This flag is used to create complex network
@@ -49,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mainActivity = this;
+
+        mMediaPlayerOnConnect = MediaPlayer.create(this, R.raw.light);
+        mMediaPlayerOnDisconnect = MediaPlayer.create(this, R.raw.case_closed);
 
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{
