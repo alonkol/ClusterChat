@@ -73,7 +73,7 @@ public class RoutingTable {
 
     public void addDeviceToTable(DeviceContact deviceContact, DeviceContact linkDevice,
                                  Integer hopCount, boolean finalize){
-        addDeviceToTable(deviceContact, linkDevice,  hopCount, finalize, true);
+        addDeviceToTable(deviceContact, linkDevice,  hopCount, true, finalize);
     }
 
     public void removeDeviceFromTable(DeviceContact deviceContact){

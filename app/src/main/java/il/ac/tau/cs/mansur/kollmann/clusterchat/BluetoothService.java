@@ -96,7 +96,6 @@ class BluetoothService {
         final DeviceContact contact = new DeviceContact(device);
         ConnectedThread thread = new ConnectedThread(socket, contact);
         mConnectedThreads.put(contact, thread);
-        MainActivity.mRoutingTable.addDeviceToTable(contact, contact, 1, true);
         thread.start();
     }
 
@@ -496,6 +495,7 @@ class BluetoothService {
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
+            MainActivity.mRoutingTable.addDeviceToTable(mmContact, mmContact, 1, true);
             byte[] buffer = new byte[1024];
             byte[] sizeBuffer = new byte[4];
             int bytes;
@@ -525,8 +525,8 @@ class BluetoothService {
         }
 
         private void connectionLost() {
-            MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
             mConnectedThreads.remove(mmContact);
+            MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
 
             // close socket
             try {
