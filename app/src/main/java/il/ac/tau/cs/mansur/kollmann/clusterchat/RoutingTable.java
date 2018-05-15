@@ -156,9 +156,7 @@ public class RoutingTable {
                 }
         }
         if (count!=mtable.size()){
-            Log.e(TAG,"Mismatch number of devices between tables\n" +
-                    "All devices: " + Arrays.toString(allDevices.toArray()) +
-                    "\nIn table: " + Arrays.toString(mtable.keySet().toArray()));
+            Log.e(TAG,"Mismatch number of devices between tables\n");
             logTable(true);
             // TODO all hell break loose
             return;

@@ -83,7 +83,7 @@ public class myMessageHandler extends Handler {
             }
         } catch (Exception e) {
             Log.e(TAG, readMessage);
-            Log.e(TAG, "Failed to deserialize incoming message", e);
+            Log.e(TAG, "Failed at handling message", e);
         }
     }
 
