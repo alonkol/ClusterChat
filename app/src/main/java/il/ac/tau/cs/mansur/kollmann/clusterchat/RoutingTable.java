@@ -139,10 +139,8 @@ public class RoutingTable {
 
     private void checkConsistency(){
         int count = 0;
-        ArrayList<DeviceContact> allDevices = new ArrayList<>();
         for(DeviceContact link: revertedTable.keySet()){
                 HashSet<DeviceContact> devicesList = revertedTable.get(link);
-                allDevices.addAll(devicesList);
                 for (DeviceContact deviceContact: devicesList){
                     count ++;
                     if (!mtable.get(deviceContact).equals(link)){
@@ -156,7 +154,8 @@ public class RoutingTable {
                 }
         }
         if (count!=mtable.size()){
-            Log.e(TAG,"Mismatch number of devices between tables\n");
+            Log.e(TAG,"Mismatch number of devices between tables:" + count + " and " +
+                    mtable.size());
             logTable(true);
             // TODO all hell break loose
             return;
