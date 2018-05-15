@@ -62,6 +62,7 @@ public class RoutingTable {
             revertedTable.put(linkDevice, new HashSet<DeviceContact>());
         }
         revertedTable.get(linkDevice).add(deviceContact);
+        addDeviceToUI(deviceContact);
         if (finalize) {
             checkConsistency();
             shareRoutingInfo();
