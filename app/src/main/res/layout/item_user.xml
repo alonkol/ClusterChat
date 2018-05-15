@@ -52,13 +52,4 @@
 
     </LinearLayout>
 
-
-    <!-- A horizontal line between the chatbox and RecyclerView -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="#dfdfdf"
-        app:layout_constraintTop_toBottomOf="@+id/contact_id"
-        android:layout_marginBottom="0dp" />
-
 </LinearLayout>

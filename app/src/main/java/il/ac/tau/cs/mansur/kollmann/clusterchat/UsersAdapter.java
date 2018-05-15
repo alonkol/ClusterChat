@@ -37,6 +37,8 @@ public class UsersAdapter extends ArrayAdapter<DeviceContact> {
             new_messages.setVisibility(View.VISIBLE);
         }
 
+        convertView.setTag(user);
+
         // Return the completed view to render on screen
         return convertView;
     }
