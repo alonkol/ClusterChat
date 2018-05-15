@@ -106,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService, this);
         this.registerReceiver(mReceiver, filter);
 
-        connectPairedDevices();
         startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
@@ -133,14 +132,6 @@ public class MainActivity extends AppCompatActivity {
         runningMessageID += 1;
         runningMessageID %= MAXIMUM_MESSAGE_ID;
         return runningMessageID;
-    }
-
-    void connectPairedDevices() {
-        Set<BluetoothDevice> pairedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
-        for (BluetoothDevice device: pairedDevices) {
-            mReceiver.tryConnect(device);
-        }
-
     }
 
     void startPackageBuilder(){
