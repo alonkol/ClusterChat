@@ -1,7 +1,6 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import java.io.File;
 import java.util.Random;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -184,27 +181,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void newMessageNotification(DeviceContact contact, String message) {
-        // TODO: not if already active chat?
-        Intent intent = new Intent(this, ChatActivity.class);
-        intent.putExtra("clusterchat.deviceAddress", contact.getDeviceId());
+        try {
+            DeviceContact stored_contact = findDeviceContact(contact.getDeviceId());
+            if (stored_contact == null || stored_contact.getUnreadMessages() == 0) {
+                return;
+            }
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent intent = new Intent(this, ChatActivity.class);
+            intent.putExtra("clusterchat.deviceAddress", contact.getDeviceId());
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            NotificationCompat.Builder b = new NotificationCompat.Builder(this);
 
-        NotificationCompat.Builder b = new NotificationCompat.Builder(this);
+            b.setAutoCancel(true)
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentTitle("New message from " + contact.getDeviceName())
+                    .setContentText(message)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setContentIntent(contentIntent)
+                    .setVibrate(new long[0]);
 
-        b.setAutoCancel(true)
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("New message from " + contact.getDeviceName())
-                .setContentText(message)
-                .setDefaults(Notification.DEFAULT_LIGHTS| Notification.DEFAULT_SOUND)
-                .setPriority(Notification.PRIORITY_HIGH)
-                .setContentIntent(contentIntent)
-                .setVibrate(new long[0]);
-
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, b.build());
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(1, b.build());
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to generate notification", e);
+        }
     }
 
     // Removing device from UI

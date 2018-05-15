@@ -99,12 +99,12 @@ public class myMessageHandler extends Handler {
         // Update unread messages count
         MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
 
-        // Send notification
-        mMainActivity.newMessageNotification(senderContact, messageBundle.getMessage());
-
         // Add to chat
         MainActivity.mConversationManager.addMessage(senderContact,
                 new BaseMessage(messageBundle.getMessage(), senderContact.getDeviceId()));
+
+        // Send notification
+        mMainActivity.newMessageNotification(senderContact, messageBundle.getMessage());
 
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
