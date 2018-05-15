@@ -29,7 +29,7 @@ public class DeliveryMan {
         BluetoothService.ConnectedThread t =
                 MainActivity.mBluetoothService.getConnectedThread(linkDevice);
         if (t==null){
-            Log.e(TAG, "No matching thread found for device contact: " + addressContact +
+            Log.e(TAG, "No matching thread found for device contact: " + addressContact.getShortStr() +
                     "\nDisposing of message" + messageBundle);
             return false;
         }

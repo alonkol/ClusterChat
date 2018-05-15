@@ -98,7 +98,7 @@ public class RoutingTable {
 
     public void removeLinkFromTable(DeviceContact linkDevice){
         try{
-            for (DeviceContact deviceContact: revertedTable.get(linkDevice)){
+            for (DeviceContact deviceContact: new HashSet<>(revertedTable.get(linkDevice))){
                 Log.d(TAG, String.format(
                         "Removing device %s due to removal of link %s",
                         deviceContact.getShortStr(), linkDevice.getShortStr()));
