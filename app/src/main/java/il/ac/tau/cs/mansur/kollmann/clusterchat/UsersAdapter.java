@@ -32,7 +32,7 @@ public class UsersAdapter extends ArrayAdapter<DeviceContact> {
         contact_name.setText(user.getDeviceName());
         contact_id.setText(user.getDeviceId());
 
-        new_messages.setText(user.getUnreadMessages());
+        new_messages.setText(String.valueOf(user.getUnreadMessages()));
         if (user.getUnreadMessages() > 0) {
             new_messages.setVisibility(View.VISIBLE);
         }
