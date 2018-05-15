@@ -31,7 +31,6 @@ class BluetoothService {
 
     static final int MAX_CONNECTED_THREADS = 7;
     Semaphore mSemaphore = new Semaphore(MAX_CONNECTED_THREADS);
-    private final Handler mUiConnectHandler;
     private static myMessageHandler mMessageHandler;
     private final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     static ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
@@ -45,7 +44,6 @@ class BluetoothService {
         mContext = context;
         mMessageHandler = new myMessageHandler(context);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mUiConnectHandler = new Handler();
         mConnectedThreads = new HashMap<>();
         mMediaPlayerOnConnect = MediaPlayer.create(mContext, R.raw.light);
         mMediaPlayerOnDisconnect = MediaPlayer.create(mContext, R.raw.case_closed);
@@ -108,14 +106,6 @@ class BluetoothService {
         } catch (Exception e) {
             // ignore
         }
-
-        // Update UI
-        mUiConnectHandler.post(new Runnable() {
-            public void run() {
-                DeviceContact deviceContact = new DeviceContact(device);
-                MainActivity.addDeviceToUi(deviceContact);
-            }
-        });
 
         // Start the thread to manage the connection and perform transmissions
         final DeviceContact contact = new DeviceContact(device);

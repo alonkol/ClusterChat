@@ -48,7 +48,7 @@ public class RoutingTable {
             Log.i(TAG, "device "+ deviceContact.getShortStr() + " already exists in table");
             if (overrideIfExists){
                 Log.d(TAG, "Override exists flag is on, removing and adding new");
-                removeDeviceFromTable(deviceContact, false);
+                removeDeviceFromTable(deviceContact, false,false);
             }else{
                 return;
             }
@@ -74,15 +74,18 @@ public class RoutingTable {
     }
 
     public void removeDeviceFromTable(DeviceContact deviceContact){
-        removeDeviceFromTable(deviceContact, true);
+        removeDeviceFromTable(deviceContact, true, true);
     }
 
-    public void removeDeviceFromTable(DeviceContact deviceContact, boolean finalize){
+    public void removeDeviceFromTable(DeviceContact deviceContact, boolean removeFromUI,
+                                      boolean finalize){
         DeviceContact link = mtable.get(deviceContact);
         mtable.remove(deviceContact);
         hopCounts.remove(deviceContact);
         revertedTable.get(link).remove(deviceContact);
-        removeDeviceFromUI(deviceContact);
+        if (removeFromUI) {
+            removeDeviceFromUI(deviceContact);
+        }
         if (finalize) {
             checkConsistency();
             shareRoutingInfo();
@@ -96,7 +99,7 @@ public class RoutingTable {
                 Log.d(TAG, String.format(
                         "Removing device %s due to removal of link %s",
                         deviceContact.getShortStr(), linkDevice.getShortStr()));
-                removeDeviceFromTable(deviceContact, false);
+                removeDeviceFromTable(deviceContact, true,false);
             }
             revertedTable.remove(linkDevice);
             checkConsistency();
@@ -224,7 +227,7 @@ public class RoutingTable {
         // If any device related to current link was not dealt meaning it must have been
         // disconnected so we remove it
         for (DeviceContact dc: currentLinkedDevices){
-            removeDeviceFromTable(dc, false);
+            removeDeviceFromTable(dc, true, false);
             changeHappened = true;
         }
         if (changeHappened){
