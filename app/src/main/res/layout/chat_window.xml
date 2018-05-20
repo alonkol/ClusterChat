@@ -61,6 +61,18 @@
         android:layout_gravity="bottom"
         android:focusable="true" />
 
+    <Button
+        android:id="@+id/button_send_file"
+        android:text="@string/file"
+        android:textSize="14sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:layout_width="64dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:focusable="true" />
+
 </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

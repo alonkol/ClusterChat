@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">ClusterChat</string>
     <string name="send">SEND</string>
+    <string name="file">FILE</string>
     <string name="connect">Connect</string>
     <string name="back">Back</string>
     <string name="none_found">None Found</string>

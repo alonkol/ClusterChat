@@ -1,6 +1,8 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,12 +22,14 @@ import java.util.Observer;
 public class ChatActivity extends AppCompatActivity {
 
     private static final String TAG = "ChatActivity";
+    private static final int READ_REQUEST_CODE = 42;
     private Integer mCurrentIndex;
 
     // Layout Views
     private RecyclerView mMessageRecycler;
     private EditText mOutEditText;
     private Button mSendButton;
+    private Button mSendFileButton;
     public MessageListAdapter mMessagesAdapter;
     private StringBuffer mOutStringBuffer;
     private Observer mObserver;
@@ -53,12 +57,20 @@ public class ChatActivity extends AppCompatActivity {
 
         mOutEditText = (EditText) findViewById(R.id.edittext_chatbox);
         mSendButton = (Button) findViewById(R.id.button_chatbox_send);
+        mSendFileButton = (Button) findViewById(R.id.button_send_file);
         mCurrentIndex = 0;
         mObserver = new Observer() {
             @Override
             public void update(Observable observable, Object o) {
                 Log.d(TAG, "Invoked update method of observer");
-                addMessagesToUI();
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        addMessagesToUI();
+                    }
+                });
+
             }
         };
         setupChat();
@@ -80,6 +92,28 @@ public class ChatActivity extends AppCompatActivity {
                 sendMessage(message);
             }
         });
+        mSendFileButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+                // browser.
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+
+                // Filter to only show results that can be "opened", such as a
+                // file (as opposed to a list of contacts or timezones)
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+                // Filter to show only images, using the image MIME data type.
+                // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+                // To search for all documents available via installed storage providers,
+                // it would be "*/*".
+                intent.setType("image/*");
+
+                startActivityForResult(intent, READ_REQUEST_CODE);
+            }
+        });
+
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
         MainActivity.mConversationManager.initObserver(mDeviceContact, mObserver);
@@ -139,6 +173,29 @@ public class ChatActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         MainActivity.mConversationManager.discardObserver(mDeviceContact);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+
+        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
+        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
+        // response to some other intent, and the code below shouldn't run at all.
+
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull that URI using resultData.getData().
+            Uri uri = null;
+            if (resultData != null) {
+                uri = resultData.getData();
+                Log.i(TAG, "Uri: " + uri.toString());
+                MainActivity.mConversationManager.addMessage(mDeviceContact,
+                        new BaseMessage("File is on its way to target..."));
+                MainActivity.mDeliveryMan.sendFile(uri, mDeviceContact);
+            }
+        }
     }
 
 }

@@ -190,7 +190,7 @@ class BluetoothService {
 
             // Wait for handshake
             Log.d(TAG, "Reading Handshake");
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[4096];
             byte[] sizeBuffer = new byte[4];
             int bytes;
             int tmpBytes;
@@ -371,7 +371,7 @@ class BluetoothService {
                 return;
             }
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[4096];
             byte[] sizeBuffer = new byte[4];
             int bytes;
             int tmpBytes;
@@ -445,12 +445,12 @@ class BluetoothService {
             mConnectThreads.remove(mmContact);
             mSemaphore.release();
 
-//            // Close the init socket
-//            try {
-//                mmInitSocket.close();
-//            } catch (IOException e2) {
-//                Log.e(TAG, "unable to close() socket during connection failure", e2);
-//            }
+            // Close the init socket
+            try {
+                mmInitSocket.close();
+            } catch (IOException e2) {
+                Log.e(TAG, "unable to close() socket during connection failure", e2);
+            }
         }
 
         @Override
@@ -497,7 +497,7 @@ class BluetoothService {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
             MainActivity.mRoutingTable.shareRoutingInfo();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[4096];
             byte[] sizeBuffer = new byte[4];
             int bytes;
             int tmpBytes;

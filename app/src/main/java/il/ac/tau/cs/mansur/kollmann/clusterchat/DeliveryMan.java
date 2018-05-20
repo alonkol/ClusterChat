@@ -1,4 +1,5 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
+import android.net.Uri;
 import android.util.Log;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -57,7 +58,7 @@ public class DeliveryMan {
         sendRoutingData(deviceContact, data, true);
     }
 
-    public void sendFile(String filePath, DeviceContact addressContact){
+    public void sendFile(Uri uri, DeviceContact addressContact){
         String test = "test1test2test3test4test";
         byte[] testBytes = test.getBytes();
         List<byte[]> chunks = splitEqually(testBytes, MAX_BYTES_MESSAGE, testBytes.length);

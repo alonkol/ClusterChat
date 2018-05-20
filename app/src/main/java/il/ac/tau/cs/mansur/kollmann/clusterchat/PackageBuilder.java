@@ -16,10 +16,13 @@ public class PackageBuilder extends Thread{
     }
 
     public void start() {
+        MessageBundle mb;
         while (true){
-            MessageBundle mb = MainActivity.packageQueue.getPackage();
+            mb = MainActivity.packageQueue.getPackage();
             while (mb != null){
                 processPackage(mb);
+                mb = MainActivity.packageQueue.getPackage();
+
             }
 
             try {
@@ -73,8 +76,7 @@ public class PackageBuilder extends Thread{
         DeviceContact senderContact = constructedBundle.getSender();
         // Add to chat
         MainActivity.mConversationManager.addMessage(
-                senderContact, new BaseMessage(senderContact.getDeviceName() + ":  " +
-                        constructedBundle.getMessage(), senderContact.getDeviceId()));
+                senderContact, new BaseMessage(constructedBundle.getMessage(), senderContact.getDeviceId()));
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(constructedBundle), senderContact);
