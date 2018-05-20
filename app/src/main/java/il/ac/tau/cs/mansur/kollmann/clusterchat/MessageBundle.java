@@ -1,7 +1,7 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
-import android.util.MalformedJsonException;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.util.HashMap;
 
@@ -63,7 +63,7 @@ class MessageBundle{
         return gson.toJson(this);
     }
 
-    static MessageBundle fromJson(String messageJson) throws MalformedJsonException{
+    static MessageBundle fromJson(String messageJson) throws JsonSyntaxException{
         Gson gson = new Gson();
         MessageBundle mb =  gson.fromJson(messageJson, MessageBundle.class);
         if (mb.metadata == null)

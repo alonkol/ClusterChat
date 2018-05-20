@@ -4,7 +4,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.util.MalformedJsonException;
+import com.google.gson.JsonSyntaxException;
 
 import java.util.UUID;
 
@@ -41,7 +41,7 @@ public class myMessageHandler extends Handler {
         try {
             messageBundle = MessageBundle.fromJson(readMessage);
             Log.d(TAG, "Handler caught outgoing bundle " + messageBundle);
-        } catch (MalformedJsonException e) {
+        } catch (JsonSyntaxException e) {
             Log.e(TAG, "Error in parsing outgoing bundle");
             e.printStackTrace();
         }
@@ -51,10 +51,10 @@ public class myMessageHandler extends Handler {
     private void handleIncomingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
         String readMessage = new String(buffer, 0, msg.arg1);
-        MessageBundle messageBundle = null;
+        MessageBundle messageBundle;
         try {
             messageBundle = MessageBundle.fromJson(readMessage);
-        }catch (MalformedJsonException e) {
+        }catch (JsonSyntaxException e) {
             Log.e(TAG, "Failed at handling message: " + readMessage, e);
             return;
         }
