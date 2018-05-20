@@ -92,7 +92,7 @@ class ConversationsManager {
                 writer.close();
                 fileOutputStream.close();
             } catch (Exception e) {
-                Log.e(TAG, "Failed to save convesration history to file.", e);
+                Log.e(TAG, "Failed to save conversation history to file.", e);
             }
         }
     }

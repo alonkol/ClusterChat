@@ -1,11 +1,10 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
-import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
+import android.util.MalformedJsonException;
 
 import java.util.UUID;
 
@@ -38,54 +37,60 @@ public class myMessageHandler extends Handler {
         byte[] relevant = new byte[buffer.length - 4];
         System.arraycopy(buffer, 4, relevant, 0, relevant.length);
         String readMessage = new String(relevant);
-        MessageBundle messageBundle = MessageBundle.fromJson(readMessage);
-        Log.d(TAG, "Handler caught outgoing bundle " + messageBundle);
+        MessageBundle messageBundle = null;
+        try {
+            messageBundle = MessageBundle.fromJson(readMessage);
+            Log.d(TAG, "Handler caught outgoing bundle " + messageBundle);
+        } catch (MalformedJsonException e) {
+            Log.e(TAG, "Error in parsing outgoing bundle");
+            e.printStackTrace();
+        }
     }
 
 
     private void handleIncomingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
         String readMessage = new String(buffer, 0, msg.arg1);
-
+        MessageBundle messageBundle = null;
         try {
-            MessageBundle messageBundle = MessageBundle.fromJson(readMessage);
-            Log.d(TAG, "Handler caught incoming message: " + messageBundle);
-            // Decrease package TTL and check if still valid
-            messageBundle.decreaseTTL();
-            if (messageBundle.getTTL() == -1){
-                Log.d(TAG, "Dropping " + messageBundle + "since TTL is less than zero");
-                return;
-            }
-            DeviceContact receiverContact = messageBundle.getReceiver();
-            if (!MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00") &&
-                    !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId())){
-                Log.i(TAG, "Current device isn't the address for current message, passing along");
-                MainActivity.mDeliveryMan.sendMessage(messageBundle, receiverContact);
-                return;
-            }
-            switch (messageBundle.getMessageType()){
-                case TEXT:
-                    handleIncomingTextMessage(messageBundle);
-                    break;
-                case FILE:
-                    handleIncomingFileMessage(messageBundle);
-                    break;
-                case HS:
-                    handleIncomingHSMessage(messageBundle);
-                    break;
-                case ACK:
-                    handleIncomingACKMessage(messageBundle);
-                    break;
-                case ROUTING:
-                    handleIncomingRoutingMessage(messageBundle, false);
-                    break;
-                case ROUTINGREPLY:
-                    handleIncomingRoutingMessage(messageBundle, true);
-                    break;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, readMessage);
-            Log.e(TAG, "Failed at handling message", e);
+            messageBundle = MessageBundle.fromJson(readMessage);
+        }catch (MalformedJsonException e) {
+            Log.e(TAG, "Failed at handling message: " + readMessage, e);
+            return;
+        }
+        Log.d(TAG, "Handler caught incoming message: " + messageBundle);
+        // Decrease package TTL and check if still valid
+        messageBundle.decreaseTTL();
+        if (messageBundle.getTTL() == -1){
+            Log.d(TAG, "Dropping " + messageBundle + "since TTL is less than zero");
+            return;
+        }
+        DeviceContact receiverContact = messageBundle.getReceiver();
+        if (!MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00") &&
+                !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId())){
+            Log.i(TAG, "Current device isn't the address for current message, passing along");
+            MainActivity.mDeliveryMan.sendMessage(messageBundle, receiverContact);
+            return;
+        }
+        switch (messageBundle.getMessageType()){
+            case TEXT:
+                handleIncomingTextMessage(messageBundle);
+                break;
+            case FILE:
+                handleIncomingFileMessage(messageBundle);
+                break;
+            case HS:
+                handleIncomingHSMessage(messageBundle);
+                break;
+            case ACK:
+                handleIncomingACKMessage(messageBundle);
+                break;
+            case ROUTING:
+                handleIncomingRoutingMessage(messageBundle, false);
+                break;
+            case ROUTINGREPLY:
+                handleIncomingRoutingMessage(messageBundle, true);
+                break;
         }
     }
 

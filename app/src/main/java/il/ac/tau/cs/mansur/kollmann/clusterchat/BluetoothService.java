@@ -466,7 +466,7 @@ class BluetoothService {
     public class ConnectedThread extends BluetoothThread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
-        public final OutputStream mmOutStream;
+        private final OutputStream mmOutStream;
         private final DeviceContact mmContact;
 
         ConnectedThread(BluetoothSocket socket, DeviceContact contact) {
