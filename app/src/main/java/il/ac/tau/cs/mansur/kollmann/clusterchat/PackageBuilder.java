@@ -58,9 +58,10 @@ public class PackageBuilder extends Thread{
         }
         // Make sure that has all pieces
         for (int i=0;i<totalPackages;i++){
-            if (packagesArr[i] == null)
+            if (packagesArr[i] == null) {
                 Log.e(TAG, "Package is missing some parts although the size is fine");
                 return;
+            }
         }
         Log.d(TAG, "Completed package for " + packageIdentifier);
         StringBuilder fullMessage = new StringBuilder();
