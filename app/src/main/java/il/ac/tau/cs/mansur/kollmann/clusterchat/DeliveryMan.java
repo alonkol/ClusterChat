@@ -59,7 +59,7 @@ public class DeliveryMan {
     }
 
     public void sendFile(Uri uri, DeviceContact addressContact){
-        String test = "test1test2test3test4test";
+        String test = "test1test2test3test4test5";
         byte[] testBytes = test.getBytes();
         List<byte[]> chunks = splitEqually(testBytes, MAX_BYTES_MESSAGE, testBytes.length);
         int messageID = MainActivity.getNewMessageID();

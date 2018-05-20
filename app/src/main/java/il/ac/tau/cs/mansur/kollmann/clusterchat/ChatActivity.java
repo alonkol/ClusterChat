@@ -63,14 +63,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void update(Observable observable, Object o) {
                 Log.d(TAG, "Invoked update method of observer");
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        addMessagesToUI();
-                    }
-                });
-
+                addMessagesToUI();
             }
         };
         setupChat();
@@ -121,18 +114,23 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void addMessagesToUI(){
-        Log.i(TAG, "Adding messages to UI starting with index " + mCurrentIndex);
-        // Get messages from ConversationManager
-        List<BaseMessage> conversations = MainActivity.mConversationManager.getMessagesForConversation(
-                mDeviceContact, mCurrentIndex);
-        for(BaseMessage message: conversations){
-            mMessagesAdapter.add(message);
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, "Adding messages to UI starting with index " + mCurrentIndex);
+                // Get messages from ConversationManager
+                List<BaseMessage> conversations = MainActivity.mConversationManager.getMessagesForConversation(
+                        mDeviceContact, mCurrentIndex);
+                for(BaseMessage message: conversations){
+                    mMessagesAdapter.add(message);
+                }
 
-        mMessagesAdapter.notifyItemRangeInserted(mCurrentIndex, conversations.size());
-        mMessageRecycler.scrollToPosition(mMessagesAdapter.getItemCount() - 1);
-        mCurrentIndex += conversations.size();
-        MainActivity.mConnectedDevicesArrayAdapter.clearUnread(mDeviceContact);
+                mMessagesAdapter.notifyItemRangeInserted(mCurrentIndex, conversations.size());
+                mMessageRecycler.scrollToPosition(mMessagesAdapter.getItemCount() - 1);
+                mCurrentIndex += conversations.size();
+                MainActivity.mConnectedDevicesArrayAdapter.clearUnread(mDeviceContact);
+            }
+        });
     }
 
     /**

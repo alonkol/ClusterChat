@@ -99,11 +99,15 @@ public class myMessageHandler extends Handler {
     }
 
     private void handleIncomingTextMessage(MessageBundle messageBundle){
-        DeviceContact senderContact = messageBundle.getSender();
+        final DeviceContact senderContact = messageBundle.getSender();
 
         // Update unread messages count
-        MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
-
+        mMainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
+            }
+        });
         // Add to chat
         MainActivity.mConversationManager.addMessage(senderContact,
                 new BaseMessage(messageBundle.getMessage(), senderContact.getDeviceId()));

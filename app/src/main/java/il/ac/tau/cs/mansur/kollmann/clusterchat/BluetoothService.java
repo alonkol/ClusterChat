@@ -190,7 +190,7 @@ class BluetoothService {
 
             // Wait for handshake
             Log.d(TAG, "Reading Handshake");
-            byte[] buffer = new byte[4096];
+            byte[] buffer;
             byte[] sizeBuffer = new byte[4];
             int bytes;
             int tmpBytes;
@@ -200,6 +200,7 @@ class BluetoothService {
                 mmInStream.read(sizeBuffer, 0, 4);
                 packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
                 bytes = 0;
+                buffer = new byte[4096];
                 while (bytes!=packetSize){
                     tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
                     bytes += tmpBytes;
@@ -381,6 +382,7 @@ class BluetoothService {
                 mmInStream.read(sizeBuffer, 0, 4);
                 packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
                 bytes = 0;
+                buffer = new byte[4096];
                 while (bytes!=packetSize){
                     tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
                     bytes += tmpBytes;
@@ -510,6 +512,7 @@ class BluetoothService {
                     mmInStream.read(sizeBuffer, 0, 4);
                     packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
                     bytes = 0;
+                    buffer = new byte[4096];
                     while (bytes!=packetSize){
                         tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
                         bytes += tmpBytes;

@@ -51,12 +51,18 @@ public class PackageBuilder extends Thread{
         if (packages.size() != totalPackages) {
             return;
         }
-        Log.d(TAG, "Completed package for " + packageIdentifier);
         MessageBundle[] packagesArr = new MessageBundle[totalPackages];
         for (int i=0; i<totalPackages; i++){
             mb = packages.get(i);
             packagesArr[Integer.parseInt(mb.getMetadata("packageIndex"))] = mb;
         }
+        // Make sure that has all pieces
+        for (int i=0;i<totalPackages;i++){
+            if (packagesArr[i] == null)
+                Log.e(TAG, "Package is missing some parts although the size is fine");
+                return;
+        }
+        Log.d(TAG, "Completed package for " + packageIdentifier);
         StringBuilder fullMessage = new StringBuilder();
         for (int i=0; i<totalPackages; i++){
             fullMessage.append(packagesArr[i].getMessage());
