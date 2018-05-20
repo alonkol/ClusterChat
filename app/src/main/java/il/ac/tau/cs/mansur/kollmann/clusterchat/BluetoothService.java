@@ -202,15 +202,12 @@ class BluetoothService {
             }
 
             // Start a listening socket to listen on the new UUID
-            DedicatedAcceptThread thread = new DedicatedAcceptThread(contact, uuid);
+            DedicatedAcceptThread thread = new DedicatedAcceptThread(contact, uuid, socket);
             thread.start();
-
-            // TODO - not sure if to close
+            // will close the original socket in dedicated thread
             try {
-                Log.d(SOCKET_TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
                 mmInStream.close();
                 mmOutStream.close();
-                socket.close();
             } catch (IOException e) {
                 Log.e(SOCKET_TAG, "Could not close unwanted socket device: " + socket.getRemoteDevice().getName(), e);
             }
@@ -280,10 +277,12 @@ class BluetoothService {
     class DedicatedAcceptThread extends BluetoothThread {
         final UUID mmUuid;
         private final DeviceContact mmContact;
+        private BluetoothSocket mmOriginalSocket;
 
-        DedicatedAcceptThread(DeviceContact deviceContact, UUID uuid){
+        DedicatedAcceptThread(DeviceContact deviceContact, UUID uuid, BluetoothSocket originalSocket){
             mmUuid = uuid;
             mmContact = deviceContact;
+            mmOriginalSocket = originalSocket;
         }
 
         public void run() {
@@ -320,6 +319,8 @@ class BluetoothService {
                 Log.d(TAG, "Connected, closing Server Socket");
                 Log.d(SOCKET_TAG, "Closing socket: " + server_socket);
                 server_socket.close();
+                Log.d(SOCKET_TAG, "Closing original socket: " + mmOriginalSocket);
+                mmOriginalSocket.close();
             } catch (IOException e) {
                 Log.e(TAG, "Could not close a server socket", e);
             }
