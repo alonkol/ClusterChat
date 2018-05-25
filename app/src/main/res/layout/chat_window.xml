@@ -63,6 +63,7 @@
 
     <Button
         android:id="@+id/button_send_file"
+        android:drawableStart="@drawable/attachme"
         android:text="@string/file"
         android:textSize="14sp"
         android:background="?attr/selectableItemBackground"
