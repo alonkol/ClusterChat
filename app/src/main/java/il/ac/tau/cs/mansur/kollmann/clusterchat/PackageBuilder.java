@@ -1,7 +1,12 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import android.util.Base64;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 import java.util.HashMap;
@@ -10,9 +15,11 @@ import java.util.Objects;
 public class PackageBuilder extends Thread{
     public final String TAG = "PackageBuilder";
     private HashMap<PackageIdentifier, ArrayList<MessageBundle>> constructionPackages;
+    private MainActivity mainActivity;
 
-    public PackageBuilder(){
+    public PackageBuilder(MainActivity mainActivity){
         constructionPackages = new HashMap<>();
+        this.mainActivity = mainActivity;
     }
 
     public void start() {
@@ -41,10 +48,14 @@ public class PackageBuilder extends Thread{
             constructionPackages.put(packageIdentifier, new ArrayList<MessageBundle>());
         }
         constructionPackages.get(packageIdentifier).add(mb);
-        checkIfPackageComplete(packageIdentifier);
+        try {
+            checkIfPackageComplete(packageIdentifier);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void checkIfPackageComplete(PackageIdentifier packageIdentifier) {
+    private void checkIfPackageComplete(PackageIdentifier packageIdentifier) throws IOException {
         ArrayList<MessageBundle> packages = constructionPackages.get(packageIdentifier);
         MessageBundle mb = packages.get(0);
         int totalPackages = Integer.parseInt(mb.getMetadata("totalPackages"));
@@ -56,37 +67,36 @@ public class PackageBuilder extends Thread{
             mb = packages.get(i);
             packagesArr[Integer.parseInt(mb.getMetadata("packageIndex"))] = mb;
         }
-        // Make sure that has all pieces
-        for (int i=0;i<totalPackages;i++){
-            if (packagesArr[i] == null) {
-                Log.e(TAG, "Package is missing some parts although the size is fine");
-                return;
-            }
-        }
         Log.d(TAG, "Completed package for " + packageIdentifier);
-        StringBuilder fullMessage = new StringBuilder();
-        for (int i=0; i<totalPackages; i++){
-            fullMessage.append(packagesArr[i].getMessage());
-        }
-        fullMessage.delete(Integer.parseInt(mb.getMetadata("totalFileSize")),
-                fullMessage.length());
+        constructionPackages.remove(packageIdentifier);
 
+        byte[] fileBytes = new byte[totalPackages * DeliveryMan.MAX_BYTES_MESSAGE];
+        for (int i=0; i<totalPackages; i++){
+            byte[] b = Base64.decode(packagesArr[i].getMessage(), Base64.DEFAULT);
+            System.arraycopy(b, 0, fileBytes, i * DeliveryMan.MAX_BYTES_MESSAGE, b.length);
+        }
         Log.d(TAG, "Package is constructed and passed");
-        MessageBundle constructedBundle = MessageBundle.ConstructedBundle(
-                fullMessage.toString(), mb);
-        handleConstructedMessage(constructedBundle);
+        handleCompleteFile(mb.getSender(), fileBytes,
+                Integer.parseInt(mb.getMetadata("totalFileSize")),
+                mb.getMetadata("fileName"), mb);
+
     }
 
-    private void handleConstructedMessage(MessageBundle constructedBundle) {
-        // for testing we treat this message as text and deal with it regularly
-        // TODO we should treat this as files (save to directory, show in UI)
-        DeviceContact senderContact = constructedBundle.getSender();
+    private void handleCompleteFile(DeviceContact senderContact,
+                                    byte[] fileBytes, int fileSize, String fileName,
+                                    MessageBundle mb){
+        try {
+            mainActivity.writeFileToDevice(fileBytes, fileSize, fileName);
+        } catch (IOException e) {
+            Log.e(TAG, "Cannot save file to device", e);
+        }
+
         // Add to chat
         MainActivity.mConversationManager.addMessage(
-                senderContact, new BaseMessage(constructedBundle.getMessage(), senderContact.getDeviceId()));
+                senderContact, new BaseMessage("File received", senderContact.getDeviceId()));
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
-                MessageBundle.AckBundle(constructedBundle), senderContact);
+                MessageBundle.AckBundle(mb), senderContact);
     }
 
 

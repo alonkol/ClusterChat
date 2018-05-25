@@ -556,7 +556,7 @@ class BluetoothService {
             Log.i(TAG, "BEGIN mConnectedThread");
             setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
             MainActivity.mRoutingTable.shareRoutingInfo();
-            byte[] buffer = new byte[4096];
+            byte[] buffer;
             byte[] sizeBuffer = new byte[4];
             int bytes;
             int tmpBytes;
@@ -569,7 +569,7 @@ class BluetoothService {
                     mmInStream.read(sizeBuffer, 0, 4);
                     packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
                     bytes = 0;
-                    buffer = new byte[4096];
+                    buffer = new byte[packetSize];
                     while (bytes!=packetSize){
                         tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
                         bytes += tmpBytes;

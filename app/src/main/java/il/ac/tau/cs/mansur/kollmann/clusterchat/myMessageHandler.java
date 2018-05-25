@@ -149,7 +149,8 @@ public class myMessageHandler extends Handler {
         DeviceContact senderContact = messageBundle.getSender();
         Log.i(TAG, "Merging routing data received from " + senderContact.getShortStr());
         boolean changeHappened =
-                MainActivity.mRoutingTable.mergeRoutingData(messageBundle.getMessage(), senderContact);
+                MainActivity.mRoutingTable.mergeRoutingData(
+                        messageBundle.getMetadata("Routing"), senderContact);
         // If change happened we are already sharing the table to the sender,
         // but if not we will share our routing info with the sender
         if (!changeHappened && !reply){

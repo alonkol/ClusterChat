@@ -2,8 +2,10 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +16,11 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -101,7 +108,7 @@ public class ChatActivity extends AppCompatActivity {
                 // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
                 // To search for all documents available via installed storage providers,
                 // it would be "*/*".
-                intent.setType("image/*");
+                intent.setType("*/*");
 
                 startActivityForResult(intent, READ_REQUEST_CODE);
             }
@@ -189,11 +196,13 @@ public class ChatActivity extends AppCompatActivity {
             if (resultData != null) {
                 uri = resultData.getData();
                 Log.i(TAG, "Uri: " + uri.toString());
+                MainActivity.mDeliveryMan.sendFile(uri, mDeviceContact, getContentResolver());
                 MainActivity.mConversationManager.addMessage(mDeviceContact,
                         new BaseMessage("File is on its way to target..."));
-                MainActivity.mDeliveryMan.sendFile(uri, mDeviceContact);
+
             }
         }
     }
+
 
 }

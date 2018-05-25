@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +19,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -142,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void run() {
-                new PackageBuilder().start();
+                new PackageBuilder(mainActivity).start();
             }
         }, 1000);
     }
@@ -291,5 +297,19 @@ public class MainActivity extends AppCompatActivity {
         this.unregisterReceiver(mReceiver);
         Log.d(TAG, "Writing History to files ");
         writeHistoryToFiles();
+    }
+
+    public void writeFileToDevice(byte[] fileBytes, int fileSize, String filename)
+            throws IOException {
+        String path = Environment.getExternalStorageDirectory() + "/ClusterChat";
+        File dir = new File(path);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        File file = new File(path,  filename);
+        FileOutputStream fileOutputStream = new FileOutputStream(file.getPath());
+        fileOutputStream.write(fileBytes, 0, fileSize);
+        fileOutputStream.close();
     }
 }

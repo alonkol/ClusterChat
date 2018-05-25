@@ -51,6 +51,13 @@ class MessageBundle{
                 relevantMessageBundle.messageID);
     }
 
+    public static MessageBundle routingMessageBundle(String routingData, MessageTypes messageType,
+                                                     DeviceContact sender, DeviceContact receiver){
+        MessageBundle routingBundle = new MessageBundle("", messageType, sender, receiver);
+        routingBundle.addMetadata("Routing", routingData);
+        return routingBundle;
+    }
+
     public static MessageBundle AckBundle(MessageBundle messageBundle){
         MessageBundle ackBundle = new MessageBundle("", MessageTypes.ACK,
                 MainActivity.myDeviceContact, messageBundle.getSender());
@@ -96,7 +103,8 @@ class MessageBundle{
     @Override
     public String toString() {
         return "MessageBundle{" +
-                "message='" + message + '\'' +
+                "message='" + (messageType == MessageTypes.TEXT ? message  :
+                "")  +  '\'' +
                 ", messageType=" + messageType +
                 ", sender=" + sender.getShortStr() +
                 ", receiver=" + receiver.getShortStr() +

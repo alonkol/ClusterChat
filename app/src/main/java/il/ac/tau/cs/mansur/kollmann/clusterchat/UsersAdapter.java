@@ -58,6 +58,8 @@ public class UsersAdapter extends ArrayAdapter<DeviceContact> {
     void clearUnread(DeviceContact contact) {
         contact.clearUnread();
         int position = getPosition(contact);
+        if (position == -1)
+            return;
         remove(contact);
         insert(contact, position);
         notifyDataSetChanged();

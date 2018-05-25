@@ -1,7 +1,16 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
+import android.content.ContentResolver;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
+import android.util.Base64;
 import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +18,7 @@ import java.util.List;
 public class DeliveryMan {
 
     private static final String TAG="DeliveryMan";
-    private static final int MAX_BYTES_MESSAGE = 5;
+    public static final int MAX_BYTES_MESSAGE = 15 * 1024;
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
                                BluetoothService.BluetoothThread thread){
@@ -48,8 +57,9 @@ public class DeliveryMan {
 
     public void sendRoutingData(DeviceContact deviceContact, String data, boolean reply) {
         MessageTypes type = reply ? MessageTypes.ROUTINGREPLY : MessageTypes.ROUTING;
-        MessageBundle routingBundle = new MessageBundle(data, type,
+        MessageBundle routingBundle = MessageBundle.routingMessageBundle(data, type,
                 MainActivity.myDeviceContact, deviceContact);
+
         sendMessage(routingBundle, deviceContact);
     }
 
@@ -58,21 +68,72 @@ public class DeliveryMan {
         sendRoutingData(deviceContact, data, true);
     }
 
-    public void sendFile(Uri uri, DeviceContact addressContact){
-        String test = "test1test2test3test4test5";
-        byte[] testBytes = test.getBytes();
-        List<byte[]> chunks = splitEqually(testBytes, MAX_BYTES_MESSAGE, testBytes.length);
+    public void sendFile(Uri uri, DeviceContact addressContact, ContentResolver contentResolver){
+        byte[] fileContent;
+        try {
+            fileContent = readBytesFromUri(uri, contentResolver);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed at reading file data: " + uri.toString(), e);
+            return;
+        }
+        String fileName = getFileName(uri, contentResolver);
+        int fileSize = fileContent.length;
+        Log.d(TAG, "Sending file: " + fileName + "with size: " + Integer.toString(fileSize));
+
+        List<byte[]> chunks = splitEqually(fileContent, MAX_BYTES_MESSAGE, fileSize);
         int messageID = MainActivity.getNewMessageID();
         for (int i=0; i<chunks.size(); i++){
             MessageBundle mb = new MessageBundle(
-                    new String(chunks.get(i)), MessageTypes.FILE, MainActivity.myDeviceContact,
+                    Base64.encodeToString(chunks.get(i), Base64.DEFAULT), MessageTypes.FILE,
+                    MainActivity.myDeviceContact,
                     addressContact, messageID);
             mb.addMetadata("totalPackages", Integer.toString(chunks.size()));
-            mb.addMetadata("totalFileSize", Integer.toString(testBytes.length));
+            mb.addMetadata("totalFileSize", Integer.toString(fileSize));
             mb.addMetadata("packageIndex", Integer.toString(i));
+            mb.addMetadata("fileName", fileName);
             sendMessage(mb, addressContact);
         }
     }
+
+    private byte[] readBytesFromUri(Uri uri, ContentResolver contentResolver) throws IOException {
+        InputStream iStream = contentResolver.openInputStream(uri);
+        byte[] fileBytes = getBytes(iStream);
+        iStream.close();
+        return fileBytes;
+    }
+
+    public byte[] getBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+
+        int len = 0;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
+
+    private String getFileName(Uri uri, ContentResolver contentResolver) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (Cursor cursor = contentResolver.query(
+                    uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
 
     private byte[] addPackageSize(byte[] data){
         int len = data.length;
@@ -89,7 +150,7 @@ public class DeliveryMan {
         List <byte[]> chunks = new ArrayList<>();
         while (current<totalSize){
             chunk = new byte[pieceSize];
-            for (int i=current; i<current+pieceSize && i<totalSize; i++){
+            for (int i=current; i < current + pieceSize && i<totalSize; i++){
                 chunk[i % pieceSize] = testBytes[i];
             }
             chunks.add(chunk);
