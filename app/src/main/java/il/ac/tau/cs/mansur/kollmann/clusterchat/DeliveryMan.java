@@ -68,7 +68,7 @@ public class DeliveryMan {
         sendRoutingData(deviceContact, data, true);
     }
 
-    public void sendFile(Uri uri, DeviceContact addressContact, ContentResolver contentResolver){
+    public void sendFile(Uri uri, String fileName, DeviceContact addressContact, ContentResolver contentResolver){
         byte[] fileContent;
         try {
             fileContent = readBytesFromUri(uri, contentResolver);
@@ -76,7 +76,6 @@ public class DeliveryMan {
             Log.e(TAG, "Failed at reading file data: " + uri.toString(), e);
             return;
         }
-        String fileName = getFileName(uri, contentResolver);
         int fileSize = fileContent.length;
         Log.d(TAG, "Sending file: " + fileName + "with size: " + Integer.toString(fileSize));
 
@@ -93,6 +92,9 @@ public class DeliveryMan {
             mb.addMetadata("fileName", fileName);
             sendMessage(mb, addressContact);
         }
+        // We would like to tell the sending device when the file that he has sent has arrived at his destination
+        // so we keep it in a set, and upon ack received for it we will add a message to the chat window
+        MainActivity.messagesToAck.add(new MessageBundle.PackageIdentifier(messageID, addressContact));
     }
 
     private byte[] readBytesFromUri(Uri uri, ContentResolver contentResolver) throws IOException {
@@ -112,26 +114,6 @@ public class DeliveryMan {
             byteBuffer.write(buffer, 0, len);
         }
         return byteBuffer.toByteArray();
-    }
-
-    private String getFileName(Uri uri, ContentResolver contentResolver) {
-        String result = null;
-        if (uri.getScheme().equals("content")) {
-            try (Cursor cursor = contentResolver.query(
-                    uri, null, null, null, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                }
-            }
-        }
-        if (result == null) {
-            result = uri.getPath();
-            int cut = result.lastIndexOf('/');
-            if (cut != -1) {
-                result = result.substring(cut + 1);
-            }
-        }
-        return result;
     }
 
 

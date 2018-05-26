@@ -17,10 +17,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -196,13 +192,35 @@ public class ChatActivity extends AppCompatActivity {
             if (resultData != null) {
                 uri = resultData.getData();
                 Log.i(TAG, "Uri: " + uri.toString());
-                MainActivity.mDeliveryMan.sendFile(uri, mDeviceContact, getContentResolver());
+                String fileName = getFileName(uri);
+                MainActivity.mDeliveryMan.sendFile(uri, fileName, mDeviceContact, getContentResolver());
                 MainActivity.mConversationManager.addMessage(mDeviceContact,
-                        new BaseMessage("File is on its way to target..."));
-
+                        new BaseMessage("File " + fileName + " is on its way to target...\n" +
+                                "You will be notified when " + mDeviceContact.getDeviceName() + " approves that he got it"));
             }
         }
     }
+
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (Cursor cursor = getContentResolver().query(
+                    uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
 
 
 }

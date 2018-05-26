@@ -3,18 +3,14 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
 import java.util.HashMap;
-import java.util.Objects;
 
 public class PackageBuilder extends Thread{
     public final String TAG = "PackageBuilder";
-    private HashMap<PackageIdentifier, ArrayList<MessageBundle>> constructionPackages;
+    private HashMap<MessageBundle.PackageIdentifier, ArrayList<MessageBundle>> constructionPackages;
     private MainActivity mainActivity;
 
     public PackageBuilder(MainActivity mainActivity){
@@ -42,20 +38,16 @@ public class PackageBuilder extends Thread{
 
     private void processPackage(MessageBundle mb){
         Log.d(TAG, "Processing package " + mb);
-        PackageIdentifier packageIdentifier = new PackageIdentifier(mb.getMessageID(),
-                mb.getSender());
+        MessageBundle.PackageIdentifier packageIdentifier = mb.getIdentifier();
         if (!constructionPackages.containsKey(packageIdentifier)){
             constructionPackages.put(packageIdentifier, new ArrayList<MessageBundle>());
         }
         constructionPackages.get(packageIdentifier).add(mb);
-        try {
-            checkIfPackageComplete(packageIdentifier);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        checkIfPackageComplete(packageIdentifier);
+
     }
 
-    private void checkIfPackageComplete(PackageIdentifier packageIdentifier) throws IOException {
+    private void checkIfPackageComplete(MessageBundle.PackageIdentifier packageIdentifier){
         ArrayList<MessageBundle> packages = constructionPackages.get(packageIdentifier);
         MessageBundle mb = packages.get(0);
         int totalPackages = Integer.parseInt(mb.getMetadata("totalPackages"));
@@ -92,44 +84,14 @@ public class PackageBuilder extends Thread{
         }
 
         // Add to chat
+        String message = "File received from " + senderContact.getDeviceName() +
+                "\ngoto ClusterChat/"+ fileName + " to find it";
         MainActivity.mConversationManager.addMessage(
-                senderContact, new BaseMessage("File received", senderContact.getDeviceId()));
+                senderContact, new BaseMessage(message, senderContact.getDeviceId()));
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(mb), senderContact);
     }
 
 
-    private class PackageIdentifier{
-        private Integer messageID;
-        private DeviceContact deviceContact;
-
-        private PackageIdentifier(Integer messageID, DeviceContact deviceContact) {
-            this.messageID = messageID;
-            this.deviceContact = deviceContact;
-        }
-
-        @Override
-        public String toString() {
-            return "PackageIdentifier{" +
-                    "messageID=" + messageID +
-                    ", deviceContact=" + deviceContact +
-                    '}';
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            PackageIdentifier that = (PackageIdentifier) o;
-            return Objects.equals(messageID, that.messageID) &&
-                    Objects.equals(deviceContact, that.deviceContact);
-        }
-
-        @Override
-        public int hashCode() {
-
-            return Objects.hash(messageID, deviceContact);
-        }
-    }
 }

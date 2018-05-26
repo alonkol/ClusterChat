@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 class MessageBundle{
     private String message;
@@ -44,12 +45,6 @@ class MessageBundle{
         return this.messageID;
     }
 
-    public static MessageBundle ConstructedBundle(
-            String fullMessage, MessageBundle relevantMessageBundle){
-        return new MessageBundle(fullMessage, relevantMessageBundle.getMessageType(),
-                relevantMessageBundle.getSender(), relevantMessageBundle.getReceiver(),
-                relevantMessageBundle.messageID);
-    }
 
     public static MessageBundle routingMessageBundle(String routingData, MessageTypes messageType,
                                                      DeviceContact sender, DeviceContact receiver){
@@ -113,4 +108,41 @@ class MessageBundle{
                 ", metadata=" + metadata +
                 '}';
     }
+
+    public PackageIdentifier getIdentifier(){
+        return new PackageIdentifier(messageID, sender);
+    }
+
+    public static class PackageIdentifier{
+        private Integer messageID;
+        private DeviceContact deviceContact;
+
+        PackageIdentifier(Integer messageID, DeviceContact deviceContact) {
+            this.messageID = messageID;
+            this.deviceContact = deviceContact;
+        }
+
+        @Override
+        public String toString() {
+            return "PackageIdentifier{" +
+                    "messageID=" + messageID +
+                    ", deviceContact=" + deviceContact +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PackageIdentifier that = (PackageIdentifier) o;
+            return Objects.equals(messageID, that.messageID) &&
+                    Objects.equals(deviceContact, that.deviceContact);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(messageID, deviceContact);
+        }
+    }
+
 }
