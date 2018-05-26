@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private static Integer runningMessageID;
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
     public static HashSet<MessageBundle.PackageIdentifier> messagesToAck = new HashSet<>();
+    public static HashSet<MessageBundle.PackageIdentifier> brodacastedMessages = new HashSet<>();
     static final int REQUEST_ENABLE_BT = 3;
     private MediaPlayer mMediaPlayerOnConnect;
     private MediaPlayer mMediaPlayerOnDisconnect;

@@ -48,6 +48,12 @@ public class DeliveryMan {
 
     public boolean broadcastMessage(MessageBundle messageBundle){
         Log.d(TAG, "Broadcasting message: " + messageBundle + " to all neighbouring devices");
+        MessageBundle.PackageIdentifier packageIdentifier = messageBundle.getIdentifier();
+        if (MainActivity.brodacastedMessages.contains(packageIdentifier)){
+            Log.d(TAG, "Already broadcasted this message so dropping");
+            return false;
+        }
+        MainActivity.brodacastedMessages.add(messageBundle.getIdentifier());
         for (DeviceContact dc: MainActivity.mRoutingTable.getAllNeighboursConnectedDevices()){
             sendMessage(messageBundle, dc);
         }

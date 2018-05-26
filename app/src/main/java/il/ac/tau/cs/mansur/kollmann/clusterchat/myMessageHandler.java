@@ -67,7 +67,8 @@ public class myMessageHandler extends Handler {
         }
         DeviceContact receiverContact = messageBundle.getReceiver();
         if (!MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00") &&
-                !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId())){
+                !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId()) &&
+                messageBundle.getMessageType() != MessageTypes.BROADCAST){
             Log.i(TAG, "Current device isn't the address for current message, passing along");
             MainActivity.mDeliveryMan.sendMessage(messageBundle, receiverContact);
             return;
@@ -91,6 +92,17 @@ public class myMessageHandler extends Handler {
             case ROUTINGREPLY:
                 handleIncomingRoutingMessage(messageBundle, true);
                 break;
+            case BROADCAST:
+                handleIncomingBroadcastMessage(messageBundle);
+                break;
+        }
+    }
+
+    private void handleIncomingBroadcastMessage(MessageBundle messageBundle) {
+        boolean result = MainActivity.mDeliveryMan.broadcastMessage(messageBundle);
+        // If it's the first time we encounter this broadcast message we need to handle it as a text message
+        if (result){
+            handleIncomingTextMessage(messageBundle);
         }
     }
 
