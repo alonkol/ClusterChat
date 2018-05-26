@@ -1,5 +1,6 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
+import android.media.MediaPlayer;
 import android.util.Base64;
 import android.util.Log;
 
@@ -10,12 +11,15 @@ import java.util.HashMap;
 
 public class PackageBuilder extends Thread{
     public final String TAG = "PackageBuilder";
+    private final MediaPlayer mMediaPlayerOnNewMessage;
     private HashMap<MessageBundle.PackageIdentifier, ArrayList<MessageBundle>> constructionPackages;
     private MainActivity mainActivity;
 
     public PackageBuilder(MainActivity mainActivity){
         constructionPackages = new HashMap<>();
         this.mainActivity = mainActivity;
+        mMediaPlayerOnNewMessage = MediaPlayer.create(mainActivity, R.raw.open_ended);
+
     }
 
     public void start() {
@@ -74,7 +78,7 @@ public class PackageBuilder extends Thread{
 
     }
 
-    private void handleCompleteFile(DeviceContact senderContact,
+    private void handleCompleteFile(final DeviceContact senderContact,
                                     byte[] fileBytes, int fileSize, String fileName,
                                     MessageBundle mb){
         try {
@@ -86,11 +90,26 @@ public class PackageBuilder extends Thread{
         // Add to chat
         String message = "File received from " + senderContact.getDeviceName() +
                 "\ngoto ClusterChat/"+ fileName + " to find it";
+
         MainActivity.mConversationManager.addMessage(
                 senderContact, new BaseMessage(message, senderContact.getDeviceId()));
         // Send Ack message
         MainActivity.mDeliveryMan.sendMessage(
                 MessageBundle.AckBundle(mb), senderContact);
+
+        // Update unread messages count
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.mConnectedDevicesArrayAdapter.newMessage(senderContact);
+            }
+        });
+        // Play sound
+        try {
+            mMediaPlayerOnNewMessage.start();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
 
