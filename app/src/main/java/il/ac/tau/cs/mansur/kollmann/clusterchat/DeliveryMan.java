@@ -46,6 +46,19 @@ public class DeliveryMan {
         return sendMessage(messageBundle, addressContact, t);
     }
 
+
+    public void prepareAndBroadcastMessage(String message) {
+        Log.d(TAG, "got message to broadcast: " + message);
+        message = "Group Message: " + message;
+        MessageBundle messageBundle = new MessageBundle(
+                message, MessageTypes.BROADCAST, MainActivity.myDeviceContact, MainActivity.myDeviceContact);
+        broadcastMessage(messageBundle);
+        for (DeviceContact dc: MainActivity.mRoutingTable.getAllConnectedDevices()){
+            MainActivity.mConversationManager.addMessage(
+                    dc, new BaseMessage(message));
+        }
+    }
+
     public boolean broadcastMessage(MessageBundle messageBundle){
         Log.d(TAG, "Broadcasting message: " + messageBundle + " to all neighbouring devices");
         MessageBundle.PackageIdentifier packageIdentifier = messageBundle.getIdentifier();

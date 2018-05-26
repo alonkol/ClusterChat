@@ -1,12 +1,14 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
@@ -15,10 +17,15 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer mMediaPlayerOnConnect;
     private MediaPlayer mMediaPlayerOnDisconnect;
 
-
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/tryConnect
     public static final boolean LEVEL_ROUTING_FLAG = false;
@@ -66,7 +72,9 @@ public class MainActivity extends AppCompatActivity {
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1001); //Any number
 
         // If BT is not on, request that it be enabled.
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
@@ -86,6 +94,16 @@ public class MainActivity extends AppCompatActivity {
         } else {
             finishAndRemoveTask();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_broadcast, menu);
+        // set up broadcast message button
+        MenuItem broadcastButton = menu.findItem(R.id.broadcast);
+        broadcastButton.setOnMenuItemClickListener(mBroadcastMessageClickListener);
+        return true;
     }
 
     private void Init(){
@@ -278,6 +296,37 @@ public class MainActivity extends AppCompatActivity {
             view.findViewById(R.id.new_messages).setVisibility(View.INVISIBLE);
             user.clearUnread();
             view.setTag(user);
+        }
+    };
+
+    private MenuItem.OnMenuItemClickListener mBroadcastMessageClickListener = new MenuItem.OnMenuItemClickListener() {
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+            builder.setTitle("Message to broadcast");
+
+            // Set up the input
+            final EditText input = new EditText(mainActivity);
+            // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+
+            // Set up the buttons
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mDeliveryMan.prepareAndBroadcastMessage(input.getText().toString());
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            builder.show();
+            return false;
         }
     };
 
