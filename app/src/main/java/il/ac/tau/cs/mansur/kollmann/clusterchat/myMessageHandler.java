@@ -173,14 +173,6 @@ public class myMessageHandler extends Handler {
     private void handleIncomingACKMessage(MessageBundle messageBundle) {
         Log.i(TAG, "Message " + messageBundle.getMetadata("AckID") +
                 " has been acked");
-        // If the message acks a file sent, then add message to the chat to let the user know
-        // that the file has been received
-        MessageBundle.PackageIdentifier packageIdentifier = new MessageBundle.PackageIdentifier(
-                Integer.parseInt(messageBundle.getMetadata("AckID")), messageBundle.getSender());
-        if (MainActivity.mDeliveryMan.messagesToAck.contains(packageIdentifier)){
-            MainActivity.mConversationManager.addMessage(
-                    messageBundle.getSender(), new BaseMessage("File arrived at his destination"));
-            MainActivity.mDeliveryMan.messagesToAck.remove(packageIdentifier);
-        }
+        MainActivity.mDeliveryMan.checkAckMessage(messageBundle);
     }
 }

@@ -20,8 +20,8 @@ public class DeliveryMan {
 
     private static final String TAG="DeliveryMan";
     public static final int MAX_BYTES_MESSAGE = 15 * 1024;
-    public HashSet<MessageBundle.PackageIdentifier> messagesToAck = new HashSet<>();
-    public HashSet<MessageBundle.PackageIdentifier> brodacastedMessages = new HashSet<>();
+    private HashSet<MessageBundle.PackageIdentifier> messagesToAck = new HashSet<>();
+    private HashSet<MessageBundle.PackageIdentifier> brodacastedMessages = new HashSet<>();
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
                                BluetoothService.BluetoothThread thread){
@@ -89,6 +89,19 @@ public class DeliveryMan {
         String data = MainActivity.mRoutingTable.createRoutingData(deviceContact);
         sendRoutingData(deviceContact, data, true);
     }
+
+    public void checkAckMessage(MessageBundle messageBundle) {
+        // If the message acks a file sent, then add message to the chat to let the user know
+        // that the file has been received
+        MessageBundle.PackageIdentifier packageIdentifier = new MessageBundle.PackageIdentifier(
+                Integer.parseInt(messageBundle.getMetadata("AckID")), messageBundle.getSender());
+        if (messagesToAck.contains(packageIdentifier)){
+            MainActivity.mConversationManager.addMessage(
+                    messageBundle.getSender(), new BaseMessage("File arrived at his destination"));
+            messagesToAck.remove(packageIdentifier);
+        }
+    }
+
 
     public void sendFile(Uri uri, String fileName, DeviceContact addressContact, ContentResolver contentResolver){
         byte[] fileContent;
@@ -162,4 +175,5 @@ public class DeliveryMan {
         }
         return chunks;
     }
+
 }
