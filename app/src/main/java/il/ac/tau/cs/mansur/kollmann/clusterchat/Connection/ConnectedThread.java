@@ -20,31 +20,38 @@ import il.ac.tau.cs.mansur.kollmann.clusterchat.myMessageHandler;
 public class ConnectedThread extends BluetoothThread {
     private BluetoothService service;
     private final BluetoothSocket mmSocket;
-    private final InputStream mmInStream;
-    private final OutputStream mmOutStream;
+    private InputStream mmInStream;
+    private OutputStream mmOutStream;
     private final DeviceContact mmContact;
 
     // Debugging
-    private static final String TAG = "ConnectedThread";
+    private static final String TAGPREFIX = "ConnectedThread-";
+    private static String TAG;
 
     public ConnectedThread(BluetoothService service, BluetoothSocket socket, DeviceContact contact) {
-        Log.d(TAG, "create ConnectedThread");
         this.service = service;
         mmSocket = socket;
         mmContact = contact;
-        InputStream tmpIn = null;
-        OutputStream tmpOut = null;
 
+        TAG = TAGPREFIX + contact.getDeviceName();
+        setName(TAG);
+    }
+
+    public boolean initStreams(){
         // Get the BluetoothSocket input and output streams
         try {
-            tmpIn = socket.getInputStream();
-            tmpOut = socket.getOutputStream();
+            mmInStream = mmSocket.getInputStream();
+            mmOutStream = mmSocket.getOutputStream();
         } catch (IOException e) {
-            Log.e(TAG, "temp sockets not created", e);
+            Log.e(TAG, "streams not created", e);
+            try{
+                mmSocket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            return false;
         }
-
-        mmInStream = tmpIn;
-        mmOutStream = tmpOut;
+        return true;
     }
 
     public void write(byte[] buffer) throws IOException {
@@ -54,7 +61,6 @@ public class ConnectedThread extends BluetoothThread {
 
     public void run() {
         Log.i(TAG, "BEGIN mConnectedThread");
-        setName("ConnectedThread-" + mmSocket.getRemoteDevice().getName());
         MainActivity.mRoutingTable.shareRoutingInfo();
         byte[] buffer;
         byte[] sizeBuffer = new byte[4];
@@ -86,9 +92,6 @@ public class ConnectedThread extends BluetoothThread {
     }
 
     private void connectionLost() {
-        service.mConnectedThreads.remove(mmContact);
-        MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
-
         // close socket
         try {
             Log.d(TAG,"Closing socket " + mmSocket + "device: " + mmContact.getShortStr());
@@ -98,5 +101,8 @@ public class ConnectedThread extends BluetoothThread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        service.mConnectedThreads.remove(mmContact);
+        MainActivity.mRoutingTable.removeLinkFromTable(mmContact);
     }
 }

@@ -39,7 +39,7 @@ public class MainAcceptThread extends BluetoothThread {
         try {
             mainListeningSocket = service.mAdapter.listenUsingRfcommWithServiceRecord(
                     "Main" + service.mAdapter.getName(), BluetoothService.MAIN_ACCEPT_UUID);
-            Log.d(TAG, "Opened SUPER: " + mainListeningSocket.toString());
+            Log.d(TAG, "Opened main server socket: " + mainListeningSocket.toString());
 
         } catch (Exception e) {
             Log.e(TAG, "Socket listen() failed", e);
@@ -67,8 +67,6 @@ public class MainAcceptThread extends BluetoothThread {
     private void handleAcceptedSocket(BluetoothSocket socket) {
         // if already connected, Terminate new socket.
         if (service.mConnectedThreads.containsKey(new DeviceContact(socket.getRemoteDevice()))) {
-            Log.d(TAG, "Accept thread established connection with: "  +
-                    socket.getRemoteDevice().getName() + " but this exists so leave it. ");
                 try {
                     Log.d(TAG, "Accept thread established connection with: " +
                             socket.getRemoteDevice().getName() + " but this exists so close. ");
@@ -103,38 +101,36 @@ public class MainAcceptThread extends BluetoothThread {
         // Read Handshake from connecting device
         result = readHS();
         if (!result){
-            try {
-                Log.d(TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
-                socket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Could not close unwanted socket" + "device: " + socket.getRemoteDevice().getName(), e);
-            }
+            closeOriginalSocket(socket);
+            return;
         }
 
         // Send handshake with new uuid to connect
-        result = sendHS(uuid, contact);
+        result = sendHandshakeMessage(uuid, contact);
         if (!result){
-            try {
-                Log.d(TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
-                socket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Could not close unwanted socket" + "device: " + socket.getRemoteDevice().getName(), e);
-            }
+            closeOriginalSocket(socket);
+            return;
         }
 
         // Start a listening socket to listen on the new UUID
-        DedicatedAcceptThread thread = new DedicatedAcceptThread(service, contact, uuid, socket);
+        DedicatedAcceptThread thread = new DedicatedAcceptThread(service, contact, uuid);
         thread.start();
         // will close the original socket in dedicated thread
-        try {
-            mmInStream.close();
-            mmOutStream.close();
-        } catch (IOException e) {
-            Log.e(TAG, "Could not close unwanted socket device: " + socket.getRemoteDevice().getName(), e);
-        }
+        closeOriginalSocket(socket);
     }
 
-    public boolean readHS(){
+    private void closeOriginalSocket(BluetoothSocket socket){
+        try{
+            mmInStream.close();
+            mmOutStream.close();
+            socket.close();
+        }catch (IOException e){
+            Log.e(TAG, "Could not close socket");
+        }
+
+    }
+
+    private boolean readHS(){
         byte[] buffer;
         byte[] sizeBuffer = new byte[4];
         int bytes;
@@ -159,23 +155,13 @@ public class MainAcceptThread extends BluetoothThread {
             return false;
         }
 
-        while(MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")){
+        while(MainActivity.myDeviceContact.getDeviceId().equals(MainActivity.DEFAULT_DEVICE_ID)){
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return false;
             }
-        }
-        return true;
-    }
-
-    public boolean sendHS(UUID uuid, DeviceContact deviceContact){
-        // Send HS
-        boolean sendHS = sendHandshakeMessage(uuid, deviceContact);
-        if (!sendHS) {
-            Log.e(TAG, "Failed to send handshake");
-            return false;
         }
         return true;
     }

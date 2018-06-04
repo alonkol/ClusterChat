@@ -68,7 +68,7 @@ public class myMessageHandler extends Handler {
             return;
         }
         DeviceContact receiverContact = messageBundle.getReceiver();
-        if (!MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00") &&
+        if (!MainActivity.myDeviceContact.getDeviceId().equals(MainActivity.DEFAULT_DEVICE_ID) &&
                 !receiverContact.getDeviceId().equals(MainActivity.myDeviceContact.getDeviceId()) &&
                 messageBundle.getMessageType() != MessageTypes.BROADCAST){
             Log.i(TAG, "Current device isn't the address for current message, passing along");
@@ -142,7 +142,7 @@ public class myMessageHandler extends Handler {
     }
 
     private void handleIncomingHSMessage(MessageBundle messageBundle){
-        if (MainActivity.myDeviceContact.getDeviceId().equals("00-00-00-00-00-00")) {
+        if (MainActivity.myDeviceContact.getDeviceId().equals(MainActivity.DEFAULT_DEVICE_ID)) {
             Log.i(TAG, "Initializing myDeviceContact address to " +
                     messageBundle.getReceiver().getDeviceId());
             MainActivity.myDeviceContact = messageBundle.getReceiver();

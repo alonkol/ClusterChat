@@ -19,7 +19,7 @@ public class PackageBuilder extends Thread{
         constructionPackages = new HashMap<>();
         this.mainActivity = mainActivity;
         mMediaPlayerOnNewMessage = MediaPlayer.create(mainActivity, R.raw.open_ended);
-
+        setName("PackageBuilder");
     }
 
     public void start() {

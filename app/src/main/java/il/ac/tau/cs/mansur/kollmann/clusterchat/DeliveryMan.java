@@ -47,6 +47,7 @@ public class DeliveryMan {
         if (t==null){
             Log.e(TAG, "No matching thread found for device contact: " + addressContact.getShortStr() +
                     "\nDisposing of message" + messageBundle);
+            MainActivity.mRoutingTable.removeLinkFromTable(linkDevice);
             return false;
         }
         return sendMessage(messageBundle, addressContact, t);

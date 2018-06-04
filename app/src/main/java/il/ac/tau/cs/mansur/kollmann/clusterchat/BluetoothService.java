@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
+import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.BluetoothThread;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.ConnectThread;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.ConnectedThread;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.MainAcceptThread;
@@ -28,6 +29,7 @@ public class BluetoothService {
     static final int MAX_CONNECTED_THREADS = 7;
     public Semaphore mSemaphore = new Semaphore(MAX_CONNECTED_THREADS);
     public myMessageHandler mMessageHandler;
+    private BluetoothThread mainAcceptThread;
     public final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
     public ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
 
@@ -50,7 +52,10 @@ public class BluetoothService {
         Log.d(TAG, "start");
 
         // Start the thread to listen on a BluetoothServerSocket
-        new MainAcceptThread(this).start();
+        if (MainActivity.LISTENER) {
+            mainAcceptThread = new MainAcceptThread(this);
+            mainAcceptThread.start();
+        }
     }
 
     boolean checkIfDeviceConnected(BluetoothDevice device){
@@ -89,15 +94,16 @@ public class BluetoothService {
 
     public synchronized void connected(BluetoothSocket socket, final BluetoothDevice
             device) {
-        Log.d(TAG, "connected");
-
         // Start the thread to manage the connection and perform transmissions
         final DeviceContact contact = new DeviceContact(device);
         ConnectedThread thread = new ConnectedThread(this, socket, contact);
-        mConnectedThreads.put(contact, thread);
-        MainActivity.mRoutingTable.addDeviceToTable(contact, contact, 1, false);
-        Log.d(SOCKET_TAG,"Connection with device " + device.getName() + "and socket " + socket);
-        thread.start();
+        boolean result = thread.initStreams();
+        if (result) {
+            mConnectedThreads.put(contact, thread);
+            MainActivity.mRoutingTable.addDeviceToTable(contact, contact, 1, false);
+            Log.d(SOCKET_TAG, "Connection with device " + device.getName() + " and socket " + socket);
+            thread.start();
+        }
     }
 
     public void write(OutputStream outStream, byte[] buffer) throws IOException {

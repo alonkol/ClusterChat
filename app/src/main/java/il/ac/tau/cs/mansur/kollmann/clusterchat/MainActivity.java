@@ -29,16 +29,16 @@ import android.widget.ListView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Activity";
-    private static final int discoveryPermissionPeriodSeconds = 5 * 60;
+    private static final int discoveryPermissionPeriodSeconds = 2 * 60;
     private static final int discoveryPermissionPeriodMillis =
             discoveryPermissionPeriodSeconds * 1000;
+    public static final String DEFAULT_DEVICE_ID = "00-00-00-00-00-00";
     public static DeviceContact myDeviceContact;
     private MainActivity mainActivity;
     public static PackageQueue packageQueue;
@@ -55,8 +55,10 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer mMediaPlayerOnDisconnect;
 
     // This flag is used to create complex network
-    // Full explanation is found under myBroadcastReceiver/tryConnect
+    // Full explanation is found under myBroadcastReceiver/addDeviceToWaitingList
     public static final boolean LEVEL_ROUTING_FLAG = false;
+    public static final boolean LISTENER = true;
+    public static final boolean CONNECTOR = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_UUID);
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
@@ -131,14 +134,15 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new myBroadcastReceiver(mBluetoothService, this);
         this.registerReceiver(mReceiver, filter);
 
-        startPeriodicDiscovery();
+        if (CONNECTOR)
+            startPeriodicDiscovery();
 
         mConversationManager = new ConversationsManager();
         mRoutingTable = new RoutingTable(this);
 
         getMessagesFromHistory();
         // the address will update on first handshake
-        myDeviceContact = new DeviceContact("00-00-00-00-00-00",
+        myDeviceContact = new DeviceContact(DEFAULT_DEVICE_ID,
                 mBluetoothService.mAdapter.getName());
 
         Random rand = new Random();
@@ -184,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
-        }, 10 * 1000, 30 * 1000);
+        }, 2 * 1000, 60 * 1000);
     }
 
     // Adding device to UI

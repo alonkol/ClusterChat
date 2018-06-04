@@ -12,61 +12,61 @@ import il.ac.tau.cs.mansur.kollmann.clusterchat.DeviceContact;
 
 public class DedicatedAcceptThread extends BluetoothThread {
     private BluetoothService service;
-    final UUID mmUuid;
+    private final UUID mmUuid;
     private final DeviceContact mmContact;
-    private BluetoothSocket mmOriginalSocket;
 
     // Debugging
-    private static final String TAG = "DedicatedAcceptThread";
+    private static final String TAGPREFIX = "DedicatedAcceptThread-";
+    private static String TAG;
 
-    DedicatedAcceptThread(BluetoothService service, DeviceContact deviceContact, UUID uuid,
-                          BluetoothSocket originalSocket){
+    DedicatedAcceptThread(BluetoothService service, DeviceContact deviceContact, UUID uuid){
         mmUuid = uuid;
         mmContact = deviceContact;
-        mmOriginalSocket = originalSocket;
         this.service = service;
+        TAG = TAGPREFIX + mmContact.getDeviceName();
+        setName(TAG);
+
     }
 
     public void run() {
-        Log.d(TAG, "BEGIN DedicatedAcceptThread on UUID: " + mmUuid.toString());
-        setName("DedicatedAcceptThread");
+        Log.d(TAG, "BEGIN DedicatedAcceptThread with device: " + mmContact.getShortStr() + " on UUID: " + mmUuid.toString());
 
         BluetoothServerSocket server_socket;
         BluetoothSocket socket;
 
-        // Create a new listening server socket
         try {
             server_socket = service.mAdapter.listenUsingRfcommWithServiceRecord(
                     "Dedicated" + mmContact.getDeviceName(), mmUuid);
-            Log.d(TAG, "Created listening socket for specific: " + server_socket +
-                    "for device: " + mmContact.getShortStr());
-            Log.d(TAG, "Listening to UUID: " + mmUuid.toString());
-            socket = server_socket.accept();
-            Log.d(TAG, "Accepted socket: " + socket + "device: " + socket.getRemoteDevice().getName());
-
-        } catch (Exception e) {
+            Log.d(TAG, "Server socket initiated " + server_socket);
+        } catch (IOException e) {
             Log.e(TAG, "Dedicated socket creation failed", e);
             return;
         }
 
-        // If a connection was accepted
-        if (socket != null) {
-            Log.d(TAG, "Accept thread established connection with: " +
-                    socket.getRemoteDevice().getName());
-
-            service.connected(socket, socket.getRemoteDevice());
+        // Create a new listening server socket
+        try {
+            socket = server_socket.accept(10000);
+        } catch (Exception e) {
+            Log.e(TAG, "Dedicated socket accept timeout or failed", e);
+            closeServerSocket(server_socket);
+            return;
         }
+        // If a connection was accepted
+        Log.d(TAG, "Dedicated accept thread established connection with: " +
+                socket.getRemoteDevice().getName() + "socket:" + socket);
 
+        service.connected(socket, socket.getRemoteDevice());
+        closeServerSocket(server_socket);
+
+    }
+
+    private void closeServerSocket(BluetoothServerSocket server_socket) {
         try {
             Log.d(TAG, "Connected, closing Server Socket");
-            Log.d(TAG, "Closing socket: " + server_socket);
             server_socket.close();
-            Log.d(TAG, "Closing original socket: " + mmOriginalSocket);
-            mmOriginalSocket.close();
         } catch (IOException e) {
             Log.e(TAG, "Could not close a server socket", e);
         }
-
     }
 
 }

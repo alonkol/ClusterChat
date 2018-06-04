@@ -32,17 +32,19 @@ public class ConnectThread extends BluetoothThread {
     public UUID mmUuid;
 
     // Debugging
-    private static final String TAG = "ConnectThread";
+    private static final String TAGPREFIX = "ConnectThread-";
+    private static String TAG;
 
     public ConnectThread(BluetoothService service, BluetoothDevice device) {
         this.service = service;
         mmDevice = device;
         mmContact = new DeviceContact(mmDevice);
+        TAG = TAGPREFIX + mmDevice.getName();
+        setName(TAG);
     }
 
     public void run() {
         Log.i(TAG, "BEGIN mConnectThread - " + mmDevice.getName());
-        setName("ConnectThread-" + mmDevice.getName());
 
         // if already connected, return.
         if (service.mConnectedThreads.containsKey(mmContact)) {
@@ -56,19 +58,23 @@ public class ConnectThread extends BluetoothThread {
         try {
             Log.d(TAG, "Acquiring connection lock");
             service.mSemaphore.acquire();
-            Log.d(TAG, "Lock acquired, connecting...");
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Lock Acquire interrupted for " + mmDevice.getName(), e);
+            finishConnection(false);
+            return;
+        }
+
+        try{
             mmInitSocket = mmDevice.createRfcommSocketToServiceRecord(BluetoothService.MAIN_ACCEPT_UUID);
             Log.d(TAG, "Created socket to main UUID: " + mmInitSocket + " for device: " + mmDevice.getName());
-        } catch (InterruptedException e3) {
-            Log.e(TAG, "Connect/Acquire interrupted for " + mmDevice.getName(), e3);
         } catch (Exception e) {
             Log.e(TAG, "Socket create() failed", e);
-            finishConnect();
+            finishConnection(false);
             return;
         }
 
         if (mmInitSocket == null){
-            service.mConnectThreads.remove(mmContact);
+            finishConnection(false);
             return;
         }
 
@@ -77,7 +83,7 @@ public class ConnectThread extends BluetoothThread {
             mmInitSocket.connect();
         } catch (IOException e) {
             Log.e(TAG, "Failed to connect init thread to " + mmDevice.getName(), e);
-            finishConnect();
+            finishConnection(true);
             return;
         }
 
@@ -90,25 +96,25 @@ public class ConnectThread extends BluetoothThread {
             mmInStream = mmInitSocket.getInputStream();
             mmOutStream = mmInitSocket.getOutputStream();
         } catch (IOException e) {
-            Log.e(TAG, "temp sockets not created", e);
-            finishConnect();
+            Log.e(TAG, "Couldn't get input/output streams", e);
+            finishConnection(true);
             return;
         }
 
         boolean sendHS = sendHandshake();
         if (!sendHS){
-            finishConnect();
+            finishConnection(true);
             return;
         }
 
         boolean readHS = readHandshake();
         if (!readHS){
-            finishConnect();
+            finishConnection(true);
             return;
         }
         // Should have new uuid, now attempt to connect to it
-        setUuid();
-        finishConnect();
+        closeInitSocket();
+        connectWithDedicatedUUID();
     }
 
     private boolean readHandshake() {
@@ -150,16 +156,15 @@ public class ConnectThread extends BluetoothThread {
         return MainActivity.mDeliveryMan.sendMessage(newMessage, mmContact, this);
     }
 
-    private void setUuid(){
+    private void connectWithDedicatedUUID(){
         // Make a connection to the BluetoothSocket
         BluetoothSocket socket;
-
         try {
             socket = mmDevice.createRfcommSocketToServiceRecord(mmUuid);
             Log.d(TAG, "Opened " + socket.toString() + "to specific uuid " +mmDevice.getName());
         } catch (Exception e) {
             Log.e(TAG, "Socket create() failed", e);
-            finishConnect();
+            finishConnection(false);
             return;
         }
 
@@ -168,8 +173,8 @@ public class ConnectThread extends BluetoothThread {
             Log.d(TAG, "Connected to " + mmDevice.getName() + "with socket: " + socket);
         } catch (IOException e) {
             Log.e(TAG, "Failed to connect to " + mmDevice.getName(), e);
-
             // Close the socket
+            finishConnection(false);
             try {
                 socket.close();
                 Log.d(TAG, "CLOSING" + socket.toString() + mmDevice.getName());
@@ -177,28 +182,32 @@ public class ConnectThread extends BluetoothThread {
                 Log.e(TAG, "unable to close() socket during connection failure", e2);
             }
             return;
-
         }
+        finishConnection(false);
         // Start the connected thread
         service.connected(socket, mmDevice);
     }
 
-    private void finishConnect() {
+    private void finishConnection(boolean shouldCloseInitSocket){
         service.mConnectThreads.remove(mmContact);
         service.mSemaphore.release();
+        if (shouldCloseInitSocket)
+            closeInitSocket();
 
-        // TODO - attempt maybe not close this!!
+    }
+
+    private void closeInitSocket() {
         // Close the init socket
-//            try {
-//                Log.d(TAG, "Closing socket" + mmInitSocket);
-//                if (mmInStream!=null)
-//                    mmInStream.close();
-//                if (mmOutStream!=null)
-//                    mmOutStream.close();
-//                mmInitSocket.close();
-//            } catch (IOException e2) {
-//                Log.e(TAG, "unable to close() socket during connection failure", e2);
-//            }
+            try {
+                Log.d(TAG, "Closing socket" + mmInitSocket);
+                if (mmInStream!=null)
+                    mmInStream.close();
+                if (mmOutStream!=null)
+                    mmOutStream.close();
+                mmInitSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "unable to close() socket during connection failure", e);
+            }
     }
 
     @Override
