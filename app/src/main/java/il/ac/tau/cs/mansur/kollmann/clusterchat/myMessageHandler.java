@@ -177,10 +177,10 @@ public class myMessageHandler extends Handler {
         // that the file has been received
         MessageBundle.PackageIdentifier packageIdentifier = new MessageBundle.PackageIdentifier(
                 Integer.parseInt(messageBundle.getMetadata("AckID")), messageBundle.getSender());
-        if (MainActivity.messagesToAck.contains(packageIdentifier)){
+        if (MainActivity.mDeliveryMan.messagesToAck.contains(packageIdentifier)){
             MainActivity.mConversationManager.addMessage(
                     messageBundle.getSender(), new BaseMessage("File arrived at his destination"));
-            MainActivity.messagesToAck.remove(packageIdentifier);
+            MainActivity.mDeliveryMan.messagesToAck.remove(packageIdentifier);
         }
     }
 }

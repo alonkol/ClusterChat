@@ -13,12 +13,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class DeliveryMan {
 
     private static final String TAG="DeliveryMan";
     public static final int MAX_BYTES_MESSAGE = 15 * 1024;
+    public HashSet<MessageBundle.PackageIdentifier> messagesToAck = new HashSet<>();
+    public HashSet<MessageBundle.PackageIdentifier> brodacastedMessages = new HashSet<>();
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
                                BluetoothService.BluetoothThread thread){
@@ -62,11 +65,11 @@ public class DeliveryMan {
     public boolean broadcastMessage(MessageBundle messageBundle){
         Log.d(TAG, "Broadcasting message: " + messageBundle + " to all neighbouring devices");
         MessageBundle.PackageIdentifier packageIdentifier = messageBundle.getIdentifier();
-        if (MainActivity.brodacastedMessages.contains(packageIdentifier)){
+        if (brodacastedMessages.contains(packageIdentifier)){
             Log.d(TAG, "Already broadcasted this message so dropping");
             return false;
         }
-        MainActivity.brodacastedMessages.add(messageBundle.getIdentifier());
+        brodacastedMessages.add(messageBundle.getIdentifier());
         for (DeviceContact dc: MainActivity.mRoutingTable.getAllNeighboursConnectedDevices()){
             sendMessage(messageBundle, dc);
         }
@@ -113,7 +116,7 @@ public class DeliveryMan {
         }
         // We would like to tell the sending device when the file that he has sent has arrived at his destination
         // so we keep it in a set, and upon ack received for it we will add a message to the chat window
-        MainActivity.messagesToAck.add(new MessageBundle.PackageIdentifier(messageID, addressContact));
+        messagesToAck.add(new MessageBundle.PackageIdentifier(messageID, addressContact));
     }
 
     private byte[] readBytesFromUri(Uri uri, ContentResolver contentResolver) throws IOException {
