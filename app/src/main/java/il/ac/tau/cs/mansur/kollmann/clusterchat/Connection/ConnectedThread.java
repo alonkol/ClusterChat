@@ -94,7 +94,7 @@ public class ConnectedThread extends BluetoothThread {
     private void connectionLost() {
         // close socket
         try {
-            Log.d(TAG,"Closing socket " + mmSocket + "device: " + mmContact.getShortStr());
+            Log.d(TAG,"Closing socket " + mmSocket + " device: " + mmContact.getShortStr());
             mmOutStream.close();
             mmInStream.close();
             mmSocket.close();

@@ -11,19 +11,19 @@ import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class myBroadcastReceiver extends BroadcastReceiver {
     private final static String TAG = "Broadcast Reciever";
     private BluetoothService mBluetoothService;
     private MainActivity mMainActivity;
-    private ArrayList<BluetoothDevice> mWaitingList;
+    private HashSet<BluetoothDevice> mWaitingList;
 
     public myBroadcastReceiver(BluetoothService bluetoothService, MainActivity mainActivity){
         mBluetoothService = bluetoothService;
         mMainActivity = mainActivity;
-        mWaitingList = new ArrayList<>();
+        mWaitingList = new HashSet<>();
     }
 
     void addDeviceToWaitingList(BluetoothDevice device){
@@ -41,7 +41,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             char firstLetter = MainActivity.myDeviceContact.getDeviceName().charAt(0);
             if ((!device.getName().startsWith(Character.toString((char) (firstLetter - 1)))) &&
                     (!device.getName().startsWith(Character.toString((char) (firstLetter + 1))))){
-                Log.d(TAG, "device " + device.getName()+ " is not in matching levels (" +
+                Log.i(TAG, "device " + device.getName()+ " is not in matching levels (" +
                         (Character.toString(firstLetter)) + ") so not connecting");
                 return;
             }
@@ -58,36 +58,18 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         mWaitingList.add(device);
     }
 
-    void handleUUIDResult(BluetoothDevice deviceExtra, Parcelable[] uuidExtra){
-        Log.d(TAG,"Handling UUIDS for device - " + deviceExtra.getName() +
-                '/' + deviceExtra.getAddress());
-        if (uuidExtra != null) {
-            boolean foundUuid = findUuid(uuidExtra);
-            if (!foundUuid){
-                Log.d(TAG, "No matching uuid found for device " +
-                        deviceExtra.getName());
-            }
-            else {
-                Log.d(TAG, "Found matching uuid for device " +
-                        deviceExtra.getName() + '/' + deviceExtra.getAddress());
-                mBluetoothService.connect(deviceExtra);
-            }
-        } else {
-            Log.d(TAG,"uuidExtra is still null");
-        }
-    }
-
     private void handleWaitingList(){
-        tryFetchNextDevice();
+        checkNextDeviceUUID();
     }
 
-    void tryFetchNextDevice(){
+    void checkNextDeviceUUID(){
         if (!mWaitingList.isEmpty()) {
-            BluetoothDevice device = mWaitingList.remove(0);
+            BluetoothDevice device = mWaitingList.iterator().next();
+            mWaitingList.remove(device);
             if (mBluetoothService.checkIfDeviceConnected(device)){
-                tryFetchNextDevice();
+                checkNextDeviceUUID();
             }else{
-                startFetchUUIDS(device);
+                device.fetchUuidsWithSdp();
             }
         }else{
             // Release lock for connections to happen
@@ -95,27 +77,20 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    void startFetchUUIDS(BluetoothDevice device){
-        Log.d(TAG, "Fetching from device " + device.getAddress() + '/' +
-                device.getName());
-        boolean result = device.fetchUuidsWithSdp();
-    }
-
-    private boolean findUuid(Parcelable[] uuids){
+    private UUID retrieveMainUUIDIfExists(Parcelable[] uuids) {
         if (uuids == null) {
-            return false;
+            return null;
         }
         for (Parcelable p : uuids) {
             UUID uuid = ((ParcelUuid) p).getUuid();
             if (uuid.equals(BluetoothService.MAIN_ACCEPT_UUID)) {
-                return true;
+                return uuid;
             }
-            // Handle Android bug swap bug
             if (byteSwappedUuid(uuid).equals(BluetoothService.MAIN_ACCEPT_UUID)) {
-                return true;
+                return byteSwappedUuid(uuid);
             }
         }
-        return false;
+        return null;
     }
 
     private UUID byteSwappedUuid(UUID toSwap) {
@@ -135,7 +110,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         if (action == null) {
             return;
         }
-        
+
         switch (action) {
             case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                 Log.d(TAG, "Discovery finished starting to handle waiting list");
@@ -148,18 +123,23 @@ public class myBroadcastReceiver extends BroadcastReceiver {
                 addDeviceToWaitingList(device);
                 break;
             case BluetoothDevice.ACTION_UUID:
-                // This is when we can be assured that fetchUuidsWithSdp has completed.
-                // So get the uuids and call fetchUuidsWithSdp on another device in list
+                // we fetched for all the UUID and check if ours is in it
                 BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-                handleUUIDResult(deviceExtra, uuidExtra);
-                tryFetchNextDevice();
+                UUID uuid =  retrieveMainUUIDIfExists(uuidExtra);
+                if (uuid != null) {
+                    Log.d(TAG, "Found matching uuid for device " +
+                            deviceExtra.getName() + '/' + deviceExtra.getAddress());
+                    mBluetoothService.connect(deviceExtra, uuid);
+                } else {
+                    Log.d(TAG, "Uuid was not found for device " +
+                            deviceExtra.getName() + '/' + deviceExtra.getAddress());
+                }
+                checkNextDeviceUUID();
                 break;
             case BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED:
                 Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 mMainActivity.startActivityForResult(enableIntent, MainActivity.REQUEST_ENABLE_BT);
-                break;
-            default:
                 break;
         }
     }

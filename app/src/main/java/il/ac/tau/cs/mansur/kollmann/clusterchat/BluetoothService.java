@@ -75,7 +75,7 @@ public class BluetoothService {
         return mConnectedThreads.get(dc);
     }
 
-    synchronized void connect(BluetoothDevice device){
+    synchronized void connect(BluetoothDevice device, UUID uuid){
         DeviceContact contact = new DeviceContact(device);
         // if already connected to device, return.
         if (checkIfContactConnected(contact))
@@ -87,7 +87,7 @@ public class BluetoothService {
             return;
         }
 
-        ConnectThread thread = new ConnectThread(this, device);
+        ConnectThread thread = new ConnectThread(this, device, uuid);
         mConnectThreads.put(contact, thread);
         thread.start();
     }

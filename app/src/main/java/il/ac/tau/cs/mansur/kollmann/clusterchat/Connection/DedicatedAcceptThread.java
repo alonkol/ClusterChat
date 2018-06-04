@@ -45,7 +45,7 @@ public class DedicatedAcceptThread extends BluetoothThread {
 
         // Create a new listening server socket
         try {
-            socket = server_socket.accept(10000);
+            socket = server_socket.accept(100000);
         } catch (Exception e) {
             Log.e(TAG, "Dedicated socket accept timeout or failed", e);
             closeServerSocket(server_socket);

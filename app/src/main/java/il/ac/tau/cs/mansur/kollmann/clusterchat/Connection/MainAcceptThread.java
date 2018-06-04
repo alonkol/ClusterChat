@@ -115,7 +115,6 @@ public class MainAcceptThread extends BluetoothThread {
         // Start a listening socket to listen on the new UUID
         DedicatedAcceptThread thread = new DedicatedAcceptThread(service, contact, uuid);
         thread.start();
-        // will close the original socket in dedicated thread
         closeOriginalSocket(socket);
     }
 

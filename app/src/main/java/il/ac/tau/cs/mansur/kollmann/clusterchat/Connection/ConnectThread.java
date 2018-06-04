@@ -29,16 +29,18 @@ public class ConnectThread extends BluetoothThread {
     private final DeviceContact mmContact;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
+    private UUID mainConnectionUUID;
     public UUID mmUuid;
 
     // Debugging
     private static final String TAGPREFIX = "ConnectThread-";
     private static String TAG;
 
-    public ConnectThread(BluetoothService service, BluetoothDevice device) {
+    public ConnectThread(BluetoothService service, BluetoothDevice device, UUID uuid) {
         this.service = service;
         mmDevice = device;
         mmContact = new DeviceContact(mmDevice);
+        mainConnectionUUID = uuid;
         TAG = TAGPREFIX + mmDevice.getName();
         setName(TAG);
     }
@@ -65,7 +67,7 @@ public class ConnectThread extends BluetoothThread {
         }
 
         try{
-            mmInitSocket = mmDevice.createRfcommSocketToServiceRecord(BluetoothService.MAIN_ACCEPT_UUID);
+            mmInitSocket = mmDevice.createRfcommSocketToServiceRecord(mainConnectionUUID);
             Log.d(TAG, "Created socket to main UUID: " + mmInitSocket + " for device: " + mmDevice.getName());
         } catch (Exception e) {
             Log.e(TAG, "Socket create() failed", e);
@@ -199,7 +201,7 @@ public class ConnectThread extends BluetoothThread {
     private void closeInitSocket() {
         // Close the init socket
             try {
-                Log.d(TAG, "Closing socket" + mmInitSocket);
+                Log.d(TAG, "Closing the main connection socket " + mmInitSocket);
                 if (mmInStream!=null)
                     mmInStream.close();
                 if (mmOutStream!=null)
