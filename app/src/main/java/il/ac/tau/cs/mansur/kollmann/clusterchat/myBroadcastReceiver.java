@@ -55,17 +55,6 @@ public class myBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
-        //TODO try this approach - this will eliminate duplicate connections
-        if (!MainActivity.myDeviceContact.getDeviceId().equals(MainActivity.DEFAULT_DEVICE_ID)){
-            if (MainActivity.myDeviceContact.getDeviceId().compareTo(device.getAddress()) < 0){
-                return;
-            }
-        } else {
-            if (MainActivity.myDeviceContact.getDeviceName().compareTo(device.getName()) < 0) {
-                return;
-            }
-        }
-
         mWaitingList.add(device);
     }
 

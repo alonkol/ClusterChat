@@ -110,7 +110,6 @@ public class RoutingTable {
             Log.d(TAG, String.format("Removed link %s and all of its devices",
                     linkDevice.getShortStr()));
         } catch (NullPointerException e){
-            //TODO examine
             Log.e(TAG, "Failed to find devices for link " + linkDevice.getDeviceId());
         }
 
