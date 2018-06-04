@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.BluetoothThread;
+import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.ConnectedThread;
+
 public class DeliveryMan {
 
     private static final String TAG="DeliveryMan";
@@ -24,7 +27,7 @@ public class DeliveryMan {
     private HashSet<MessageBundle.PackageIdentifier> brodacastedMessages = new HashSet<>();
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
-                               BluetoothService.BluetoothThread thread){
+                               BluetoothThread thread){
         Log.d(TAG, "Sending message: "+ messageBundle+ " to " + addressContact.getShortStr());
         byte[] send = messageBundle.toJson().getBytes();
         try {
@@ -39,7 +42,7 @@ public class DeliveryMan {
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact){
         DeviceContact linkDevice = MainActivity.mRoutingTable.getLink(addressContact);
-        BluetoothService.ConnectedThread t =
+        ConnectedThread t =
                 MainActivity.mBluetoothService.getConnectedThread(linkDevice);
         if (t==null){
             Log.e(TAG, "No matching thread found for device contact: " + addressContact.getShortStr() +

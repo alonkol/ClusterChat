@@ -7,7 +7,7 @@ public class DeviceContact {
     private String deviceName;
     private int unreadMessages = 0;
 
-    DeviceContact(BluetoothDevice device) {
+    public DeviceContact(BluetoothDevice device) {
         this(device.getAddress(), device.getName());
     }
 

@@ -8,9 +8,11 @@ import com.google.gson.JsonSyntaxException;
 
 import java.util.UUID;
 
+import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.ConnectThread;
+
 public class myMessageHandler extends Handler {
     private final String TAG = "MessageHandler";
-    static final int MESSAGE_IN = 0;
+    public static final int MESSAGE_IN = 0;
     static final int MESSAGE_OUT = 1;
     private final MediaPlayer mMediaPlayerOnNewMessage;
     private MainActivity mMainActivity;
@@ -148,7 +150,7 @@ public class myMessageHandler extends Handler {
         String uuid = messageBundle.getMetadata("UUID");
         if (uuid != null) {
             DeviceContact device = messageBundle.getSender();
-            BluetoothService.ConnectThread thread = BluetoothService.mConnectThreads.get(device);
+            ConnectThread thread = MainActivity.mBluetoothService.mConnectThreads.get(device);
             if (thread == null) {
                 Log.e(TAG, "Incoming UUID - requesting thread not found.");
                 return;

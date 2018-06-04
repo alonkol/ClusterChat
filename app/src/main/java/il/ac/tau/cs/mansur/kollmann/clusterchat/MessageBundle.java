@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import java.util.HashMap;
 import java.util.Objects;
 
-class MessageBundle{
+public class MessageBundle{
     private String message;
     private MessageTypes messageType;
     private DeviceContact sender;
@@ -15,7 +15,7 @@ class MessageBundle{
     private Integer messageID;
     private HashMap<String, String> metadata;
 
-    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
+    public MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
                   DeviceContact receiver, int messageID){
         this.message = message;
         this.sender = sender;
@@ -26,7 +26,7 @@ class MessageBundle{
         this.metadata =  new HashMap<>();
     }
 
-    MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
+    public MessageBundle(String message, MessageTypes messageType, DeviceContact sender,
                          DeviceContact receiver){
         this(message, messageType, sender, receiver, 0);
         this.messageID = MainActivity.getNewMessageID();
@@ -91,7 +91,7 @@ class MessageBundle{
 
     Integer getTTL() { return ttl; }
 
-    void setTTL(Integer ttl){ this.ttl = ttl;}
+    public void setTTL(Integer ttl){ this.ttl = ttl;}
 
     void decreaseTTL(){ this.ttl -= 1; }
 
