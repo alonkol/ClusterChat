@@ -21,11 +21,9 @@ public class MainAcceptThread extends BluetoothThread {
     private BluetoothService service;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
-    private BluetoothServerSocket mainListeningSocket;
 
     // Debugging
     private static final String TAG = "MainAcceptThread";
-    private static final String SOCKET_TAG = "Sockets";
 
     public MainAcceptThread(BluetoothService service){
         this.service = service;
@@ -36,35 +34,33 @@ public class MainAcceptThread extends BluetoothThread {
         setName("MainAcceptThread");
 
         BluetoothSocket socket;
+        BluetoothServerSocket mainListeningSocket;
 
         try {
             mainListeningSocket = service.mAdapter.listenUsingRfcommWithServiceRecord(
                     "Main" + service.mAdapter.getName(), BluetoothService.MAIN_ACCEPT_UUID);
-            Log.d(SOCKET_TAG, "Opened SUPER: " + mainListeningSocket.toString());
+            Log.d(TAG, "Opened SUPER: " + mainListeningSocket.toString());
 
         } catch (Exception e) {
-            Log.e(SOCKET_TAG, "Socket listen() failed", e);
+            Log.e(TAG, "Socket listen() failed", e);
             return;
         }
 
         while (true) {
-            socket = null;
-
             try {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
                 Log.d(TAG, "Listening to the next connection...");
                 socket = mainListeningSocket.accept();
-                Log.d(SOCKET_TAG, "Accepted socket: " + socket.toString() + " device: " + socket.getRemoteDevice().getName());
+                Log.d(TAG, "Accepted socket: " + socket.toString() + " device: " + socket.getRemoteDevice().getName());
             } catch (IOException e) {
-                Log.e(SOCKET_TAG, "main accept() failed", e);
+                Log.e(TAG, "main accept() failed", e);
                 break;
             }
 
-            // If a connection was accepted
-            if (socket != null) {
-                handleAcceptedSocket(socket);
-            }
+            // A connection was accepted
+            handleAcceptedSocket(socket);
+
         }
     }
 
@@ -73,14 +69,14 @@ public class MainAcceptThread extends BluetoothThread {
         if (service.mConnectedThreads.containsKey(new DeviceContact(socket.getRemoteDevice()))) {
             Log.d(TAG, "Accept thread established connection with: "  +
                     socket.getRemoteDevice().getName() + " but this exists so leave it. ");
-//                try {
-//                    Log.d(TAG, "Accept thread established connection with: " +
-//                            socket.getRemoteDevice().getName() + " but this exists so close. ");
-//                    //Log.d(SOCKET_TAG, "closing socket " + socket.toString()  + " device: " + socket.getRemoteDevice().getName());
-//                    //socket.close();
-//                } catch (IOException e) {
-//                    Log.e(SOCKET_TAG, "Could not close unwanted socket " + "device: " + socket.getRemoteDevice().getName(), e);
-//                }
+                try {
+                    Log.d(TAG, "Accept thread established connection with: " +
+                            socket.getRemoteDevice().getName() + " but this exists so close. ");
+                    Log.d(TAG, "closing socket " + socket.toString()  + " device: " + socket.getRemoteDevice().getName());
+                    socket.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Could not close unwanted socket " + "device: " + socket.getRemoteDevice().getName(), e);
+                }
             return;
         }
 
@@ -91,10 +87,10 @@ public class MainAcceptThread extends BluetoothThread {
         }catch (IOException e){
             Log.e(TAG, "Could not open streams", e);
             try {
-                Log.d(SOCKET_TAG, "closing socket " + socket.toString() + " device: " + socket.getRemoteDevice().getName());
+                Log.d(TAG, "closing socket " + socket.toString() + " device: " + socket.getRemoteDevice().getName());
                 socket.close();
             } catch (IOException e2) {
-                Log.e(SOCKET_TAG, "Could not close unwanted socket, device: " + socket.getRemoteDevice().getName(), e2);
+                Log.e(TAG, "Could not close unwanted socket, device: " + socket.getRemoteDevice().getName(), e2);
             }
             return;
         }
@@ -108,10 +104,10 @@ public class MainAcceptThread extends BluetoothThread {
         result = readHS();
         if (!result){
             try {
-                Log.d(SOCKET_TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
+                Log.d(TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
                 socket.close();
             } catch (IOException e) {
-                Log.e(SOCKET_TAG, "Could not close unwanted socket" + "device: " + socket.getRemoteDevice().getName(), e);
+                Log.e(TAG, "Could not close unwanted socket" + "device: " + socket.getRemoteDevice().getName(), e);
             }
         }
 
@@ -119,10 +115,10 @@ public class MainAcceptThread extends BluetoothThread {
         result = sendHS(uuid, contact);
         if (!result){
             try {
-                Log.d(SOCKET_TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
+                Log.d(TAG, "closing socket " + socket.toString() + "device: " + socket.getRemoteDevice().getName());
                 socket.close();
             } catch (IOException e) {
-                Log.e(SOCKET_TAG, "Could not close unwanted socket" + "device: " + socket.getRemoteDevice().getName(), e);
+                Log.e(TAG, "Could not close unwanted socket" + "device: " + socket.getRemoteDevice().getName(), e);
             }
         }
 
@@ -134,7 +130,7 @@ public class MainAcceptThread extends BluetoothThread {
             mmInStream.close();
             mmOutStream.close();
         } catch (IOException e) {
-            Log.e(SOCKET_TAG, "Could not close unwanted socket device: " + socket.getRemoteDevice().getName(), e);
+            Log.e(TAG, "Could not close unwanted socket device: " + socket.getRemoteDevice().getName(), e);
         }
     }
 

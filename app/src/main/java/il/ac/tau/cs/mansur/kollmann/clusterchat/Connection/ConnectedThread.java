@@ -26,7 +26,6 @@ public class ConnectedThread extends BluetoothThread {
 
     // Debugging
     private static final String TAG = "ConnectedThread";
-    private static final String SOCKET_TAG = "Sockets";
 
     public ConnectedThread(BluetoothService service, BluetoothSocket socket, DeviceContact contact) {
         Log.d(TAG, "create ConnectedThread");
@@ -92,7 +91,7 @@ public class ConnectedThread extends BluetoothThread {
 
         // close socket
         try {
-            Log.d(SOCKET_TAG,"Closing socket " + mmSocket + "device: " + mmContact.getShortStr());
+            Log.d(TAG,"Closing socket " + mmSocket + "device: " + mmContact.getShortStr());
             mmOutStream.close();
             mmInStream.close();
             mmSocket.close();

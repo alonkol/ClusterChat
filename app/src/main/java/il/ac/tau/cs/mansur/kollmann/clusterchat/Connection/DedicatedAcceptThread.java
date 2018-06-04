@@ -18,7 +18,6 @@ public class DedicatedAcceptThread extends BluetoothThread {
 
     // Debugging
     private static final String TAG = "DedicatedAcceptThread";
-    private static final String SOCKET_TAG = "Sockets";
 
     DedicatedAcceptThread(BluetoothService service, DeviceContact deviceContact, UUID uuid,
                           BluetoothSocket originalSocket){
@@ -39,11 +38,11 @@ public class DedicatedAcceptThread extends BluetoothThread {
         try {
             server_socket = service.mAdapter.listenUsingRfcommWithServiceRecord(
                     "Dedicated" + mmContact.getDeviceName(), mmUuid);
-            Log.d(SOCKET_TAG, "Created listening socket for specific: " + server_socket +
+            Log.d(TAG, "Created listening socket for specific: " + server_socket +
                     "for device: " + mmContact.getShortStr());
             Log.d(TAG, "Listening to UUID: " + mmUuid.toString());
             socket = server_socket.accept();
-            Log.d(SOCKET_TAG, "Accepted socket: " + socket + "device: " + socket.getRemoteDevice().getName());
+            Log.d(TAG, "Accepted socket: " + socket + "device: " + socket.getRemoteDevice().getName());
 
         } catch (Exception e) {
             Log.e(TAG, "Dedicated socket creation failed", e);
@@ -60,9 +59,9 @@ public class DedicatedAcceptThread extends BluetoothThread {
 
         try {
             Log.d(TAG, "Connected, closing Server Socket");
-            Log.d(SOCKET_TAG, "Closing socket: " + server_socket);
+            Log.d(TAG, "Closing socket: " + server_socket);
             server_socket.close();
-            Log.d(SOCKET_TAG, "Closing original socket: " + mmOriginalSocket);
+            Log.d(TAG, "Closing original socket: " + mmOriginalSocket);
             mmOriginalSocket.close();
         } catch (IOException e) {
             Log.e(TAG, "Could not close a server socket", e);
