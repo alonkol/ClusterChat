@@ -15,13 +15,13 @@ public class RoutingTable {
     private static final Integer INFINITY_HOP_COUNT = 15;
     private final Handler mUiConnectHandler;
     private HashMap<DeviceContact, DeviceContact> mtable;
-    private HashMap<DeviceContact, HashSet<DeviceContact>> revertedTable;
+    private HashMap<DeviceContact, HashSet<DeviceContact>> linkToDevicesTable;
     private HashMap<DeviceContact, Integer> hopCounts;
     private MainActivity mMainActivity;
 
     RoutingTable(MainActivity mainActivity){
         mtable = new HashMap<>();
-        revertedTable = new HashMap<>();
+        linkToDevicesTable = new HashMap<>();
         mUiConnectHandler = new Handler();
         hopCounts = new HashMap<>();
         mMainActivity = mainActivity;
@@ -32,7 +32,7 @@ public class RoutingTable {
     }
 
     public HashSet<DeviceContact> getAllDevicesForLink(DeviceContact dc){
-        HashSet<DeviceContact> devices = revertedTable.get(dc);
+        HashSet<DeviceContact> devices = linkToDevicesTable.get(dc);
         if (devices==null){
             return new HashSet<>();
         }
@@ -60,10 +60,10 @@ public class RoutingTable {
         Log.d(TAG, String.format(
                 "Added device name %s and link %s to tables",
                 deviceContact.getDeviceName(), linkDevice.getDeviceName()));
-        if (!revertedTable.containsKey(linkDevice)){
-            revertedTable.put(linkDevice, new HashSet<DeviceContact>());
+        if (!linkToDevicesTable.containsKey(linkDevice)){
+            linkToDevicesTable.put(linkDevice, new HashSet<DeviceContact>());
         }
-        revertedTable.get(linkDevice).add(deviceContact);
+        linkToDevicesTable.get(linkDevice).add(deviceContact);
         addDeviceToUI(deviceContact);
         if (finalize) {
             checkConsistency();
@@ -85,7 +85,10 @@ public class RoutingTable {
         DeviceContact link = mtable.get(deviceContact);
         mtable.remove(deviceContact);
         hopCounts.remove(deviceContact);
-        revertedTable.get(link).remove(deviceContact);
+        linkToDevicesTable.get(link).remove(deviceContact);
+        if (linkToDevicesTable.get(link).isEmpty()) {
+            linkToDevicesTable.remove(link);
+        }
         if (removeFromUI) {
             removeDeviceFromUI(deviceContact);
         }
@@ -98,13 +101,14 @@ public class RoutingTable {
 
     public void removeLinkFromTable(DeviceContact linkDevice){
         try{
-            for (DeviceContact deviceContact: new HashSet<>(revertedTable.get(linkDevice))){
+            for (DeviceContact deviceContact: new HashSet<>(linkToDevicesTable.get(linkDevice))){
                 Log.d(TAG, String.format(
                         "Removing device %s due to removal of link %s",
                         deviceContact.getShortStr(), linkDevice.getShortStr()));
                 removeDeviceFromTable(deviceContact, true,false);
             }
-            revertedTable.remove(linkDevice);
+            linkToDevicesTable.remove(linkDevice);
+            hopCounts.remove(linkDevice);
             checkConsistency();
             shareRoutingInfo();
             Log.d(TAG, String.format("Removed link %s and all of its devices",
@@ -129,19 +133,19 @@ public class RoutingTable {
         }
         if (showReversed){
             Log.d(TAG, "Reversed Table");
-            for (DeviceContact link: revertedTable.keySet()){
+            for (DeviceContact link: linkToDevicesTable.keySet()){
                 Log.d(TAG,
                         String.format(
                                 "Link: %s Devices %s", link.getDeviceName(),
-                                Arrays.toString(revertedTable.get(link).toArray())));
+                                Arrays.toString(linkToDevicesTable.get(link).toArray())));
             }
         }
     }
 
     private void checkConsistency(){
         int count = 0;
-        for(DeviceContact link: revertedTable.keySet()){
-                HashSet<DeviceContact> devicesList = revertedTable.get(link);
+        for(DeviceContact link: linkToDevicesTable.keySet()){
+                HashSet<DeviceContact> devicesList = linkToDevicesTable.get(link);
                 for (DeviceContact deviceContact: devicesList){
                     count ++;
                     if (!mtable.get(deviceContact).equals(link)){
@@ -165,19 +169,14 @@ public class RoutingTable {
         logTable(false);
     }
 
-    public ArrayList<DeviceContact> getAllNeighboursConnectedDevices() {
-        ArrayList<DeviceContact> neighbours = new ArrayList<>();
-        for (DeviceContact l: revertedTable.keySet()){
-            if (hopCounts.get(l) == 1)
-                neighbours.add(l);
-        }
-        return neighbours;
+    public Set<DeviceContact> getAllNeighboursConnectedDevices() {
+        return linkToDevicesTable.keySet();
     }
 
     public String createRoutingData(DeviceContact recieverContact){
         StringBuilder routingData = new StringBuilder();
         String deviceInfo;
-        for (Map.Entry<DeviceContact, HashSet<DeviceContact>> entry: revertedTable.entrySet()){
+        for (Map.Entry<DeviceContact, HashSet<DeviceContact>> entry: linkToDevicesTable.entrySet()){
             DeviceContact l = entry.getKey();
             if (l.equals(recieverContact)){
                 continue;
@@ -215,7 +214,7 @@ public class RoutingTable {
                 currentLinkedDevices.remove(dc);
                 Integer hopCount = Integer.parseInt(info[2]);
                 Integer currentHopCount = hopCounts.get(dc);
-                Integer newCount = 1 + hopCount;
+                Integer newCount = senderHopCount + hopCount;
                 if (currentHopCount == null) {
                     // If not known of device yet add it to table and UI
                     addDeviceToTable(dc, senderContact, newCount, false);
@@ -260,9 +259,7 @@ public class RoutingTable {
     }
 
     public void shareRoutingInfo(){
-        ArrayList<DeviceContact> neighbours =
-                MainActivity.mRoutingTable.getAllNeighboursConnectedDevices();
-        for (DeviceContact dc: neighbours){
+        for (DeviceContact dc: getAllNeighboursConnectedDevices()){
             MainActivity.mDeliveryMan.sendRoutingData(dc, createRoutingData(dc), false);
         }
     }
