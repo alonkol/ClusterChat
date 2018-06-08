@@ -193,10 +193,10 @@ public class ChatActivity extends AppCompatActivity {
                 uri = resultData.getData();
                 Log.i(TAG, "Uri: " + uri.toString());
                 String fileName = getFileName(uri);
-                MainActivity.mDeliveryMan.sendFile(uri, fileName, mDeviceContact, getContentResolver());
                 MainActivity.mConversationManager.addMessage(mDeviceContact,
                         new BaseMessage("File " + fileName + " is on its way to target...\n" +
                                 "You will be notified when " + mDeviceContact.getDeviceName() + " approves that he got it"));
+                new FileSender(MainActivity.mDeliveryMan, uri, fileName, mDeviceContact, getContentResolver()).start();
             }
         }
     }
