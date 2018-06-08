@@ -202,6 +202,11 @@ public class RoutingTable {
         currentLinkedDevices.remove(senderContact);
 
         Integer senderHopCount = hopCounts.get(senderContact);
+        if (hopCounts == null){
+            addDeviceToTable(senderContact, senderContact, 1, false);
+            senderHopCount = 1;
+            changeHappened = true;
+        }
         if (!routingData.equals("")) {
             for (String line : routingData.split(",")) {
                 String info[] = line.split("#~#");
@@ -210,7 +215,7 @@ public class RoutingTable {
                 currentLinkedDevices.remove(dc);
                 Integer hopCount = Integer.parseInt(info[2]);
                 Integer currentHopCount = hopCounts.get(dc);
-                Integer newCount = senderHopCount + hopCount;
+                Integer newCount = 1 + hopCount;
                 if (currentHopCount == null) {
                     // If not known of device yet add it to table and UI
                     addDeviceToTable(dc, senderContact, newCount, false);
