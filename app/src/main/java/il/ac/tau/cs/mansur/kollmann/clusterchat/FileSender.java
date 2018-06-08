@@ -85,7 +85,7 @@ public class FileSender extends Thread {
             messagesToSend.add(mb);
         }
 
-        // We would like to tell the sending device when the file that he has sent has arrived at his destination
+        // We would like to tell the sending device when the file that he has sent has arrived at its destination
         // so we keep it in a set, and upon ack received for it we will add a message to the chat window
         deliveryMan.addMessageToWaitingForAck(new MessageBundle.PackageIdentifier(messageID, addressContact));
 

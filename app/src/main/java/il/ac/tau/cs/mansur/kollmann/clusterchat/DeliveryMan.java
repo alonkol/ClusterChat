@@ -101,7 +101,7 @@ public class DeliveryMan {
                 Integer.parseInt(messageBundle.getMetadata("AckID")), messageBundle.getSender());
         if (messagesToAck.contains(packageIdentifier)){
             MainActivity.mConversationManager.addMessage(
-                    messageBundle.getSender(), new BaseMessage("File arrived at his destination"));
+                    messageBundle.getSender(), new BaseMessage("File arrived at its destination"));
             messagesToAck.remove(packageIdentifier);
         }
     }

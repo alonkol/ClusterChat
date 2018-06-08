@@ -195,7 +195,7 @@ public class ChatActivity extends AppCompatActivity {
                 String fileName = getFileName(uri);
                 MainActivity.mConversationManager.addMessage(mDeviceContact,
                         new BaseMessage("File " + fileName + " is on its way to target...\n" +
-                                "You will be notified when " + mDeviceContact.getDeviceName() + " approves that he got it"));
+                                "You will be notified when the file has been saved into " + mDeviceContact.getDeviceName() + " device"));
                 new FileSender(MainActivity.mDeliveryMan, uri, fileName, mDeviceContact, getContentResolver()).start();
             }
         }
