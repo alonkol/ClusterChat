@@ -37,7 +37,7 @@ public class MainAcceptThread extends BluetoothThread {
         BluetoothServerSocket mainListeningSocket;
 
         try {
-            mainListeningSocket = service.mAdapter.listenUsingRfcommWithServiceRecord(
+            mainListeningSocket = service.mAdapter.listenUsingInsecureRfcommWithServiceRecord(
                     "Main" + service.mAdapter.getName(), BluetoothService.MAIN_ACCEPT_UUID);
             Log.d(TAG, "Opened main server socket: " + mainListeningSocket.toString());
 

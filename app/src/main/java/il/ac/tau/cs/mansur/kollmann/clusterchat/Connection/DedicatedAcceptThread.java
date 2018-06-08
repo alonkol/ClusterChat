@@ -35,7 +35,7 @@ public class DedicatedAcceptThread extends BluetoothThread {
         BluetoothSocket socket;
 
         try {
-            server_socket = service.mAdapter.listenUsingRfcommWithServiceRecord(
+            server_socket = service.mAdapter.listenUsingInsecureRfcommWithServiceRecord(
                     "Dedicated" + mmContact.getDeviceName(), mmUuid);
             Log.d(TAG, "Server socket initiated " + server_socket);
         } catch (IOException e) {

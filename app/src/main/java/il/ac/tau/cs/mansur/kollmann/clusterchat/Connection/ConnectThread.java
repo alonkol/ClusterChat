@@ -67,7 +67,7 @@ public class ConnectThread extends BluetoothThread {
         }
 
         try{
-            mmInitSocket = mmDevice.createRfcommSocketToServiceRecord(mainConnectionUUID);
+            mmInitSocket = mmDevice.createInsecureRfcommSocketToServiceRecord(mainConnectionUUID);
             Log.d(TAG, "Created socket to main UUID: " + mmInitSocket + " for device: " + mmDevice.getName());
         } catch (Exception e) {
             Log.e(TAG, "Socket create() failed", e);
@@ -162,7 +162,7 @@ public class ConnectThread extends BluetoothThread {
         // Make a connection to the BluetoothSocket
         BluetoothSocket socket;
         try {
-            socket = mmDevice.createRfcommSocketToServiceRecord(mmUuid);
+            socket = mmDevice.createInsecureRfcommSocketToServiceRecord(mmUuid);
             Log.d(TAG, "Opened " + socket.toString() + "to specific uuid " +mmDevice.getName());
         } catch (Exception e) {
             Log.e(TAG, "Socket create() failed", e);
