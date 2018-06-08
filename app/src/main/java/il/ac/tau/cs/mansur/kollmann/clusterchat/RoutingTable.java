@@ -201,7 +201,7 @@ public class RoutingTable {
         currentLinkedDevices.remove(senderContact);
 
         Integer senderHopCount = hopCounts.get(senderContact);
-        if (hopCounts == null){
+        if (senderHopCount == null){
             addDeviceToTable(senderContact, senderContact, 1, false);
             senderHopCount = 1;
             changeHappened = true;
