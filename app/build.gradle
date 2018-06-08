@@ -24,6 +24,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     compile 'com.google.code.gson:gson:2.8.2'
+    compile 'com.splunk:mint-android-sdk:5.2.2'
     testImplementation 'junit:junit:4.12'
     testCompile 'junit:junit:4.12'
     testCompile 'org.powermock:powermock:1.6.5'
@@ -36,6 +37,9 @@ dependencies {
 allprojects {
     repositories {
         mavenCentral()
+        maven {
+            url uri('mint-plugin-repo-5.2.2')
+        }
     }
 }
 

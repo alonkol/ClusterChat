@@ -2,10 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="il.ac.tau.cs.mansur.kollmann.clusterchat">
 
+    <!-- The internet permission is used for sending crash logs to our server  using mint
+    If no internet connection as intended, it just won't send any and it's ok -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- These are the permissions we need for the app -->
+    <!-- Bluetooth permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Sending/Recieving files needed permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
