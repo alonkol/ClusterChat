@@ -170,7 +170,7 @@ public class RoutingTable {
     }
 
     public Set<DeviceContact> getAllNeighboursConnectedDevices() {
-        return linkToDevicesTable.keySet();
+        return new HashSet<>(linkToDevicesTable.keySet());
     }
 
     public String createRoutingData(DeviceContact recieverContact){
