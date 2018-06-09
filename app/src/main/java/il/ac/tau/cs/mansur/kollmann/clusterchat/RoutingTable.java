@@ -42,7 +42,10 @@ public class RoutingTable {
                                   boolean overrideIfExists, boolean finalize){
         if (hopCount >= INFINITY_HOP_COUNT){
             Log.d(TAG, "Device " + deviceContact + " will not be added since hop count is inf");
-            return;
+            if (mtable.containsKey(deviceContact)){
+                removeDeviceFromTable(deviceContact, false,false);
+                return;
+            }
         }
         if (mtable.containsKey(deviceContact)){
             Log.i(TAG, "device "+ deviceContact.getShortStr() + " already exists in table");
