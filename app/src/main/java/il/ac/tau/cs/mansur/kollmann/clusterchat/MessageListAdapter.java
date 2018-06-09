@@ -10,14 +10,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 class BaseMessage {
-    String mMessage;
-    String mSender;
-    long createdAt;
-    boolean incoming;
+    final String mMessage;
+    private final String mSender;
+    final long createdAt;
+    final boolean incoming;
 
     BaseMessage(String message, String sender) {
         mMessage = message;
@@ -34,12 +33,12 @@ class BaseMessage {
     }
 }
 
-public class MessageListAdapter extends RecyclerView.Adapter {
+class MessageListAdapter extends RecyclerView.Adapter {
     private static final int VIEW_TYPE_MESSAGE_SENT = 1;
     private static final int VIEW_TYPE_MESSAGE_RECEIVED = 2;
 
-    private Context mContext;
-    private List<BaseMessage> mMessageList;
+    private final Context mContext;
+    private final List<BaseMessage> mMessageList;
 
     MessageListAdapter(Context context, List<BaseMessage> messageList) {
         mContext = context;
@@ -103,13 +102,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
     }
 
     private class SentMessageHolder extends RecyclerView.ViewHolder {
-        TextView messageText, timeText;
+        final TextView messageText;
+        final TextView timeText;
 
         SentMessageHolder(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.text_message_body);
-            timeText = (TextView) itemView.findViewById(R.id.text_message_time);
+            messageText = itemView.findViewById(R.id.text_message_body);
+            timeText = itemView.findViewById(R.id.text_message_time);
         }
 
         void bind(BaseMessage message) {
@@ -122,13 +122,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
     }
 
     private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
-        TextView messageText, timeText;
+        final TextView messageText;
+        final TextView timeText;
 
         ReceivedMessageHolder(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.rec_text_message_body);
-            timeText = (TextView) itemView.findViewById(R.id.rec_text_message_time);
+            messageText = itemView.findViewById(R.id.rec_text_message_body);
+            timeText = itemView.findViewById(R.id.rec_text_message_time);
         }
 
         void bind(BaseMessage message) {

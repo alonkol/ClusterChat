@@ -1,20 +1,9 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
-import android.content.ContentResolver;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.OpenableColumns;
-import android.util.Base64;
 import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.BluetoothThread;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.ConnectedThread;
@@ -22,9 +11,9 @@ import il.ac.tau.cs.mansur.kollmann.clusterchat.Connection.ConnectedThread;
 public class DeliveryMan {
 
     private static final String TAG="DeliveryMan";
-    public static final int MAX_BYTES_MESSAGE = 15 * 1024;
-    private HashSet<MessageBundle.PackageIdentifier> messagesToAck = new HashSet<>();
-    private HashSet<MessageBundle.PackageIdentifier> brodacastedMessages = new HashSet<>();
+    public static final int MAX_BYTES_MESSAGE = 20 * 1024;
+    private final HashSet<MessageBundle.PackageIdentifier> messagesToAck = new HashSet<>();
+    private final HashSet<MessageBundle.PackageIdentifier> broadcastedMessages = new HashSet<>();
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact,
                                BluetoothThread thread){
@@ -42,6 +31,9 @@ public class DeliveryMan {
 
     public boolean sendMessage(MessageBundle messageBundle, DeviceContact addressContact){
         DeviceContact linkDevice = MainActivity.mRoutingTable.getLink(addressContact);
+        if (linkDevice==null){
+            return false;
+        }
         ConnectedThread t =
                 MainActivity.mBluetoothService.getConnectedThread(linkDevice);
         if (t==null){
@@ -69,11 +61,11 @@ public class DeliveryMan {
     public boolean broadcastMessage(MessageBundle messageBundle){
         Log.d(TAG, "Broadcasting message: " + messageBundle + " to all neighbouring devices");
         MessageBundle.PackageIdentifier packageIdentifier = messageBundle.getIdentifier();
-        if (brodacastedMessages.contains(packageIdentifier)){
+        if (broadcastedMessages.contains(packageIdentifier)){
             Log.d(TAG, "Already broadcasted this message so dropping");
             return false;
         }
-        brodacastedMessages.add(messageBundle.getIdentifier());
+        broadcastedMessages.add(messageBundle.getIdentifier());
         for (DeviceContact dc: MainActivity.mRoutingTable.getAllNeighboursConnectedDevices()){
             sendMessage(messageBundle, dc);
         }
@@ -100,8 +92,10 @@ public class DeliveryMan {
         MessageBundle.PackageIdentifier packageIdentifier = new MessageBundle.PackageIdentifier(
                 Integer.parseInt(messageBundle.getMetadata("AckID")), messageBundle.getSender());
         if (messagesToAck.contains(packageIdentifier)){
+            String message = "File arrived at its destination";
             MainActivity.mConversationManager.addMessage(
-                    messageBundle.getSender(), new BaseMessage("File arrived at its destination"));
+                    messageBundle.getSender(), new BaseMessage(message));
+
             messagesToAck.remove(packageIdentifier);
         }
     }
@@ -109,8 +103,8 @@ public class DeliveryMan {
 
     private byte[] addPackageSize(byte[] data){
         int len = data.length;
-        byte[] size = ByteBuffer.allocate(4).putInt(len).array();
-        byte[] result = new byte[4 + data.length];
+        byte[] size = ByteBuffer.allocate(8).putInt(len).array();
+        byte[] result = new byte[8 + data.length];
         System.arraycopy(size, 0, result, 0, size.length);
         System.arraycopy(data, 0, result, size.length, data.length);
         return result;

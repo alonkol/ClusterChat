@@ -15,10 +15,10 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public class myBroadcastReceiver extends BroadcastReceiver {
-    private final static String TAG = "Broadcast Reciever";
-    private BluetoothService mBluetoothService;
-    private MainActivity mMainActivity;
-    private HashSet<BluetoothDevice> mWaitingList;
+    private final static String TAG = "BroadcastReceiver";
+    private final BluetoothService mBluetoothService;
+    private final MainActivity mMainActivity;
+    private final HashSet<BluetoothDevice> mWaitingList;
 
     public myBroadcastReceiver(BluetoothService bluetoothService, MainActivity mainActivity){
         mBluetoothService = bluetoothService;
@@ -26,7 +26,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         mWaitingList = new HashSet<>();
     }
 
-    void addDeviceToWaitingList(BluetoothDevice device){
+    private void addDeviceToWaitingList(BluetoothDevice device){
         Log.d(TAG, "Discovery found a device! " + device.getName() + "/" +
                 device.getAddress());
 
@@ -62,7 +62,7 @@ public class myBroadcastReceiver extends BroadcastReceiver {
         checkNextDeviceUUID();
     }
 
-    void checkNextDeviceUUID(){
+    private void checkNextDeviceUUID(){
         if (!mWaitingList.isEmpty()) {
             BluetoothDevice device = mWaitingList.iterator().next();
             mWaitingList.remove(device);

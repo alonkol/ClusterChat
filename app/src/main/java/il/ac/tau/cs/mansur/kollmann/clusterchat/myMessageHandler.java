@@ -15,7 +15,7 @@ public class myMessageHandler extends Handler {
     public static final int MESSAGE_IN = 0;
     static final int MESSAGE_OUT = 1;
     private final MediaPlayer mMediaPlayerOnNewMessage;
-    private MainActivity mMainActivity;
+    private final MainActivity mMainActivity;
 
     myMessageHandler(MainActivity mainActivity) {
         mMediaPlayerOnNewMessage = MediaPlayer.create(mainActivity, R.raw.open_ended);
@@ -36,10 +36,10 @@ public class myMessageHandler extends Handler {
 
     private void handleOutgoingMessage(Message msg){
         byte[] buffer = (byte[]) msg.obj;
-        byte[] relevant = new byte[buffer.length - 4];
-        System.arraycopy(buffer, 4, relevant, 0, relevant.length);
+        byte[] relevant = new byte[buffer.length - 8];
+        System.arraycopy(buffer, 8, relevant, 0, relevant.length);
         String readMessage = new String(relevant);
-        MessageBundle messageBundle = null;
+        MessageBundle messageBundle;
         try {
             messageBundle = MessageBundle.fromJson(readMessage);
             Log.d(TAG, "Handler caught outgoing bundle " + messageBundle);

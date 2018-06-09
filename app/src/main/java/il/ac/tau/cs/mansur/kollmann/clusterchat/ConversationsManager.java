@@ -1,7 +1,5 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
-import android.text.TextUtils;
-import android.util.JsonReader;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -14,7 +12,6 @@ import java.io.FileReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Observable;
@@ -22,8 +19,8 @@ import java.util.Observer;
 
 class ConversationsManager {
     private final String TAG = "ConversationsManager";
-    private HashMap<DeviceContact, ArrayList<BaseMessage>> mConversations;
-    private HashMap<DeviceContact, AddedMessageFlag> mAddedMessagesFlags;
+    private final HashMap<DeviceContact, ArrayList<BaseMessage>> mConversations;
+    private final HashMap<DeviceContact, AddedMessageFlag> mAddedMessagesFlags;
 
     ConversationsManager(){
         mConversations = new HashMap<>();

@@ -1,12 +1,9 @@
 package il.ac.tau.cs.mansur.kollmann.clusterchat;
 
-import org.mockito.Mock;
-
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class MockNetwork {
-    private HashMap<String, MockDevice> devices;
+    private final HashMap<String, MockDevice> devices;
 
     public MockNetwork(){
         devices = new HashMap<>();

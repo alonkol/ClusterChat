@@ -11,15 +11,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileSender extends Thread {
-    private final String PREFIXTAG = "FileSender-";
+ class FileSender extends Thread {
+    private static final String TAGPREFIX = "FileSender-";
     private final String TAG;
     private final String fileName;
     private final DeliveryMan deliveryMan;
     private final Uri uri;
     private final DeviceContact addressContact;
     private final ContentResolver contentResolver;
-    private ArrayList<MessageBundle> messagesToSend;
+    private final ArrayList<MessageBundle> messagesToSend;
 
     FileSender(DeliveryMan mDeliveryMan, Uri uri, String fileName, DeviceContact addressContact, ContentResolver contentResolver) {
         this.deliveryMan = mDeliveryMan;
@@ -28,13 +28,18 @@ public class FileSender extends Thread {
         this.addressContact = addressContact;
         this.contentResolver = contentResolver;
         this.messagesToSend = new ArrayList<>();
-        TAG = PREFIXTAG + this.addressContact.getDeviceName() + "/" + fileName;
+        TAG = TAGPREFIX + this.addressContact.getDeviceName() + "/" + fileName;
         setName(TAG);
     }
 
     public void run() {
         Log.d(TAG, "Starting to work on " + fileName);
-        prepareMessageBundles();
+        boolean ready = prepareMessageBundles();
+        // If an error occurred while preparing the files
+        if (!ready){
+            sendErrorMessage();
+            return;
+        }
         Log.d(TAG, "Packages are ready, starting to send");
         sendMessages();
         Log.d(TAG, "All done, killing myself");
@@ -49,6 +54,7 @@ public class FileSender extends Thread {
             result = deliveryMan.sendMessage(mb, this.addressContact);
             if (!result){
                 Log.e(TAG, "Couldn't send all messages for file " + fileName);
+                sendErrorMessage();
                 return;
             }
             try {
@@ -60,13 +66,20 @@ public class FileSender extends Thread {
         Log.d(TAG, "Finished sending messages for file " + fileName);
     }
 
-    private void prepareMessageBundles(){
+     private void sendErrorMessage() {
+         Log.d(TAG, "An error occurred in sending the file, alerting in chat");
+         // Alert in the chat window that the file wasn't successfully sent
+         String message = "File " + fileName + " couldn't be sent to target";
+         MainActivity.mConversationManager.addMessage(addressContact,
+                 new BaseMessage(message));
+
+     }
+
+     private boolean prepareMessageBundles(){
         byte[] fileContent;
-        try {
-            fileContent = readBytesFromUri(uri, contentResolver);
-        } catch (IOException e) {
-            Log.e(TAG, "Failed at reading file data: " + uri.toString(), e);
-            return;
+        fileContent = readBytesFromUri(uri, contentResolver);
+        if (fileContent==null) {
+            return false;
         }
         int fileSize = fileContent.length;
         Log.d(TAG, "The file: " + fileName + "has size: " + Integer.toString(fileSize));
@@ -88,13 +101,24 @@ public class FileSender extends Thread {
         // We would like to tell the sending device when the file that he has sent has arrived at its destination
         // so we keep it in a set, and upon ack received for it we will add a message to the chat window
         deliveryMan.addMessageToWaitingForAck(new MessageBundle.PackageIdentifier(messageID, addressContact));
-
+        return true;
     }
 
-    private byte[] readBytesFromUri(Uri uri, ContentResolver contentResolver) throws IOException {
-        InputStream iStream = contentResolver.openInputStream(uri);
-        byte[] fileBytes = getBytes(iStream);
-        iStream.close();
+    private byte[] readBytesFromUri(Uri uri, ContentResolver contentResolver){
+        InputStream iStream;
+        byte[] fileBytes;
+        try {
+            iStream = contentResolver.openInputStream(uri);
+            if (iStream==null){
+                return null;
+            }
+            fileBytes = getBytes(iStream);
+            iStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Failed at reading file data: " + uri.toString(), e);
+            return null;
+        }
+
         return fileBytes;
     }
 
@@ -103,22 +127,20 @@ public class FileSender extends Thread {
         int bufferSize = 1024;
         byte[] buffer = new byte[bufferSize];
 
-        int len = 0;
+        int len;
         while ((len = inputStream.read(buffer)) != -1) {
             byteBuffer.write(buffer, 0, len);
         }
         return byteBuffer.toByteArray();
     }
 
-    private List<byte[]> splitEqually(byte[] testBytes, int pieceSize, int totalSize) {
+    private List<byte[]> splitEqually(byte[] fileBytes, int pieceSize, int totalSize) {
         int current = 0;
         byte[] chunk;
         List <byte[]> chunks = new ArrayList<>();
         while (current<totalSize){
             chunk = new byte[pieceSize];
-            for (int i=current; i < current + pieceSize && i<totalSize; i++){
-                chunk[i % pieceSize] = testBytes[i];
-            }
+            System.arraycopy(fileBytes, current, chunk, 0, Math.min(pieceSize, totalSize-current));
             chunks.add(chunk);
             current+=pieceSize;
         }

@@ -27,11 +27,11 @@ public class BluetoothService {
     public final BluetoothAdapter mAdapter;
 
     static final int MAX_CONNECTED_THREADS = 7;
-    public Semaphore mSemaphore = new Semaphore(MAX_CONNECTED_THREADS);
-    public myMessageHandler mMessageHandler;
+    public final Semaphore mSemaphore = new Semaphore(MAX_CONNECTED_THREADS);
+    public final myMessageHandler mMessageHandler;
     private BluetoothThread mainAcceptThread;
     public final HashMap<DeviceContact, ConnectedThread> mConnectedThreads;
-    public ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<DeviceContact, ConnectThread> mConnectThreads = new ConcurrentHashMap<>();
 
     /**
      * Constructor. Prepares a new BluetoothChat session.
@@ -41,21 +41,12 @@ public class BluetoothService {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mConnectedThreads = new HashMap<>();
 
-        start();
     }
 
-    /**
-     * Start the chat service. Specifically start AcceptThread to begin a
-     * session in listening (server) mode. Called by the Activity onResume()
-     */
-    private synchronized void start() {
-        Log.d(TAG, "start");
-
+    public void startListening() {
         // Start the thread to listen on a BluetoothServerSocket
-        if (MainActivity.LISTENER) {
-            mainAcceptThread = new MainAcceptThread(this);
-            mainAcceptThread.start();
-        }
+        mainAcceptThread = new MainAcceptThread(this);
+        mainAcceptThread.start();
     }
 
     boolean checkIfDeviceConnected(BluetoothDevice device){

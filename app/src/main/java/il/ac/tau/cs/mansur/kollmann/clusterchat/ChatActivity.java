@@ -33,7 +33,7 @@ public class ChatActivity extends AppCompatActivity {
     private EditText mOutEditText;
     private Button mSendButton;
     private Button mSendFileButton;
-    public MessageListAdapter mMessagesAdapter;
+    private MessageListAdapter mMessagesAdapter;
     private StringBuffer mOutStringBuffer;
     private Observer mObserver;
     private DeviceContact mDeviceContact;
@@ -50,17 +50,19 @@ public class ChatActivity extends AppCompatActivity {
             finish();
         }
         Log.d(TAG, String.format("Init chatService for device %s", mDeviceContact.getShortStr()));
-        getSupportActionBar().setTitle(mDeviceContact.getDeviceName());
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        if (actionBar!=null)
+            actionBar.setTitle(mDeviceContact.getDeviceName());
 
-        mMessageRecycler = (RecyclerView) findViewById(R.id.reyclerview_message_list);
+        mMessageRecycler = findViewById(R.id.reyclerview_message_list);
         mMessagesAdapter = new MessageListAdapter(this, new ArrayList<BaseMessage>());
         mMessageRecycler.setAdapter(mMessagesAdapter);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mMessageRecycler.setLayoutManager(layoutManager);
 
-        mOutEditText = (EditText) findViewById(R.id.edittext_chatbox);
-        mSendButton = (Button) findViewById(R.id.button_chatbox_send);
-        mSendFileButton = (Button) findViewById(R.id.button_send_file);
+        mOutEditText = findViewById(R.id.edittext_chatbox);
+        mSendButton = findViewById(R.id.button_chatbox_send);
+        mSendFileButton = findViewById(R.id.button_send_file);
         mCurrentIndex = 0;
         mObserver = new Observer() {
             @Override
@@ -158,7 +160,7 @@ public class ChatActivity extends AppCompatActivity {
     /**
      * The action listener for the EditText widget, to listen for the return key
      */
-    private TextView.OnEditorActionListener mWriteListener
+    private final TextView.OnEditorActionListener mWriteListener
             = new TextView.OnEditorActionListener() {
         public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
             // If the action is a key-up event on the return key, send the message
@@ -188,14 +190,20 @@ public class ChatActivity extends AppCompatActivity {
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.
             // Pull that URI using resultData.getData().
-            Uri uri = null;
+            Uri uri;
             if (resultData != null) {
                 uri = resultData.getData();
+                if (uri == null){
+                    Log.e(TAG, "Can't get uri for file");
+                    return;
+                }
                 Log.i(TAG, "Uri: " + uri.toString());
                 String fileName = getFileName(uri);
-                MainActivity.mConversationManager.addMessage(mDeviceContact,
-                        new BaseMessage("File " + fileName + " is on its way to target...\n" +
-                                "You will be notified when the file has been saved into " + mDeviceContact.getDeviceName() + " device"));
+                String message = "File " + fileName + " is on its way to target...\n" +
+                        "You will be notified when the file has been saved into " + mDeviceContact.getDeviceName() + " device";
+                MainActivity.mConversationManager.addMessage(mDeviceContact, new BaseMessage(message));
+
+                // Start FileSender thread
                 new FileSender(MainActivity.mDeliveryMan, uri, fileName, mDeviceContact, getContentResolver()).start();
             }
         }

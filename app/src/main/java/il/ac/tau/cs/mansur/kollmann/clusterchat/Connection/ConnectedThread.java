@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import il.ac.tau.cs.mansur.kollmann.clusterchat.BluetoothService;
+import il.ac.tau.cs.mansur.kollmann.clusterchat.DeliveryMan;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.DeviceContact;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.MainActivity;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.myMessageHandler;
@@ -18,7 +19,7 @@ import il.ac.tau.cs.mansur.kollmann.clusterchat.myMessageHandler;
  * It handles all incoming and outgoing transmissions.
  */
 public class ConnectedThread extends BluetoothThread {
-    private BluetoothService service;
+    private final BluetoothService service;
     private final BluetoothSocket mmSocket;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
@@ -63,7 +64,7 @@ public class ConnectedThread extends BluetoothThread {
         Log.i(TAG, "BEGIN mConnectedThread");
         MainActivity.mRoutingTable.shareRoutingInfo();
         byte[] buffer;
-        byte[] sizeBuffer = new byte[4];
+        byte[] sizeBuffer = new byte[8];
         int bytes;
         int tmpBytes;
         int packetSize;
@@ -72,10 +73,22 @@ public class ConnectedThread extends BluetoothThread {
         while (true) {
             try {
                 // Read from the InputStream
-                mmInStream.read(sizeBuffer, 0, 4);
+                mmInStream.read(sizeBuffer, 0, 8);
                 packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
                 bytes = 0;
-                buffer = new byte[packetSize];
+                if (packetSize > 2 * DeliveryMan.MAX_BYTES_MESSAGE){
+                    Log.e(TAG, "Size of package is too big, probably some error, " +
+                            "disconnecting so device won't crash");
+                    connectionLost();
+                    break;
+                }
+                try {
+                    buffer = new byte[packetSize];
+                }catch (OutOfMemoryError e){
+                    Log.e(TAG, "Can't allocate bytes, removing this connection", e);
+                    connectionLost();
+                    break;
+                }
                 while (bytes!=packetSize){
                     tmpBytes = mmInStream.read(buffer, bytes, packetSize-bytes);
                     bytes += tmpBytes;

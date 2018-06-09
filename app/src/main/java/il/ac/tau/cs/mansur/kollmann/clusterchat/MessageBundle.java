@@ -7,10 +7,10 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class MessageBundle{
-    private String message;
-    private MessageTypes messageType;
-    private DeviceContact sender;
-    private DeviceContact receiver;
+    private final String message;
+    private final MessageTypes messageType;
+    private final DeviceContact sender;
+    private final DeviceContact receiver;
     private Integer ttl;
     private Integer messageID;
     private HashMap<String, String> metadata;
@@ -114,8 +114,8 @@ public class MessageBundle{
     }
 
     public static class PackageIdentifier{
-        private Integer messageID;
-        private DeviceContact deviceContact;
+        private final Integer messageID;
+        private final DeviceContact deviceContact;
 
         PackageIdentifier(Integer messageID, DeviceContact deviceContact) {
             this.messageID = messageID;

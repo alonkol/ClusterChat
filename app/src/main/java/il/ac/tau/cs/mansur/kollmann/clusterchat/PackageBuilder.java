@@ -7,46 +7,69 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 
-public class PackageBuilder extends Thread{
-    public final String TAG = "PackageBuilder";
+class PackageBuilder extends Thread{
+    private final static String TAG = "PackageBuilder";
     private final MediaPlayer mMediaPlayerOnNewMessage;
-    private HashMap<MessageBundle.PackageIdentifier, ArrayList<MessageBundle>> constructionPackages;
-    private MainActivity mainActivity;
+    private final HashMap<MessageBundle.PackageIdentifier, ArrayList<MessageBundle>> constructionPackages;
+    private final MainActivity mainActivity;
+    private final HashMap<MessageBundle.PackageIdentifier, Long> packageTimes;
 
-    public PackageBuilder(MainActivity mainActivity){
-        constructionPackages = new HashMap<>();
+    PackageBuilder(MainActivity mainActivity){
         this.mainActivity = mainActivity;
+        constructionPackages = new HashMap<>();
         mMediaPlayerOnNewMessage = MediaPlayer.create(mainActivity, R.raw.open_ended);
+        packageTimes = new HashMap<>();
         setName("PackageBuilder");
     }
 
     public void start() {
         MessageBundle mb;
+        // This will die when the main thread is destroyed
         while (true){
             mb = MainActivity.packageQueue.getPackage();
             while (mb != null){
                 processPackage(mb);
                 mb = MainActivity.packageQueue.getPackage();
-
             }
-
+            cleanUpLostPackages();
             try {
-                sleep(500);
+                sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void processPackage(MessageBundle mb){
+     private void cleanUpLostPackages() {
+        long now = Calendar.getInstance().getTime().getTime();
+        ArrayList<MessageBundle.PackageIdentifier> identifiersToRemove = new ArrayList<>();
+        for (Map.Entry<MessageBundle.PackageIdentifier, Long> entry: packageTimes.entrySet()){
+            Long packageLastTime = entry.getValue();
+            long diffInSeconds = (now - packageLastTime) / 1000;
+            if (diffInSeconds > 100){
+                identifiersToRemove.add(entry.getKey());
+            }
+        }
+        for (MessageBundle.PackageIdentifier pi: identifiersToRemove){
+            Log.d(TAG, "Removing " + pi + " since its been long since last package arrived");
+            packageTimes.remove(pi);
+            constructionPackages.remove(pi);
+        }
+
+     }
+
+     private void processPackage(MessageBundle mb){
         Log.d(TAG, "Processing package " + mb);
         MessageBundle.PackageIdentifier packageIdentifier = mb.getIdentifier();
         if (!constructionPackages.containsKey(packageIdentifier)){
             constructionPackages.put(packageIdentifier, new ArrayList<MessageBundle>());
         }
         constructionPackages.get(packageIdentifier).add(mb);
+        packageTimes.put(packageIdentifier, Calendar.getInstance().getTime().getTime());
         checkIfPackageComplete(packageIdentifier);
 
     }
@@ -65,6 +88,7 @@ public class PackageBuilder extends Thread{
         }
         Log.d(TAG, "Completed package for " + packageIdentifier);
         constructionPackages.remove(packageIdentifier);
+        packageTimes.remove(packageIdentifier);
 
         byte[] fileBytes = new byte[totalPackages * DeliveryMan.MAX_BYTES_MESSAGE];
         for (int i=0; i<totalPackages; i++){

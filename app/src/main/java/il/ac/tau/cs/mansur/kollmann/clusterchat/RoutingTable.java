@@ -3,21 +3,19 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import android.os.Handler;
 import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class RoutingTable {
     private static final String TAG="RoutingTable";
     private static final Integer INFINITY_HOP_COUNT = 15;
     private final Handler mUiConnectHandler;
-    private HashMap<DeviceContact, DeviceContact> mtable;
-    private HashMap<DeviceContact, HashSet<DeviceContact>> linkToDevicesTable;
-    private HashMap<DeviceContact, Integer> hopCounts;
-    private MainActivity mMainActivity;
+    private final HashMap<DeviceContact, DeviceContact> mtable;
+    private final HashMap<DeviceContact, HashSet<DeviceContact>> linkToDevicesTable;
+    private final HashMap<DeviceContact, Integer> hopCounts;
+    private final MainActivity mMainActivity;
 
     RoutingTable(MainActivity mainActivity){
         mtable = new HashMap<>();
@@ -31,12 +29,12 @@ public class RoutingTable {
         return mtable.get(deviceContact);
     }
 
-    public HashSet<DeviceContact> getAllDevicesForLink(DeviceContact dc){
+    private HashSet<DeviceContact> getAllDevicesForLink(DeviceContact dc){
         HashSet<DeviceContact> devices = linkToDevicesTable.get(dc);
         if (devices==null){
             return new HashSet<>();
         }
-        return devices;
+        return new HashSet<>(devices);
     }
 
     private void addDeviceToTable(DeviceContact deviceContact, DeviceContact linkDevice,
@@ -80,14 +78,18 @@ public class RoutingTable {
         removeDeviceFromTable(deviceContact, true, true);
     }
 
-    public void removeDeviceFromTable(DeviceContact deviceContact, boolean removeFromUI,
+    private void removeDeviceFromTable(DeviceContact deviceContact, boolean removeFromUI,
                                       boolean finalize){
+        if (!mtable.containsKey(deviceContact))
+            return;
         DeviceContact link = mtable.get(deviceContact);
         mtable.remove(deviceContact);
         hopCounts.remove(deviceContact);
-        linkToDevicesTable.get(link).remove(deviceContact);
-        if (linkToDevicesTable.get(link).isEmpty()) {
-            linkToDevicesTable.remove(link);
+        if (linkToDevicesTable.containsKey(link)) {
+            linkToDevicesTable.get(link).remove(deviceContact);
+            if (linkToDevicesTable.get(link).isEmpty()) {
+                linkToDevicesTable.remove(link);
+            }
         }
         if (removeFromUI) {
             removeDeviceFromUI(deviceContact);
@@ -173,18 +175,23 @@ public class RoutingTable {
         return new HashSet<>(linkToDevicesTable.keySet());
     }
 
-    public String createRoutingData(DeviceContact recieverContact){
+    public String createRoutingData(DeviceContact receiverContact){
         StringBuilder routingData = new StringBuilder();
         String deviceInfo;
-        for (Map.Entry<DeviceContact, HashSet<DeviceContact>> entry: linkToDevicesTable.entrySet()){
-            DeviceContact l = entry.getKey();
-            if (l.equals(recieverContact)){
+        Set<DeviceContact> neighbours = getAllNeighboursConnectedDevices();
+        for (DeviceContact l: neighbours){
+            if (l.equals(receiverContact)){
                 continue;
             }
-            HashSet<DeviceContact> devices = entry.getValue();
+            HashSet<DeviceContact> devices = linkToDevicesTable.get(l);
+            if (devices==null)
+                continue;
             for (DeviceContact dc: devices){
+                Integer hopCount = hopCounts.get(dc);
+                if (hopCount==null)
+                    continue;
                 deviceInfo = String.format("%s#~#%s#~#%s",
-                        dc.getDeviceId(), dc.getDeviceName(), Integer.toString(hopCounts.get(dc)));
+                        dc.getDeviceId(), dc.getDeviceName(), Integer.toString(hopCount));
                 routingData.append(deviceInfo).append(",");
             }
         }
@@ -240,7 +247,7 @@ public class RoutingTable {
         return changeHappened;
     }
 
-    public void removeDeviceFromUI(final DeviceContact deviceContact){
+    private void removeDeviceFromUI(final DeviceContact deviceContact){
         // Update UI
         mUiConnectHandler.post(new Runnable() {
             public void run() {
@@ -249,7 +256,7 @@ public class RoutingTable {
         });
     }
 
-    public void addDeviceToUI(final DeviceContact deviceContact){
+    private void addDeviceToUI(final DeviceContact deviceContact){
         // Update UI
         mUiConnectHandler.post(new Runnable() {
             public void run() {

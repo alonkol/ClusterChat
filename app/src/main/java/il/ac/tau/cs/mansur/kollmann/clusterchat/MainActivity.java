@@ -59,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/addDeviceToWaitingList
     public static final boolean LEVEL_ROUTING_FLAG = false;
-    public static final boolean LISTENER = true;
-    public static final boolean CONNECTOR = true;
+    private static final boolean LISTENER = true;
+    private static final boolean CONNECTOR = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,16 +133,12 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
 
+        mRoutingTable = new RoutingTable(this);
+        mConversationManager = new ConversationsManager();
         mDeliveryMan = new DeliveryMan();
         mBluetoothService = new BluetoothService(this);
         mReceiver = new myBroadcastReceiver(mBluetoothService, this);
         this.registerReceiver(mReceiver, filter);
-
-        if (CONNECTOR)
-            startPeriodicDiscovery();
-
-        mConversationManager = new ConversationsManager();
-        mRoutingTable = new RoutingTable(this);
 
         getMessagesFromHistory();
         // the address will update on first handshake
@@ -155,10 +151,24 @@ public class MainActivity extends AppCompatActivity {
         packageQueue = new PackageQueue();
         startPackageBuilder();
 
-        if (LEVEL_ROUTING_FLAG){
-            getSupportActionBar().setTitle("ClusterChat - " + myDeviceContact.getDeviceName());
-        }
+        // start discovery and listener
+        if (LISTENER)
+            mBluetoothService.startListening();
+        if (CONNECTOR)
+            startPeriodicDiscovery();
 
+        startPeriodicGarbageCollection();
+
+    }
+
+    private void startPeriodicGarbageCollection() {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d("GC", "Garbage collection was invoked...");
+                System.gc();
+            }
+        }, 3 * 60 * 1000, 3 * 60 * 1000);
     }
 
     public static Integer getNewMessageID(){
@@ -167,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         return runningMessageID;
     }
 
-    void startPackageBuilder(){
+    private void startPackageBuilder(){
         new Timer().schedule(new TimerTask() {
 
             @Override
@@ -177,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         }, 1000);
     }
 
-    void startPeriodicDiscovery() {
+    private void startPeriodicDiscovery() {
         new Timer().schedule(new TimerTask() {
             final String TIMER_TAG = "TIMER";
             @Override
@@ -192,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
-        }, 2 * 1000, 60 * 1000);
+        }, 5 * 1000, 30 * 1000);
     }
 
     // Adding device to UI
@@ -253,14 +263,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void getMessagesFromHistory(){
+    private void getMessagesFromHistory(){
         File dir = getDir("Conversations", MODE_PRIVATE);
         for (File contact: dir.listFiles()) {
             mConversationManager.addMessagesFromHistory(contact);
         }
     }
 
-    public void writeHistoryToFiles(){
+    private void writeHistoryToFiles(){
         // Create directory if missing
         File dir = getDir("Conversations", MODE_PRIVATE);
         mConversationManager.writeMessagesToFiles(dir);
@@ -291,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * The on-click listener for all devices in the ListViews
      */
-    private AdapterView.OnItemClickListener mDeviceClickListener  = new AdapterView.OnItemClickListener() {
+    private final AdapterView.OnItemClickListener mDeviceClickListener  = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             // Access user from within the tag
@@ -305,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private MenuItem.OnMenuItemClickListener mBroadcastMessageClickListener = new MenuItem.OnMenuItemClickListener() {
+    private final MenuItem.OnMenuItemClickListener mBroadcastMessageClickListener = new MenuItem.OnMenuItemClickListener() {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
@@ -349,7 +359,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        this.unregisterReceiver(mReceiver);
+        try {
+            this.unregisterReceiver(mReceiver);
+        }catch (RuntimeException e){
+            e.printStackTrace();
+        }
         Log.d(TAG, "Writing History to files ");
         writeHistoryToFiles();
     }

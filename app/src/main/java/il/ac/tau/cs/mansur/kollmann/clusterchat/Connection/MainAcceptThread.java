@@ -18,7 +18,7 @@ import il.ac.tau.cs.mansur.kollmann.clusterchat.MessageTypes;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.myMessageHandler;
 
 public class MainAcceptThread extends BluetoothThread {
-    private BluetoothService service;
+    private final BluetoothService service;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
 
@@ -131,13 +131,13 @@ public class MainAcceptThread extends BluetoothThread {
 
     private boolean readHS(){
         byte[] buffer;
-        byte[] sizeBuffer = new byte[4];
+        byte[] sizeBuffer = new byte[8];
         int bytes;
         int tmpBytes;
         int packetSize;
 
         try {
-            mmInStream.read(sizeBuffer, 0, 4);
+            mmInStream.read(sizeBuffer, 0, 8);
             packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
             bytes = 0;
             buffer = new byte[4096];

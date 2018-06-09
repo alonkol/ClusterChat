@@ -3,8 +3,8 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import android.bluetooth.BluetoothDevice;
 
 public class DeviceContact {
-    private String deviceId;
-    private String deviceName;
+    private final String deviceId;
+    private final String deviceName;
     private int unreadMessages = 0;
 
     public DeviceContact(BluetoothDevice device) {

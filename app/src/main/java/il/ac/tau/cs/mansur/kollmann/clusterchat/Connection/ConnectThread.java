@@ -23,13 +23,13 @@ import il.ac.tau.cs.mansur.kollmann.clusterchat.myMessageHandler;
  * succeeds or fails.
  */
 public class ConnectThread extends BluetoothThread {
-    private BluetoothService service;
+    private final BluetoothService service;
     private BluetoothSocket mmInitSocket;
     private final BluetoothDevice mmDevice;
     private final DeviceContact mmContact;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
-    private UUID mainConnectionUUID;
+    private final UUID mainConnectionUUID;
     public UUID mmUuid;
 
     // Debugging
@@ -121,13 +121,13 @@ public class ConnectThread extends BluetoothThread {
 
     private boolean readHandshake() {
         byte[] buffer;
-        byte[] sizeBuffer = new byte[4];
+        byte[] sizeBuffer = new byte[8];
         int bytes;
         int tmpBytes;
         int packetSize;
         try {
             // Read UUID from inputStream
-            mmInStream.read(sizeBuffer, 0, 4);
+            mmInStream.read(sizeBuffer, 0, 8);
             packetSize = ByteBuffer.wrap(sizeBuffer).getInt();
             bytes = 0;
             buffer = new byte[4096];

@@ -3,10 +3,10 @@ package il.ac.tau.cs.mansur.kollmann.clusterchat;
 import java.util.ArrayList;
 
 public class MockDevice {
-    private ArrayList<String> messages;
-    private RoutingTable routingTable;
-    DeviceContact deviceContact;
-    private MockNetwork network;
+    private final ArrayList<String> messages;
+    private final RoutingTable routingTable;
+    final DeviceContact deviceContact;
+    private final MockNetwork network;
 
     public MockDevice(String id, MockNetwork network){
         this.deviceContact = new DeviceContact(id, id);
@@ -44,7 +44,7 @@ public class MockDevice {
         nextHopDevice.recieveMessage(this, msg);
     }
 
-    public void recieveMessage(MockDevice sender, MessageBundle msg){
+    private void recieveMessage(MockDevice sender, MessageBundle msg){
         System.out.println(String.format("%s recieved messege %s from %s", this, msg, sender));
         messages.add(msg.getMessage());
         handleIncomingMessage(msg);

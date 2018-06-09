@@ -10,8 +10,8 @@ import java.util.UUID;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.BluetoothService;
 import il.ac.tau.cs.mansur.kollmann.clusterchat.DeviceContact;
 
-public class DedicatedAcceptThread extends BluetoothThread {
-    private BluetoothService service;
+ class DedicatedAcceptThread extends BluetoothThread {
+    private final BluetoothService service;
     private final UUID mmUuid;
     private final DeviceContact mmContact;
 
