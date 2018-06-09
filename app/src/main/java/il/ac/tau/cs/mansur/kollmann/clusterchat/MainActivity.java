@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
     private static final Integer MAXIMUM_MESSAGE_ID = 1000000;
     static final int REQUEST_ENABLE_BT = 3;
     private MediaPlayer mMediaPlayerOnConnect;
-    private MediaPlayer mMediaPlayerOnDisconnect;
 
     // This flag is used to create complex network
     // Full explanation is found under myBroadcastReceiver/addDeviceToWaitingList
@@ -69,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         mainActivity = this;
 
         mMediaPlayerOnConnect = MediaPlayer.create(this, R.raw.light);
-        mMediaPlayerOnDisconnect = MediaPlayer.create(this, R.raw.case_closed);
 
         // Request bluetooth permissions
         ActivityCompat.requestPermissions(this,new String[]{
@@ -202,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TIMER_TAG, "All locks acquired. Discovering...");
                 mBluetoothService.mAdapter.startDiscovery();
             }
-        }, 5 * 1000, 30 * 1000);
+        }, 5 * 1000, 60 * 1000);
     }
 
     // Adding device to UI
@@ -252,13 +250,6 @@ public class MainActivity extends AppCompatActivity {
     public void removeDeviceFromUi(DeviceContact deviceContact) {
         if (mConnectedDevicesArrayAdapter.getPosition(deviceContact) != -1) {
             mConnectedDevicesArrayAdapter.remove(deviceContact);
-
-            // Play disconnection sound
-            try {
-                mMediaPlayerOnDisconnect.start();
-            } catch (Exception e) {
-                // ignore
-            }
         }
 
     }
