@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         mConversationManager = new ConversationsManager();
         mDeliveryMan = new DeliveryMan();
         mBluetoothService = new BluetoothService(this);
-        mReceiver = new myBroadcastReceiver(mBluetoothService, this);
+        mReceiver = new myBroadcastReceiver(mBluetoothService, this, this.CONNECTOR);
         this.registerReceiver(mReceiver, filter);
 
         getMessagesFromHistory();

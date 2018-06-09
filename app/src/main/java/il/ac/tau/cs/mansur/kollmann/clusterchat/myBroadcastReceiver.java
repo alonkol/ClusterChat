@@ -19,11 +19,15 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     private final BluetoothService mBluetoothService;
     private final MainActivity mMainActivity;
     private final HashSet<BluetoothDevice> mWaitingList;
+    private final boolean allowConnect;
 
-    public myBroadcastReceiver(BluetoothService bluetoothService, MainActivity mainActivity){
+    public myBroadcastReceiver(BluetoothService bluetoothService, MainActivity mainActivity,
+                               boolean allowConnect){
         mBluetoothService = bluetoothService;
         mMainActivity = mainActivity;
         mWaitingList = new HashSet<>();
+        this.allowConnect = allowConnect;
+
     }
 
     private void addDeviceToWaitingList(BluetoothDevice device){
@@ -113,16 +117,22 @@ public class myBroadcastReceiver extends BroadcastReceiver {
 
         switch (action) {
             case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                if (!allowConnect)
+                    break;
                 Log.d(TAG, "Discovery finished starting to handle waiting list");
                 handleWaitingList();
                 break;
             case BluetoothDevice.ACTION_FOUND:
+                if (!allowConnect)
+                    break;
                 // When discovery finds a device
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 addDeviceToWaitingList(device);
                 break;
             case BluetoothDevice.ACTION_UUID:
+                if (!allowConnect)
+                    break;
                 // we fetched for all the UUID and check if ours is in it
                 BluetoothDevice deviceExtra = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);

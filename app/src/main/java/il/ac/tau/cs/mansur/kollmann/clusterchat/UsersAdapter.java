@@ -48,6 +48,9 @@ import java.util.ArrayList;
     }
 
     void newMessage(DeviceContact sender) {
+        int pos = getPosition(sender);
+        if (pos == -1)
+            return;
         DeviceContact stored_contact = getItem(getPosition(sender));
         if (stored_contact==null)
             return;
